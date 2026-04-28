@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@theme {
+	--color-oxblood: #990000;
+	--color-cool-sky: #48acf0;
+	--color-white-pure: #ffffff;
+	--color-ink: #101828;
+	--color-mist: #eef2ff;
+	--color-sand: #fff7ed;
+}
+
+:root {
+	font-family: "Space Grotesk", "Segoe UI Variable", "Trebuchet MS", sans-serif;
+	line-height: 1.5;
+	font-weight: 400;
+	color: var(--color-ink);
+	background:
+		radial-gradient(circle at top left, rgba(72, 172, 240, 0.18), transparent 32%),
+		radial-gradient(circle at bottom right, rgba(153, 0, 0, 0.16), transparent 24%),
+		linear-gradient(135deg, #f8fafc 0%, #eef2ff 45%, #fff7ed 100%);
+
+	font-synthesis: none;
+	text-rendering: optimizeLegibility;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+body {
+	margin: 0;
+	min-height: 100vh;
+}
+
+#root {
+	min-height: 100vh;
+}
+
+button,
+input {
+	font: inherit;
+}
