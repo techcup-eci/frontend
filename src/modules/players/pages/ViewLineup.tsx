@@ -1,0 +1,130 @@
+import Navbar from "../../../shared/components/shared/Navbar";
+import Sidebar from "../../../shared/components/shared/Sidebar";
+import { Home, User, Users, Trophy, BarChart3, Calendar } from "lucide-react";
+
+const playerSidebar = [
+  {
+    items: [
+      { label: "Inicio", path: "/player/dashboard", icon: Home },
+      { label: "Mi Perfil", path: "/player/profile", icon: User },
+      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
+      { label: "Torneo", path: "/tournament-info", icon: Trophy },
+      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
+      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
+    ],
+  },
+];
+
+const lineup = [
+  { id: 1, name: "Carlos Muñoz", dorsal: 1, position: "Portero", top: "85%", left: "50%" },
+  { id: 2, name: "Diego Fernández", dorsal: 3, position: "Lateral Izquierdo", top: "65%", left: "15%" },
+  { id: 3, name: "Miguel Castro", dorsal: 5, position: "Defensa Central", top: "70%", left: "40%" },
+  { id: 4, name: "Camila Herrera", dorsal: 4, position: "Defensa Central", top: "70%", left: "60%" },
+  { id: 5, name: "Laura Gómez", dorsal: 2, position: "Lateral Derecho", top: "65%", left: "85%" },
+  { id: 6, name: "Juan Pablo Rojas", dorsal: 6, position: "Mediocampista", top: "45%", left: "20%" },
+  { id: 7, name: "Sebastián Torres", dorsal: 8, position: "Mediocampista", top: "45%", left: "45%" },
+  { id: 8, name: "Andrés López", dorsal: 14, position: "Mediocampista", top: "45%", left: "55%" },
+  { id: 9, name: "Valentina Ruiz", dorsal: 11, position: "Mediocampista", top: "45%", left: "80%" },
+  { id: 10, name: "Andrea Ramírez", dorsal: 10, position: "Delantero", top: "20%", left: "40%" },
+  { id: 11, name: "Felipe Vargas", dorsal: 9, position: "Delantero", top: "20%", left: "60%" },
+];
+
+export default function ViewLineup() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar userName="Sebastián Torres" role="Jugador" />
+      <div className="flex flex-1">
+        <Sidebar sections={playerSidebar} />
+        <main className="flex-1 bg-background p-8">
+          <div className="mx-auto max-w-6xl space-y-8">
+            <div>
+              <h1 className="mb-2 text-3xl font-bold">Alineación de Los Algoritmos FC</h1>
+              <p className="text-muted-foreground">Formación 4-4-2 para el próximo partido</p>
+            </div>
+
+            <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
+              {/* Campo de fútbol */}
+              <div className="rounded-xl border border-border bg-card p-6">
+                <div className="relative h-[700px] overflow-hidden rounded-xl border-4 border-white bg-gradient-to-b from-[#4ADE80] to-[#22C55E]">
+                  {/* Líneas del campo */}
+                  <div className="absolute inset-0">
+                    {/* Línea central */}
+                    <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 bg-white"></div>
+                    {/* Círculo central */}
+                    <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"></div>
+                    {/* Área superior */}
+                    <div className="absolute left-1/2 top-0 h-20 w-48 -translate-x-1/2 border-2 border-b-0 border-white"></div>
+                    {/* Área inferior */}
+                    <div className="absolute bottom-0 left-1/2 h-20 w-48 -translate-x-1/2 border-2 border-t-0 border-white"></div>
+                  </div>
+
+                  {/* Jugadores */}
+                  {lineup.map((player) => (
+                    <div
+                      key={player.id}
+                      className="absolute -translate-x-1/2 -translate-y-1/2"
+                      style={{ top: player.top, left: player.left }}
+                    >
+                      <div
+                        className={`flex h-16 w-16 flex-col items-center justify-center rounded-full border-4 border-white shadow-lg ${
+                          player.name === "Sebastián Torres"
+                            ? "bg-accent ring-4 ring-accent/50"
+                            : "bg-primary"
+                        } text-xs font-bold text-white`}
+                      >
+                        <div className="text-2xl">{player.dorsal}</div>
+                      </div>
+                      <div className="absolute -bottom-8 left-1/2 w-32 -translate-x-1/2 text-center text-xs font-bold text-white drop-shadow-lg">
+                        {player.name.split(" ")[0]}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lista de jugadores */}
+              <div className="space-y-4">
+                <div className="rounded-xl border border-border bg-card p-6">
+                  <h2 className="mb-4 text-xl font-bold">Titulares (11)</h2>
+                  <div className="space-y-2">
+                    {lineup.map((player) => (
+                      <div
+                        key={player.id}
+                        className={`flex items-center gap-3 rounded-lg border p-3 ${
+                          player.name === "Sebastián Torres"
+                            ? "border-accent bg-accent/10"
+                            : "border-border bg-background"
+                        }`}
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                          {player.dorsal}
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-semibold">{player.name}</p>
+                          <p className="text-xs text-muted-foreground">{player.position}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border bg-card p-6">
+                  <h2 className="mb-4 text-xl font-bold">Suplentes (1)</h2>
+                  <div className="flex items-center gap-3 rounded-lg border border-border bg-background p-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
+                      12
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold">María Sánchez</p>
+                      <p className="text-xs text-muted-foreground">Mediocampista</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
