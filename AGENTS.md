@@ -163,14 +163,9 @@ Example:
 
 features/auth/services/authService.ts
 
-Components must never directly call fetch/axios.
+Components must never directly call axios.
 
-Use hooks to wrap service calls.
-
-Example:
-
-useLogin()
-useRegister()
+Use tansktack query for http request with axios
 
 ---
 

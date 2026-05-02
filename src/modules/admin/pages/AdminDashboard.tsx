@@ -25,9 +25,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar userName="Laura González" role="Administrador" />
+      
       <div className="flex flex-1">
-        <Sidebar sections={adminSidebar} />
+        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             <div>

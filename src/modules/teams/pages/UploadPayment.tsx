@@ -75,9 +75,9 @@ export default function UploadPayment() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar userName="Felipe Jiménez" role="Capitán" />
+      
       <div className="flex flex-1">
-        <Sidebar sections={captainSidebar} />
+        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-4xl space-y-8">
             <div>

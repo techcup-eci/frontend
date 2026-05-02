@@ -19,9 +19,9 @@ const playerSidebar = [
 export default function PlayerDashboard() {
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar userName="Sebastián Torres" role="Jugador" />
+      
       <div className="flex flex-1">
-        <Sidebar sections={playerSidebar} />
+        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             {/* Bienvenida */}

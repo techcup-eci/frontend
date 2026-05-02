@@ -45,9 +45,9 @@ export default function RefereeDashboard() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar userName="Carlos Martínez" role="Árbitro" />
+      
       <div className="flex flex-1">
-        <Sidebar sections={refereeSidebar} />
+        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             <div>

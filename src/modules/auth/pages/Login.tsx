@@ -25,15 +25,15 @@ export default function Login() {
   return (
     <div className="flex min-h-screen">
       {/* Panel izquierdo */}
-      <div className="hidden w-1/2 bg-gradient-to-br from-[#1B5E35] to-[#0D0D0D] lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
+      <div className="hidden w-1/2 bg-gradient-to-br from-[var(--color-ink)] via-[var(--color-oxblood)] to-[var(--color-ink)] lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-center">
           <div className="mb-6 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/10">
-              <Trophy className="h-10 w-10 text-[#F97316]" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/10 shadow-lg backdrop-blur-sm">
+              <Trophy className="h-10 w-10 text-[var(--color-sand)]" />
             </div>
           </div>
-          <h1 className="mb-4 text-4xl font-black text-white">TechCup Fútbol</h1>
-          <p className="text-xl text-white/80">Bienvenido de vuelta al torneo más emocionante</p>
+          <h1 className="mb-4 text-4xl font-black text-white tracking-tight">TechCup Fútbol</h1>
+          <p className="text-xl text-[var(--color-mist)]">Bienvenido de vuelta al torneo más emocionante</p>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export default function Login() {
                   setFormData({ ...formData, email: e.target.value });
                   setError("");
                 }}
-                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                 placeholder="correo@escuelaing.edu.co"
               />
             </div>
@@ -77,14 +77,14 @@ export default function Login() {
                   setFormData({ ...formData, password: e.target.value });
                   setError("");
                 }}
-                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                 placeholder="Tu contraseña"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
+              className="w-full rounded-lg bg-[var(--color-oxblood)] px-4 py-3 font-semibold text-[var(--color-white-pure)] shadow-md transition-all hover:bg-opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none"
             >
               Ingresar
             </button>
@@ -92,7 +92,7 @@ export default function Login() {
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             ¿No tienes cuenta?{" "}
-            <Link to="/register" className="font-semibold text-primary hover:underline">
+            <Link to="/register" className="font-semibold text-[var(--color-cool-sky)] hover:underline transition-all">
               Regístrate
             </Link>
           </p>

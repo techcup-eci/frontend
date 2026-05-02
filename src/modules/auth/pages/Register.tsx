@@ -48,15 +48,15 @@ export default function Register() {
   return (
     <div className="flex min-h-screen">
       {/* Panel izquierdo */}
-      <div className="hidden w-1/2 bg-gradient-to-br from-[#1B5E35] to-[#0D0D0D] lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
+      <div className="hidden w-1/2 bg-gradient-to-br from-[var(--color-ink)] via-[var(--color-oxblood)] to-[var(--color-ink)] lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-center">
           <div className="mb-6 flex justify-center">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/10">
-              <Trophy className="h-10 w-10 text-[#F97316]" />
+            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/10 shadow-lg backdrop-blur-sm">
+              <Trophy className="h-10 w-10 text-[var(--color-sand)]" />
             </div>
           </div>
-          <h1 className="mb-4 text-4xl font-black text-white">TechCup Fútbol</h1>
-          <p className="text-xl text-white/80">Únete al torneo más emocionante de la ECI</p>
+          <h1 className="mb-4 text-4xl font-black text-white tracking-tight">TechCup Fútbol</h1>
+          <p className="text-xl text-[var(--color-mist)]">Únete al torneo más emocionante de la ECI</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export default function Register() {
                 required
                 value={formData.fullName}
                 onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                 placeholder="Juan Pérez García"
               />
             </div>
@@ -88,7 +88,7 @@ export default function Register() {
                 required
                 value={formData.identification}
                 onChange={(e) => setFormData({ ...formData, identification: e.target.value })}
-                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                 placeholder="1234567890"
               />
             </div>
@@ -103,14 +103,14 @@ export default function Register() {
                   setFormData({ ...formData, email: e.target.value });
                   if (errors.email) setErrors({ ...errors, email: "" });
                 }}
-                className={`w-full rounded-lg border px-4 py-3 focus:outline-none ${
+                className={`w-full rounded-lg border px-4 py-3 text-[var(--color-ink)] focus:outline-none transition-all ${
                   errors.email
-                    ? "border-[#EF4444] bg-[#EF4444]/5 focus:border-[#EF4444]"
-                    : "border-border bg-input-background focus:border-primary"
+                    ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-1 focus:ring-destructive"
+                    : "border-border bg-[var(--color-mist)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)]"
                 }`}
                 placeholder="correo@escuelaing.edu.co"
               />
-              {errors.email && <p className="mt-1 text-sm text-[#EF4444]">{errors.email}</p>}
+              {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
               <p className="mt-1 text-sm text-muted-foreground">
                 Solo se aceptan correos @escuelaing.edu.co o @gmail.com
               </p>
@@ -126,14 +126,14 @@ export default function Register() {
                   setFormData({ ...formData, password: e.target.value });
                   if (errors.password) setErrors({ ...errors, password: "" });
                 }}
-                className={`w-full rounded-lg border px-4 py-3 focus:outline-none ${
+                className={`w-full rounded-lg border px-4 py-3 text-[var(--color-ink)] focus:outline-none transition-all ${
                   errors.password
-                    ? "border-[#EF4444] bg-[#EF4444]/5 focus:border-[#EF4444]"
-                    : "border-border bg-input-background focus:border-primary"
+                    ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-1 focus:ring-destructive"
+                    : "border-border bg-[var(--color-mist)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)]"
                 }`}
                 placeholder="Mínimo 8 caracteres"
               />
-              {errors.password && <p className="mt-1 text-sm text-[#EF4444]">{errors.password}</p>}
+              {errors.password && <p className="mt-1 text-sm text-destructive">{errors.password}</p>}
             </div>
 
             <div>
@@ -146,15 +146,15 @@ export default function Register() {
                   setFormData({ ...formData, confirmPassword: e.target.value });
                   if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: "" });
                 }}
-                className={`w-full rounded-lg border px-4 py-3 focus:outline-none ${
+                className={`w-full rounded-lg border px-4 py-3 text-[var(--color-ink)] focus:outline-none transition-all ${
                   errors.confirmPassword
-                    ? "border-[#EF4444] bg-[#EF4444]/5 focus:border-[#EF4444]"
-                    : "border-border bg-input-background focus:border-primary"
+                    ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-1 focus:ring-destructive"
+                    : "border-border bg-[var(--color-mist)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)]"
                 }`}
                 placeholder="Repite tu contraseña"
               />
               {errors.confirmPassword && (
-                <p className="mt-1 text-sm text-[#EF4444]">{errors.confirmPassword}</p>
+                <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>
               )}
             </div>
 
@@ -168,7 +168,7 @@ export default function Register() {
                   max="100"
                   value={formData.age}
                   onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                   placeholder="18"
                 />
               </div>
@@ -179,7 +179,7 @@ export default function Register() {
                   required
                   value={formData.gender}
                   onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                  className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                  className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                 >
                   <option value="">Selecciona</option>
                   <option value="masculino">Masculino</option>
@@ -192,7 +192,7 @@ export default function Register() {
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
+              className="w-full rounded-lg bg-[var(--color-oxblood)] px-4 py-3 font-semibold text-[var(--color-white-pure)] shadow-md transition-all hover:bg-opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none"
             >
               Crear cuenta
             </button>
@@ -200,7 +200,7 @@ export default function Register() {
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
             ¿Ya tienes cuenta?{" "}
-            <Link to="/login" className="font-semibold text-primary hover:underline">
+            <Link to="/login" className="font-semibold text-[var(--color-cool-sky)] hover:underline transition-all">
               Inicia sesión
             </Link>
           </p>

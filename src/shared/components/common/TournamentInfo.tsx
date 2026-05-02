@@ -22,10 +22,9 @@ export default function TournamentInfo() {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar userName="Sebastián Torres" role="Jugador" />
-      <main className="p-8">
-        <div className="mx-auto max-w-4xl space-y-8">
+		<div className="min-h-screen bg-background">
+			<main className="p-8">
+				<div className="mx-auto max-w-4xl space-y-8">
           <div>
             <h1 className="mb-2 text-3xl font-bold">Información del Torneo</h1>
             <p className="text-muted-foreground">TechCup 2025-1 - Conoce todas las reglas y fechas importantes</p>

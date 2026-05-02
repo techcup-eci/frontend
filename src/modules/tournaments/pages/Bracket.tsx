@@ -56,9 +56,9 @@ export default function Bracket() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Navbar userName="María Rodríguez" role="Organizador" />
+      
       <div className="flex flex-1">
-        <Sidebar sections={organizerSidebar} />
+        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             <div className="flex items-center justify-between">

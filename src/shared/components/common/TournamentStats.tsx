@@ -42,7 +42,6 @@ export default function TournamentStats() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar userName="Sebastián Torres" role="Jugador" />
       <main className="p-8">
         <div className="mx-auto max-w-7xl space-y-8">
           <div>
