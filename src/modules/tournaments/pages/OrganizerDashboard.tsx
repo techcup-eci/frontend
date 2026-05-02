@@ -10,8 +10,6 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import Badge from "../../../shared/components/shared/Badge";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
 
 const organizerSidebar = [
 	{
@@ -39,7 +37,7 @@ export default function OrganizerDashboard() {
 				<main className="flex-1 bg-background p-8">
 					<div className="mx-auto max-w-7xl space-y-8">
 						{/* Bienvenida */}
-						<div className="rounded-xl border border-border bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
+						<div className="rounded-xl border border-border bg-gradient-to-r from-primary to-primary p-8 text-primary-foreground">
 							<div className="flex items-center justify-between">
 								<div>
 									<h1 className="mb-2 text-3xl font-bold">
