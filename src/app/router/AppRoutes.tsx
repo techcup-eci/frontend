@@ -38,7 +38,7 @@ import TournamentStats from "../../shared/components/common/TournamentStats";
 import RootLayout from "../../shared/layouts/RootLayout";
 import AuthLayout from "../../shared/layouts/AuthLayout";
 import DashboardLayout from "../../shared/layouts/DashboardLayout";
-import BecomePlayer from "../../modules/players/pages/BecomePlayer.tsx";
+import BecomePlayer from "../../modules/players/pages/BecomePlayer";
 
 export function AppRoutes() {
   return (
@@ -106,3 +106,6 @@ export function AppRoutes() {
     </Routes>
   );
 }
+
+
+

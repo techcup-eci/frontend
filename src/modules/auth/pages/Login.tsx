@@ -1,24 +1,54 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useLocation, useNavigate } from "react-router";
 import { Trophy } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
+  const [adminOverride, setAdminOverride] = useState(false);
+  const allowedDomains = ["@mail.escuelaing.edu.co", "@escuelaing.edu.co", "@gmail.com"];
+  const approvedAdminEmails = ["admin@escuelaing.edu.co"];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    const isAllowedDomain = allowedDomains.some((domain) => normalizedEmail.endsWith(domain));
+    const searchParams = new URLSearchParams(location.search);
+    const isAdminIntent = searchParams.get("role") === "admin";
+
     // Simulación de login - en producción esto haría una petición al backend
-    if (formData.email && formData.password) {
+    if (formData.email && formData.password && isAllowedDomain) {
+      const isAdminDomain = normalizedEmail.endsWith("@escuelaing.edu.co");
+      const isAdminApproved = approvedAdminEmails.includes(normalizedEmail);
+
       // Redirigir según el rol simulado
+      if (isAdminIntent) {
+        if (!isAdminDomain) {
+          setError("Solo correos @escuelaing.edu.co pueden iniciar como admin");
+          return;
+        }
+
+        if (!isAdminApproved) {
+          if (!adminOverride) {
+            setError("Tu cuenta admin esta pendiente de confirmacion");
+            setAdminOverride(true);
+            return;
+          }
+        }
+
+        navigate("/admin/dashboard");
+        return;
+      }
+
       navigate("/player/dashboard");
     } else {
-      setError("Credenciales incorrectas. Verifica tu correo y contraseña");
+      setError("Credenciales incorrectas o dominio no permitido");
     }
   };
 
@@ -61,6 +91,7 @@ export default function Login() {
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
                   setError("");
+                  setAdminOverride(false);
                 }}
                 className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                 placeholder="correo@escuelaing.edu.co"
@@ -76,6 +107,7 @@ export default function Login() {
                 onChange={(e) => {
                   setFormData({ ...formData, password: e.target.value });
                   setError("");
+                  setAdminOverride(false);
                 }}
                 className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
                 placeholder="Tu contraseña"
@@ -101,3 +133,5 @@ export default function Login() {
     </div>
   );
 }
+
+

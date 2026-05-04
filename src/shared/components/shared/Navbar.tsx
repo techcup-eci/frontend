@@ -10,6 +10,11 @@ interface NavbarProps {
 export default function Navbar({ userName, role }: NavbarProps) {
 	const handleLogout = () => {
 		// Simular logout
+		if (role?.toLowerCase() === "admin") {
+			window.location.href = "/login?role=admin";
+			return;
+		}
+
 		window.location.href = "/login";
 	};
 
@@ -59,6 +64,12 @@ export default function Navbar({ userName, role }: NavbarProps) {
 								className="rounded-lg bg-[#F97316] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#F97316]/90"
 							>
 								Regístrate
+							</Link>
+							<Link
+								to="/login?role=admin"
+								className="rounded-lg bg-[var(--color-oxblood)] px-4 py-2 text-sm font-semibold text-[var(--color-white-pure)] transition hover:bg-[var(--color-oxblood)]/90"
+							>
+								Administrador
 							</Link>
 						</div>
 					)}

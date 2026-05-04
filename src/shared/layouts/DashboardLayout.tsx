@@ -26,7 +26,7 @@ const adminSidebar = [
 	{
 		items: [
 			{ label: "Inicio", path: "/admin/dashboard", icon: Home },
-			{ label: "Usuarios", path: "/admin/users", icon: Users },
+			{ label: "Usuarios", path: "/admin/players", icon: Users },
 			{ label: "Auditoría", path: "/admin/audit", icon: FileText },
 			{ label: "Torneos", path: "/organizer/dashboard", icon: Trophy },
 			{ label: "Sistema", path: "/admin/settings", icon: Settings },
@@ -158,3 +158,5 @@ export default function DashboardLayout() {
 		</div>
 	);
 }
+
+

@@ -8,7 +8,7 @@ const adminSidebar = [
   {
     items: [
       { label: "Dashboard", path: "/admin/dashboard", icon: Home },
-      { label: "Gestionar Usuarios", path: "/admin/users", icon: Users },
+      { label: "Gestionar Usuarios", path: "/admin/players", icon: Users },
       { label: "Registro de Auditoría", path: "/admin/audit", icon: FileText },
     ],
   },
@@ -271,3 +271,4 @@ export default function AuditLog() {
     </div>
   );
 }
+
