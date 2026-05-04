@@ -26,13 +26,13 @@ export default function ViewProfile() {
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold">Mi perfil deportivo</h1>
+              <h1 className="text-3xl font-bold">Mi perfil</h1>
               <Link
-                to="/player/edit-profile"
+                to="/player/profile/BecomePlayer"
                 className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
               >
                 <Edit className="h-4 w-4" />
-                Editar perfil
+                Volverme jugador
               </Link>
             </div>
 

@@ -63,9 +63,9 @@ export default function EditProfile() {
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-3xl space-y-8">
             <div>
-              <h1 className="mb-2 text-3xl font-bold">Editar perfil deportivo</h1>
+              <h1 className="mb-2 text-3xl font-bold">Editar perfil</h1>
               <p className="text-muted-foreground">
-                Actualiza tu información deportiva
+                Actualiza tu información de usuario
               </p>
             </div>
 
@@ -99,6 +99,7 @@ export default function EditProfile() {
                   </div>
                 </div>
 
+                {/*
                 <div>
                   <label className="mb-2 block font-medium">Posición</label>
                   <select
@@ -155,7 +156,7 @@ export default function EditProfile() {
                     ))}
                   </select>
                 </div>
-
+                */}
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
