@@ -16,7 +16,7 @@ const captainSidebar = [
     ],
   },
 ];
-
+ 
 export default function ManageTeam() {
   const players = [
     { id: 1, name: "Sebastián Torres", position: "Mediocampista Central", number: 8 },
