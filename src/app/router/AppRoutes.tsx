@@ -97,7 +97,7 @@ export function AppRoutes() {
 
         {/* Admin */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<ManageUsers />} />
+        <Route path="/admin/players" element={<ManageUsers />} />
         <Route path="/admin/audit" element={<AuditLog />} />
       </Route>
 

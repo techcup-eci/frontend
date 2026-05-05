@@ -156,3 +156,23 @@
 		font-weight: var(--font-weight-normal);
 	}
 }
+
+@layer components {
+	.hero-school {
+		background-image: url("/images/eci-campus.jpg");
+		background-size: 120%;
+		background-position: center;
+		filter: blur(2px) saturate(1.1);
+		transform: scale(1.04);
+		animation: hero-drift 22s ease-in-out infinite alternate;
+	}
+}
+
+@keyframes hero-drift {
+	0% {
+		background-position: 45% 40%;
+	}
+	100% {
+		background-position: 55% 60%;
+	}
+}

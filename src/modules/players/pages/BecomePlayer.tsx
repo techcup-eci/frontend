@@ -1,21 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Upload } from "lucide-react";
-
-const playerSidebar = [
-    {
-        items: [
-            { label: "Inicio", path: "/player/dashboard", icon: Home },
-            { label: "Mi Perfil", path: "/player/profile", icon: User },
-            { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-            { label: "Torneo", path: "/tournament-info", icon: Trophy },
-            { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-            { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-        ],
-    },
-];
+import { Upload, User } from "lucide-react";
 
 export default function BecomePlayer() {
     const navigate = useNavigate();
@@ -23,6 +8,9 @@ export default function BecomePlayer() {
         position: "Mediocampista Central",
         number: "8",
         semester: "6",
+    relationship: "estudiante",
+    studentLevel: "pregrado",
+    professorType: "planta",
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [photoPreview, setPhotoPreview] = useState<string>("");
@@ -52,7 +40,13 @@ export default function BecomePlayer() {
             return;
         }
 
-        navigate("/player/profile");
+        sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
+        if (photoPreview) {
+          sessionStorage.setItem("playerProfilePhoto", photoPreview);
+        }
+        sessionStorage.setItem("isPlayer", "true");
+
+        navigate("/player/profile?player=true");
     };
 
     return (
@@ -71,6 +65,98 @@ export default function BecomePlayer() {
 
                         <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-8">
                             <div className="space-y-6">
+                            <div>
+                              <label className="mb-3 block font-medium">Foto de perfil</label>
+                              <div className="flex items-center gap-6">
+                                <div className="flex h-32 w-32 items-center justify-center overflow-hidden rounded-full border-2 border-border bg-background">
+                                  {photoPreview ? (
+                                    <img
+                                      src={photoPreview}
+                                      alt="Preview"
+                                      className="h-full w-full object-cover"
+                                    />
+                                  ) : (
+                                    <User className="h-16 w-16 text-muted-foreground" />
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5 font-medium transition hover:bg-accent">
+                                    <Upload className="h-5 w-5" />
+                                    <span>Subir foto</span>
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      onChange={handlePhotoChange}
+                                      className="hidden"
+                                    />
+                                  </label>
+                                  <p className="mt-2 text-sm text-muted-foreground">
+                                    JPG, PNG. Máximo 5MB
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div>
+                              <label className="mb-2 block font-medium">Vinculo con la universidad</label>
+                              <select
+                                required
+                                value={formData.relationship}
+                                onChange={(e) =>
+                                  setFormData({
+                                    ...formData,
+                                    relationship: e.target.value,
+                                  })
+                                }
+                                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                              >
+                                <option value="estudiante">Estudiante</option>
+                                <option value="profesor">Profesor</option>
+                                <option value="invitado">Invitado</option>
+                                <option value="graduado">Graduado</option>
+                              </select>
+                            </div>
+
+                            {formData.relationship === "estudiante" && (
+                              <div>
+                                <label className="mb-2 block font-medium">Nivel academico</label>
+                                <select
+                                  required
+                                  value={formData.studentLevel}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      studentLevel: e.target.value,
+                                    })
+                                  }
+                                  className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                                >
+                                  <option value="pregrado">Pregrado</option>
+                                  <option value="posgrado">Posgrado</option>
+                                  <option value="maestria">Maestria</option>
+                                  <option value="doctorado">Doctorado</option>
+                                </select>
+                              </div>
+                            )}
+
+                            {formData.relationship === "profesor" && (
+                              <div>
+                                <label className="mb-2 block font-medium">Tipo de profesor</label>
+                                <select
+                                  required
+                                  value={formData.professorType}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      professorType: e.target.value,
+                                    })
+                                  }
+                                  className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                                >
+                                  <option value="planta">Planta</option>
+                                  <option value="catedra">Catedra</option>
+                                </select>
+                              </div>
+                            )}
 
 
 
@@ -115,21 +201,26 @@ export default function BecomePlayer() {
                   {errors.number && <p className="mt-1 text-sm text-[#EF4444]">{errors.number}</p>}
                 </div>
 
-                <div>
-                  <label className="mb-2 block font-medium">Semestre actual</label>
-                  <select
-                    required
-                    value={formData.semester}
-                    onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
-                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
-                      <option key={sem} value={sem}>
-                        Semestre {sem}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {formData.relationship === "estudiante" &&
+                  formData.studentLevel === "pregrado" && (
+                  <div>
+                    <label className="mb-2 block font-medium">Semestre actual</label>
+                    <select
+                      required
+                      value={formData.semester}
+                      onChange={(e) =>
+                        setFormData({ ...formData, semester: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
+                        <option key={sem} value={sem}>
+                          Semestre {sem}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                                 <div className="flex gap-4 pt-4">
                                     <button
