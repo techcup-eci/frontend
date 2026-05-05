@@ -1,5 +1,6 @@
 import {
 	BarChart3,
+	Bell,
 	Calendar,
 	CreditCard,
 	FileText,
@@ -66,6 +67,7 @@ const captainSidebar = [
 				path: "/captain/search-players",
 				icon: UserPlus,
 			},
+			{ label: "Solicitudes", path: "/captain/requests", icon: Bell },
 			{ label: "Pagos", path: "/captain/payment", icon: CreditCard },
 			{ label: "Alineación", path: "/captain/lineup", icon: LayoutList },
 			{ label: "Torneo", path: "/tournament-info", icon: Trophy },

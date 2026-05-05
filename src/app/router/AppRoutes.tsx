@@ -21,6 +21,8 @@ import CaptainDashboard from "../../modules/teams/pages/CaptainDashboard";
 import ConfigureLineup from "../../modules/teams/pages/ConfigureLineup";
 import CreateTeam from "../../modules/teams/pages/CreateTeam";
 import ManageTeam from "../../modules/teams/pages/ManageTeam";
+import PendingRequests from "../../modules/teams/pages/PendingRequests";
+import PlayerRequestDetail from "../../modules/teams/pages/PlayerRequestDetail";
 import SearchPlayers from "../../modules/teams/pages/SearchPlayers";
 import UploadPayment from "../../modules/teams/pages/UploadPayment";
 import Bracket from "../../modules/tournaments/pages/Bracket";
@@ -76,6 +78,8 @@ export function AppRoutes() {
         <Route path="/captain/search-players" element={<SearchPlayers />} />
         <Route path="/captain/payment" element={<UploadPayment />} />
         <Route path="/captain/lineup" element={<ConfigureLineup />} />
+        <Route path="/captain/requests" element={<PendingRequests />} />
+        <Route path="/captain/requests/:jugadorId" element={<PlayerRequestDetail />} />
 
         {/* Organizer */}
         <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />

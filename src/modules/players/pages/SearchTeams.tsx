@@ -3,7 +3,15 @@ import { useNavigate } from "react-router";
 import Navbar from "../../../shared/components/shared/Navbar";
 import Sidebar from "../../../shared/components/shared/Sidebar";
 import TeamCard from "../../../shared/components/shared/TeamCard";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Search } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../../../shared/components/ui/dialog";
+import { Home, User, Users, Trophy, BarChart3, Calendar, Search, Hash } from "lucide-react";
 
 const playerSidebar = [
   {
@@ -23,6 +31,8 @@ export default function SearchTeams() {
   const [searchTerm, setSearchTerm] = useState("");
   const [positionFilter, setPositionFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [joinCodeOpen, setJoinCodeOpen] = useState(false);
+  const [teamCode, setTeamCode] = useState("");
 
   const teams = [
     {
@@ -77,10 +87,64 @@ export default function SearchTeams() {
         
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
-            <div>
-              <h1 className="mb-2 text-3xl font-bold">Buscar equipos disponibles</h1>
-              <p className="text-muted-foreground">Encuentra un equipo para unirte al torneo</p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h1 className="mb-2 text-3xl font-bold">Buscar equipos disponibles</h1>
+                <p className="text-muted-foreground">Encuentra un equipo para unirte al torneo</p>
+              </div>
+              <button
+                onClick={() => setJoinCodeOpen(true)}
+                className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              >
+                <Hash className="h-4 w-4" />
+                Unirme con código de equipo
+              </button>
             </div>
+
+            {/* Modal: unirse con código */}
+            <Dialog open={joinCodeOpen} onOpenChange={setJoinCodeOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Unirme con código de equipo</DialogTitle>
+                  <DialogDescription>
+                    Ingresa el código alfanumérico que te compartió el capitán del equipo.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <label className="mb-2 block font-medium">Código del equipo</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: ABC-12345"
+                    value={teamCode}
+                    onChange={(e) => setTeamCode(e.target.value.toUpperCase())}
+                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    maxLength={20}
+                  />
+                </div>
+                <DialogFooter>
+                  <button
+                    onClick={() => {
+                      setJoinCodeOpen(false);
+                      setTeamCode("");
+                    }}
+                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    disabled={teamCode.trim().length === 0}
+                    onClick={() => {
+                      // TODO: conectar al backend — POST /api/teams/join con { code: teamCode }
+                      setJoinCodeOpen(false);
+                      setTeamCode("");
+                    }}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    Confirmar
+                  </button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             {/* Filtros */}
             <div className="grid gap-4 md:grid-cols-3">
