@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import Badge from "../../../shared/components/shared/Badge";
-
+import { useEffect, useState } from "react";
+import { getTournaments, type TournamentResponse } from "../services/tournamentService";
 const organizerSidebar = [
 	{
 		items: [
@@ -31,6 +32,14 @@ const organizerSidebar = [
 ];
 
 export default function OrganizerDashboard() {
+	const [tournaments, setTournaments] = useState<TournamentResponse[]>([]);
+	const [loading, setLoading] = useState(true);
+	useEffect(() => {
+	getTournaments()
+		.then(setTournaments)
+		.catch(console.error)
+		.finally(() => setLoading(false));
+	}, []);
 	return (
 		<div className="flex min-h-screen flex-col">
 			<div className="flex flex-1">
@@ -206,9 +215,70 @@ export default function OrganizerDashboard() {
 								</div>
 							</div>
 						</div>
+						{/* Mis Torneos */}
+						<div className="rounded-xl border border-border bg-card p-6">
+						<div className="mb-6 flex items-center justify-between">
+							<h2 className="text-xl font-bold">Mis Torneos</h2>
+							<Link
+							to="/organizer/create-tournament"
+							className="flex items-center gap-2 rounded-lg bg-[var(--color-oxblood)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+							>
+							<Trophy className="h-4 w-4" />
+							Nuevo Torneo
+							</Link>
+						</div>
 
+						{loading ? (
+							<div className="flex items-center justify-center py-8">
+							<div className="h-6 w-6 animate-spin rounded-full border-2 border-border border-t-[var(--color-oxblood)]" />
+							</div>
+						) : tournaments.length === 0 ? (
+							<div className="flex flex-col items-center gap-3 py-8 text-center">
+							<Trophy className="h-10 w-10 text-muted-foreground/40" />
+							<p className="text-muted-foreground">No hay torneos creados aún.</p>
+							<Link
+								to="/organizer/create-tournament"
+								className="text-sm font-medium text-[var(--color-cool-sky)] hover:underline"
+							>
+								Crear el primer torneo
+							</Link>
+							</div>
+						) : (
+							<div className="space-y-3">
+							{tournaments.map((tournament) => (
+								<div
+								key={tournament.id}
+								className="flex items-center justify-between rounded-lg border border-border bg-background p-4"
+								>
+								<div className="flex items-center gap-4">
+									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--color-oxblood)]/10">
+									<Trophy className="h-5 w-5 text-[var(--color-oxblood)]" />
+									</div>
+									<div>
+									<p className="font-medium">{tournament.name}</p>
+									<p className="text-sm text-muted-foreground">
+										{tournament.startDate} → {tournament.endDate}
+									</p>
+									</div>
+								</div>
+								<div className="flex items-center gap-3">
+									<span className="rounded-full border border-border px-3 py-1 text-xs font-medium">
+									{tournament.status}
+									</span>
+									<Link
+									to={`/organizer/tournament/configure`}
+									className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+									>
+									Gestionar
+									</Link>
+								</div>
+								</div>
+							))}
+							</div>
+						)}
+						</div>
 						{/* Acceso rápido */}
-						<div className="grid gap-4 md:grid-cols-4">
+						<div className="grid gap-4 md:grid-cols-5">
 							<Link
 								to="/organizer/teams"
 								className="rounded-xl border border-border bg-card p-6 transition hover:shadow-lg"
@@ -247,6 +317,16 @@ export default function OrganizerDashboard() {
 								<h3 className="mb-2 font-bold">Llaves eliminatorias</h3>
 								<p className="text-sm text-muted-foreground">
 									Gestionar fase final
+								</p>
+							</Link>
+							<Link
+								to="/organizer/create-tournament"
+								className="rounded-xl border border-border bg-card p-6 transition hover:shadow-lg"
+							>
+								<Trophy className="mb-3 h-10 w-10 text-[var(--color-oxblood)]" />
+								<h3 className="mb-2 font-bold">Crear Torneo</h3>
+								<p className="text-sm text-muted-foreground">
+									Registrar un nuevo torneo
 								</p>
 							</Link>
 						</div>
