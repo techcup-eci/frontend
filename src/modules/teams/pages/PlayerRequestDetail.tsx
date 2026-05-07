@@ -3,11 +3,11 @@ import { useNavigate, useParams } from "react-router";
 import axios from "axios";
 import { User, CheckCircle, XCircle, ArrowLeft, Loader2 } from "lucide-react";
 
-// TODO: obtener del contexto de autenticación
-const TEAM_ID = "team-123";
-const USER_ID = "user-456";
+// TODO: obtener del contexto de autenticación, estos son casos de prueba
+const TEAM_ID = "1";
+const USER_ID = "10";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "http://localhost:8082";
 
 export default function PlayerRequestDetail() {
   const { jugadorId } = useParams<{ jugadorId: string }>();
