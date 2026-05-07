@@ -1,31 +1,14 @@
 import { apiClient } from "../../../core/api/apiClient";
+import type { TournamentResponse, CreateTournamentPayload } from "../types/tournament";
 
-export interface TournamentResponse {
-  id: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  registrationCloseDate: string;
-  maxTeams: number;
-  cost: number;
-  status: string;
-  regulationsUrl?: string;
-}
+export type { TournamentResponse, CreateTournamentPayload };
 
 export const getTournaments = async (): Promise<TournamentResponse[]> => {
   const response = await apiClient.get("/tournaments");
   return response.data;
 };
 
-export const createTournament = (data: {
-  name: string;
-  startDate: string;
-  endDate: string;
-  registrationCloseDate: string;
-  maxTeams: number;
-  cost: number;
-  regulationsUrl?: string;
-}) => {
+export const createTournament = (data: CreateTournamentPayload) => {
   return apiClient.post("/tournaments", data);
 };
 

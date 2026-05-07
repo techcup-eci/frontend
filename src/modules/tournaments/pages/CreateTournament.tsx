@@ -1,21 +1,15 @@
+import { AlertCircle, Calendar, Link, Trophy, Users } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Trophy, Calendar, Users, DollarSign, Link, AlertCircle, CheckCircle } from "lucide-react";
-import { apiClient } from "../../../core/api/apiClient";
+import { toast } from "sonner";
+import type { ZodIssue } from "zod";
+import { useCreateTournament } from "../hooks/useCreateTournament";
+import {
+	type CreateTournamentFormData,
+	createTournamentSchema,
+} from "../types/tournamentSchemas";
 
-interface CreateTournamentForm {
-	name: string;
-	startDate: string;
-	endDate: string;
-	registrationCloseDate: string;
-	maxTeams: number | "";
-	cost: number | "";
-	regulationsUrl: string;
-}
-
-interface FieldError {
-	[key: string]: string;
-}
+type FieldName = keyof CreateTournamentFormData;
 
 const FIELD_CONFIGS = [
 	{
@@ -23,7 +17,7 @@ const FIELD_CONFIGS = [
 		icon: Trophy,
 		fields: [
 			{
-				id: "name",
+				id: "name" as const,
 				label: "Nombre del Torneo",
 				type: "text",
 				placeholder: "TechCup Fútbol 2026-1",
@@ -37,7 +31,7 @@ const FIELD_CONFIGS = [
 		icon: Calendar,
 		fields: [
 			{
-				id: "startDate",
+				id: "startDate" as const,
 				label: "Fecha de Inicio",
 				type: "date",
 				placeholder: "",
@@ -45,7 +39,7 @@ const FIELD_CONFIGS = [
 				colSpan: "half",
 			},
 			{
-				id: "endDate",
+				id: "endDate" as const,
 				label: "Fecha de Finalización",
 				type: "date",
 				placeholder: "",
@@ -53,7 +47,7 @@ const FIELD_CONFIGS = [
 				colSpan: "half",
 			},
 			{
-				id: "registrationCloseDate",
+				id: "registrationCloseDate" as const,
 				label: "Cierre de Inscripciones",
 				type: "date",
 				placeholder: "",
@@ -67,7 +61,7 @@ const FIELD_CONFIGS = [
 		icon: Users,
 		fields: [
 			{
-				id: "maxTeams",
+				id: "maxTeams" as const,
 				label: "Máximo de Equipos",
 				type: "number",
 				placeholder: "8",
@@ -77,7 +71,7 @@ const FIELD_CONFIGS = [
 				max: 32,
 			},
 			{
-				id: "cost",
+				id: "cost" as const,
 				label: "Costo por Equipo (COP)",
 				type: "number",
 				placeholder: "50000",
@@ -92,7 +86,7 @@ const FIELD_CONFIGS = [
 		icon: Link,
 		fields: [
 			{
-				id: "regulationsUrl",
+				id: "regulationsUrl" as const,
 				label: "URL del Reglamento",
 				type: "url",
 				placeholder: "https://drive.google.com/...",
@@ -103,117 +97,91 @@ const FIELD_CONFIGS = [
 	},
 ];
 
+function zodErrorsToMap(
+	issues: ZodIssue[],
+): Partial<Record<FieldName, string>> {
+	const map: Partial<Record<FieldName, string>> = {};
+	for (const issue of issues) {
+		const field = issue.path[0] as FieldName;
+		if (field && !map[field]) {
+			map[field] = issue.message;
+		}
+	}
+	return map;
+}
+
 export default function CreateTournament() {
 	const navigate = useNavigate();
-	const [form, setForm] = useState<CreateTournamentForm>({
+	const createMutation = useCreateTournament();
+
+	const [form, setForm] = useState<CreateTournamentFormData>({
 		name: "",
 		startDate: "",
 		endDate: "",
 		registrationCloseDate: "",
-		maxTeams: "",
-		cost: "",
+		maxTeams: 0,
+		cost: 0,
 		regulationsUrl: "",
 	});
-	const [errors, setErrors] = useState<FieldError>({});
-	const [loading, setLoading] = useState(false);
-	const [success, setSuccess] = useState(false);
-	const [serverError, setServerError] = useState("");
+	const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
 
-	const validate = (): boolean => {
-		const newErrors: FieldError = {};
-
-		if (!form.name || form.name.trim().length < 3) {
-			newErrors.name = "El nombre debe tener al menos 3 caracteres.";
-		}
-		if (!form.startDate) {
-			newErrors.startDate = "La fecha de inicio es obligatoria.";
-		}
-		if (!form.endDate) {
-			newErrors.endDate = "La fecha de finalización es obligatoria.";
-		}
-		if (form.startDate && form.endDate && form.endDate <= form.startDate) {
-			newErrors.endDate = "La fecha de finalización debe ser posterior a la de inicio.";
-		}
-		if (!form.registrationCloseDate) {
-			newErrors.registrationCloseDate = "El cierre de inscripciones es obligatorio.";
-		}
-		if (form.registrationCloseDate && form.endDate && form.registrationCloseDate >= form.endDate) {
-			newErrors.registrationCloseDate = "El cierre de inscripciones debe ser anterior a la fecha de finalización.";
-		}
-		if (!form.maxTeams || Number(form.maxTeams) < 2 || Number(form.maxTeams) > 32) {
-			newErrors.maxTeams = "El número de equipos debe estar entre 2 y 32.";
-		}
-		if (form.cost === "" || Number(form.cost) < 0) {
-			newErrors.cost = "El costo no puede ser negativo.";
-		}
-
-		setErrors(newErrors);
-		return Object.keys(newErrors).length === 0;
-	};
-
-	const handleChange = (id: string, value: string) => {
-		setForm((prev) => ({ ...prev, [id]: value }));
+	const handleChange = (id: FieldName, value: string) => {
+		const parsedValue: string | number =
+			id === "maxTeams" || id === "cost"
+				? value === ""
+					? 0
+					: Number(value)
+				: value;
+		setForm((prev) => ({ ...prev, [id]: parsedValue }));
 		if (errors[id]) setErrors((prev) => ({ ...prev, [id]: "" }));
-		if (serverError) setServerError("");
 	};
 
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!validate()) return;
 
-		setLoading(true);
-		setServerError("");
-
-		try {
-			await apiClient.post("/tournaments", {
-				name: form.name.trim(),
-				startDate: form.startDate,
-				endDate: form.endDate,
-				registrationCloseDate: form.registrationCloseDate,
-				maxTeams: Number(form.maxTeams),
-				cost: Number(form.cost),
-				regulationsUrl: form.regulationsUrl || undefined,
-			});
-
-			setSuccess(true);
-			setTimeout(() => navigate("/organizer/dashboard"), 1800);
-		} catch (err: any) {
-			const message =
-				err?.response?.data?.message ||
-				err?.response?.data?.error ||
-				"No fue posible crear el torneo. Intenta de nuevo.";
-			setServerError(message);
-		} finally {
-			setLoading(false);
+		const result = createTournamentSchema.safeParse(form);
+		if (!result.success) {
+			setErrors(zodErrorsToMap(result.error.issues));
+			return;
 		}
+
+		setErrors({});
+
+		createMutation.mutate(
+			{
+				...result.data,
+				regulationsUrl:
+					result.data.regulationsUrl && result.data.regulationsUrl.trim() !== ""
+						? result.data.regulationsUrl
+						: undefined,
+			},
+			{
+				onSuccess: () => {
+					toast.success("¡Torneo creado!");
+					setTimeout(() => navigate("/organizer/dashboard"), 1200);
+				},
+				onError: (err: any) => {
+					const message =
+						err?.response?.data?.message ||
+						err?.response?.data?.error ||
+						err?.message ||
+						"No fue posible crear el torneo.";
+					toast.error(message);
+				},
+			},
+		);
 	};
 
 	const inputClass = (id: string) =>
 		`w-full rounded-lg border px-4 py-3 text-[var(--color-ink)] focus:outline-none transition-all ${
-			errors[id]
+			errors[id as FieldName]
 				? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-1 focus:ring-destructive"
 				: "border-border bg-[var(--color-mist)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)]"
 		}`;
 
-	if (success) {
-		return (
-			<div className="flex min-h-screen items-center justify-center p-8">
-				<div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card p-12 text-center shadow-lg">
-					<div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-						<CheckCircle className="h-8 w-8 text-green-600" />
-					</div>
-					<h2 className="text-2xl font-bold">¡Torneo creado!</h2>
-					<p className="text-muted-foreground">Redirigiendo al panel de control...</p>
-				</div>
-			</div>
-		);
-	}
-
 	return (
 		<div className="min-h-screen bg-background p-6 sm:p-8">
 			<div className="mx-auto max-w-3xl">
-
-				{/* Header */}
 				<div className="mb-8 flex items-center gap-4">
 					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-oxblood)]">
 						<Trophy className="h-6 w-6 text-white" />
@@ -223,18 +191,11 @@ export default function CreateTournament() {
 							Crear Nuevo Torneo
 						</h1>
 						<p className="text-sm text-muted-foreground">
-							Completa la información para registrar el torneo en estado Borrador.
+							Completa la información para registrar el torneo en estado
+							Borrador.
 						</p>
 					</div>
 				</div>
-
-				{/* Server error */}
-				{serverError && (
-					<div className="mb-6 flex items-start gap-3 rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
-						<AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
-						<span>{serverError}</span>
-					</div>
-				)}
 
 				<form onSubmit={handleSubmit} className="space-y-6">
 					{FIELD_CONFIGS.map(({ section, icon: Icon, fields }) => (
@@ -242,7 +203,6 @@ export default function CreateTournament() {
 							key={section}
 							className="rounded-xl border border-border bg-card p-6 shadow-sm"
 						>
-							{/* Section header */}
 							<div className="mb-5 flex items-center gap-2 border-b border-border pb-4">
 								<Icon className="h-4 w-4 text-[var(--color-oxblood)]" />
 								<h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-ink)]">
@@ -272,7 +232,7 @@ export default function CreateTournament() {
 											placeholder={field.placeholder}
 											min={(field as any).min}
 											max={(field as any).max}
-											value={String(form[field.id as keyof CreateTournamentForm])}
+											value={String(form[field.id])}
 											onChange={(e) => handleChange(field.id, e.target.value)}
 											className={inputClass(field.id)}
 										/>
@@ -287,7 +247,6 @@ export default function CreateTournament() {
 						</div>
 					))}
 
-					{/* Info badge */}
 					<div className="flex items-start gap-3 rounded-lg border border-[var(--color-cool-sky)]/30 bg-[var(--color-cool-sky)]/5 p-4 text-sm text-[var(--color-ink)]">
 						<AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-cool-sky)]" />
 						<span>
@@ -296,7 +255,6 @@ export default function CreateTournament() {
 						</span>
 					</div>
 
-					{/* Actions */}
 					<div className="flex items-center justify-end gap-3 pt-2">
 						<button
 							type="button"
@@ -307,10 +265,10 @@ export default function CreateTournament() {
 						</button>
 						<button
 							type="submit"
-							disabled={loading}
+							disabled={createMutation.isPending}
 							className="flex items-center gap-2 rounded-lg bg-[var(--color-oxblood)] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none disabled:opacity-60"
 						>
-							{loading ? (
+							{createMutation.isPending ? (
 								<>
 									<span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
 									Creando...
