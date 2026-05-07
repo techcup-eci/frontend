@@ -28,3 +28,8 @@ export const createTournament = (data: {
 }) => {
   return apiClient.post("/tournaments", data);
 };
+
+export const activateTournament = async (id: string) => {
+  const response = await apiClient.patch(`/tournaments/${id}/activate`);
+  return response.data;
+};

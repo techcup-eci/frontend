@@ -12,6 +12,7 @@ import { Link } from "react-router";
 import Badge from "../../../shared/components/shared/Badge";
 import { useEffect, useState } from "react";
 import { getTournaments, type TournamentResponse } from "../services/tournamentService";
+import { activateTournament } from "../services/tournamentService";
 const organizerSidebar = [
 	{
 		items: [
@@ -31,9 +32,49 @@ const organizerSidebar = [
 	},
 ];
 
+const handleActivate = async (id: string) => {
+  try {
+    await activateTournament(id);
+
+    alert("✅ Torneo activado correctamente");
+
+    const updated = await getTournaments();
+    setTournaments(updated);
+
+  } catch (error: any) {
+    console.log(error); 
+
+    const message =
+      error.response?.data?.message ||
+      "No se pudo activar el torneo";
+
+    alert("❌ " + message);
+  }
+};
+
 export default function OrganizerDashboard() {
 	const [tournaments, setTournaments] = useState<TournamentResponse[]>([]);
 	const [loading, setLoading] = useState(true);
+
+	const handleActivate = async (id: string) => {
+		try {
+			await activateTournament(id);
+
+			alert("✅ Torneo activado correctamente");
+
+			const updated = await getTournaments();
+			setTournaments(updated);
+
+		} catch (error: any) {
+			console.log(error);
+
+			const message =
+				error.response?.data?.message ||
+				"No se pudo activar el torneo";
+
+			alert("❌ " + message);
+		}
+	};
 	useEffect(() => {
 	getTournaments()
 		.then(setTournaments)
@@ -262,13 +303,27 @@ export default function OrganizerDashboard() {
 									</div>
 								</div>
 								<div className="flex items-center gap-3">
-									<span className="rounded-full border border-border px-3 py-1 text-xs font-medium">
+								<span
+									className={`rounded-full px-3 py-1 text-xs font-medium ${
+										tournament.status === "DRAFT"
+											? "bg-gray-200 text-gray-700"
+											: "bg-green-200 text-green-800"
+									}`}
+								>
 									{tournament.status}
-									</span>
-									<Link
+								</span>
+								{tournament.status === "DRAFT" && (
+									<button
+									onClick={() => handleActivate(tournament.id)}
+									className="rounded-lg bg-green-600 px-3 py-1 text-sm font-medium text-white hover:bg-green-700"
+									>
+									Activar
+									</button>
+								)}
+								<Link
 									to={`/organizer/tournament/configure`}
 									className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-									>
+								>
 									Gestionar
 									</Link>
 								</div>
