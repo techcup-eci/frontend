@@ -66,6 +66,16 @@ export default function LandingPage() {
 								<span className="text-white/80">Unirme</span>
 							</Link>
 							<Link
+								to="/login?role=organizer"
+								className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-base font-semibold text-white transition hover:bg-white/20"
+							>
+								<span className="flex items-center gap-3">
+									<Trophy className="h-5 w-5 text-[#ffd1b8]" />
+									Organizador
+								</span>
+								<span className="text-white/60">Torneos</span>
+							</Link>
+							<Link
 								to="/login?role=admin"
 								className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-base font-semibold text-white transition hover:bg-white/20"
 							>

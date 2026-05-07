@@ -28,7 +28,7 @@ const adminSidebar = [
 			{ label: "Inicio", path: "/admin/dashboard", icon: Home },
 			{ label: "Usuarios", path: "/admin/players", icon: Users },
 			{ label: "Auditoría", path: "/admin/audit", icon: FileText },
-			{ label: "Torneos", path: "/organizer/dashboard", icon: Trophy },
+			{ label: "Torneos", path: "/admin/tournaments", icon: Trophy },
 			{ label: "Sistema", path: "/admin/settings", icon: Settings },
 		],
 	},

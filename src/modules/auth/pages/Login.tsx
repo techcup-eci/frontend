@@ -21,6 +21,7 @@ export default function Login() {
     const isAllowedDomain = allowedDomains.some((domain) => normalizedEmail.endsWith(domain));
     const searchParams = new URLSearchParams(location.search);
     const isAdminIntent = searchParams.get("role") === "admin";
+    const isOrganizerIntent = searchParams.get("role") === "organizer";
 
     // Simulación de login - en producción esto haría una petición al backend
     if (formData.email && formData.password && isAllowedDomain) {
@@ -43,6 +44,16 @@ export default function Login() {
         }
 
         navigate("/admin/dashboard");
+        return;
+      }
+
+      if (isOrganizerIntent) {
+        const isInstitutionDomain = normalizedEmail.endsWith("@escuelaing.edu.co");
+        if (!isInstitutionDomain) {
+          setError("Solo correos institucionales pueden iniciar como organizador");
+          return;
+        }
+        navigate("/organizer/dashboard");
         return;
       }
 
