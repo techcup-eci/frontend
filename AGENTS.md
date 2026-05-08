@@ -127,6 +127,16 @@ Modal
 Input
 Card
 
+Colors to use:
+This colors already exists in indes.css
+--color-oxblood: #990000;
+--color-cool-sky: #48acf0;
+--color-white-pure: #ffffff;
+--color-ink: #101828;
+--color-mist: #eef2ff;
+--color-sand: #fff7ed;
+
+
 ---
 
 # State Management
@@ -153,14 +163,9 @@ Example:
 
 features/auth/services/authService.ts
 
-Components must never directly call fetch/axios.
+Components must never directly call axios.
 
-Use hooks to wrap service calls.
-
-Example:
-
-useLogin()
-useRegister()
+Use tansktack query for http request with axios
 
 ---
 

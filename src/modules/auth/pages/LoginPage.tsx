@@ -3,15 +3,18 @@ import { LoginForm } from "../components/LoginForm";
 const roleCards = [
 	{
 		title: "Capitanes",
-		description: "Administra tu plantilla, convoca jugadores y mantén al día la información del equipo.",
+		description:
+			"Administra tu plantilla, convoca jugadores y mantén al día la información del equipo.",
 	},
 	{
 		title: "Organizadores",
-		description: "Publica cruces, controla estados del torneo y supervisa el calendario completo.",
+		description:
+			"Publica cruces, controla estados del torneo y supervisa el calendario completo.",
 	},
 	{
 		title: "Árbitros",
-		description: "Consulta encuentros asignados y reporta resultados con trazabilidad.",
+		description:
+			"Consulta encuentros asignados y reporta resultados con trazabilidad.",
 	},
 ];
 
@@ -32,12 +35,15 @@ export function LoginPage() {
 						</div>
 
 						<div className="space-y-4">
-							<p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-200">Plataforma oficial</p>
+							<p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-200">
+								Plataforma oficial
+							</p>
 							<h1 className="max-w-xl text-4xl font-bold leading-tight text-balance sm:text-5xl">
 								Controla el torneo desde un acceso centralizado y claro.
 							</h1>
 							<p className="max-w-lg text-base leading-7 text-slate-200 sm:text-lg">
-								Inicia sesión para administrar tu experiencia dentro de TechUp Cup según tu rol en la competencia.
+								Inicia sesión para administrar tu experiencia dentro de TechUp
+								Cup según tu rol en la competencia.
 							</p>
 						</div>
 					</div>
@@ -49,7 +55,9 @@ export function LoginPage() {
 								className="rounded-2xl border border-white/15 bg-white/10 p-4 shadow-lg shadow-black/10 backdrop-blur-sm"
 							>
 								<h2 className="text-lg font-semibold">{roleCard.title}</h2>
-								<p className="mt-2 text-sm leading-6 text-slate-200">{roleCard.description}</p>
+								<p className="mt-2 text-sm leading-6 text-slate-200">
+									{roleCard.description}
+								</p>
 							</article>
 						))}
 					</div>

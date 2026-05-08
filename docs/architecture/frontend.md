@@ -35,7 +35,7 @@ Contiene elementos reutilizables en múltiples features:
 1.  **Prohibido:** Los componentes no pueden usar `fetch` o `axios` directamente.
 2.  **Flujo:** Componente ➔ Hook ➔ Service ➔ API.
 3.  **Servicios:** Deben retornar promesas tipadas.
-    ```typescript
+    ```typescript   
     // Ejemplo en features/teams/services/teamService.ts
     export const fetchTeams = async (): Promise<Team[]> => {
       const { data } = await apiClient.get('/teams');
