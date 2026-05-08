@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Upload, User } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { useAthleticProfile, useUpdateAthleticProfile } from "../hooks/useAthleticProfile";
 
 export default function EditProfile() {
   const navigate = useNavigate();
+  const authUser = useAuthStore((state) => state.user);
+  const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
+  const userEmail = authUser?.email ?? storedEmail;
+  const { data: profile } = useAthleticProfile(userEmail || undefined);
+  const updateProfile = useUpdateAthleticProfile();
   const [formData, setFormData] = useState(() => {
     const stored = sessionStorage.getItem("playerProfileForm");
     if (stored) {
@@ -30,6 +37,7 @@ export default function EditProfile() {
   const [photoPreview, setPhotoPreview] = useState<string>(() => {
     return sessionStorage.getItem("playerProfilePhoto") ?? "";
   });
+  const [submitError, setSubmitError] = useState("");
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,7 +50,7 @@ export default function EditProfile() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -56,13 +64,38 @@ export default function EditProfile() {
       return;
     }
 
-    sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
-    if (photoPreview) {
-      sessionStorage.setItem("playerProfilePhoto", photoPreview);
+    if (!userEmail) {
+      setSubmitError("No se pudo identificar el correo del usuario. Inicia sesión nuevamente.");
+      return;
     }
-    sessionStorage.setItem("isPlayer", "true");
 
-    navigate("/player/profile?player=true");
+    setSubmitError("");
+
+    try {
+      await updateProfile.mutateAsync({
+        email: userEmail,
+        payload: {
+          email: userEmail,
+          dorsalNumber: number,
+          position: formData.position,
+          laterality: profile?.laterality ?? "RIGHT",
+          stature: profile?.stature ?? "1.70",
+          state: profile?.state ?? "ACTIVE",
+        },
+      });
+
+      sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
+      if (photoPreview) {
+        sessionStorage.setItem("playerProfilePhoto", photoPreview);
+      }
+      sessionStorage.setItem("isPlayer", "true");
+      sessionStorage.setItem("playerEmail", userEmail);
+
+      navigate("/player/profile");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No fue posible actualizar el perfil.";
+      setSubmitError(message);
+    }
   };
 
   return (
@@ -232,12 +265,19 @@ export default function EditProfile() {
                     </select>
                   </div>
                 )}
+                {submitError && (
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+                    {submitError}
+                  </div>
+                )}
+
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
+                    disabled={updateProfile.isPending}
                     className="flex-1 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
                   >
-                    Actualizar perfil
+                    {updateProfile.isPending ? "Guardando..." : "Actualizar perfil"}
                   </button>
                   <button
                     type="button"

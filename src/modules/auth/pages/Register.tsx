@@ -41,8 +41,9 @@ export default function Register() {
       return;
     }
 
-    // Si registro exitoso, entonces que nos mande a editar nuestra info
-    navigate("/player/profile/edit");
+    // Si registro exitoso, redirigir al dashboard para que el usuario decida si quiere volverse jugador.
+    sessionStorage.setItem("playerEmail", formData.email.trim().toLowerCase());
+    navigate("/player/dashboard");
   };
 
   return (
