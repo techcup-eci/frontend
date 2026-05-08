@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "../../shared/store/authStore";
 
 export const apiClient = axios.create({
-	baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api", // Adjust base URL as needed
+	baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1", // Adjust base URL as needed
 	headers: {
 		"Content-Type": "application/json",
 	},
@@ -68,7 +68,7 @@ apiClient.interceptors.response.use(
 				// IMPORTANT: Use axios.post directly to avoid an infinite loop in the interceptor
 				// if the refresh token endpoint itself returns a 401
 				const baseURL =
-					import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+					import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
 				const refreshResponse = await axios.post(
 					`${baseURL}/auth/refresh`,
 					{},
