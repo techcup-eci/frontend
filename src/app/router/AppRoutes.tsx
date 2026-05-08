@@ -38,6 +38,7 @@ import TournamentStats from "../../shared/components/common/TournamentStats";
 import RootLayout from "../../shared/layouts/RootLayout";
 import AuthLayout from "../../shared/layouts/AuthLayout";
 import DashboardLayout from "../../shared/layouts/DashboardLayout";
+import ManageRegistrations from "../../modules/registrations/pages/ManageRegistrations";
 import BecomePlayer from "../../modules/players/pages/BecomePlayer";
 
 export function AppRoutes() {
@@ -85,6 +86,7 @@ export function AppRoutes() {
         <Route path="/organizer/create-tournament" element={<CreateTournament />} />
         <Route path="/organizer/tournament/configure" element={<ConfigureTournament />} />
         <Route path="/organizer/teams" element={<ManageTeams />} />
+        <Route path="/organizer/payments" element={<ManageRegistrations />} />
         <Route path="/organizer/schedule" element={<ScheduleMatches />} />
         <Route path="/organizer/result/:id" element={<RegisterResult />} />
         <Route path="/organizer/calendar" element={<MatchCalendar />} />
