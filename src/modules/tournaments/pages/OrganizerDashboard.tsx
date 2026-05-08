@@ -14,6 +14,8 @@ import { toast } from "sonner";
 import Badge from "../../../shared/components/shared/Badge";
 import { useTournaments } from "../hooks/useTournaments";
 import { useActivateTournament } from "../hooks/useActivateTournament";
+import { useFinishTournament } from "../hooks/useFinishTournament";
+import { useDeleteTournament } from "../hooks/useDeleteTournament";
 
 const organizerSidebar = [
   {
@@ -38,12 +40,44 @@ export default function OrganizerDashboard() {
     error,
   } = useTournaments();
   const activateMutation = useActivateTournament();
+  const finishMutation = useFinishTournament();
+  const deleteMutation = useDeleteTournament();
 
   const handleActivate = (id: string) => {
     activateMutation.mutate(id, {
       onSuccess: () => toast.success("Torneo activado correctamente"),
       onError: (err: any) => {
         const message = err?.response?.data?.message || err?.message || "No se pudo activar el torneo";
+        toast.error(message);
+      },
+    });
+  };
+  const handleFinish = (id: string) => {
+    finishMutation.mutate(id, {
+      onSuccess: () => toast.success("Torneo finalizado correctamente"),
+      onError: (err: any) => {
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "No se pudo finalizar el torneo";
+        toast.error(message);
+      },
+    });
+  };
+
+  const handleDelete = (id: string, name: string) => {
+    const confirmed = window.confirm(
+      `¿Estás seguro de eliminar el torneo "${name}"? Esta acción no se puede deshacer.`
+    );
+    if (!confirmed) return;
+
+    deleteMutation.mutate(id, {
+      onSuccess: () => toast.success(`Torneo "${name}" eliminado correctamente`),
+      onError: (err: any) => {
+        const message =
+          err?.response?.data?.message ||
+          err?.message ||
+          "No se pudo eliminar el torneo";
         toast.error(message);
       },
     });
@@ -242,6 +276,27 @@ export default function OrganizerDashboard() {
                             {activateMutation.isPending ? "Activando..." : "Activar"}
                           </button>
                         )}
+
+                        {tournament.status === "DRAFT" && (
+                          <button
+                            onClick={() => handleDelete(tournament.id, tournament.name)}
+                            disabled={deleteMutation.isPending}
+                            className="rounded-lg bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+                          >
+                            {deleteMutation.isPending ? "Eliminando..." : "Eliminar"}
+                          </button>
+                        )}
+
+                        {tournament.status === "IN_PROGRESS" && (
+                          <button
+                            onClick={() => handleFinish(tournament.id)}
+                            disabled={finishMutation.isPending}
+                            className="rounded-lg bg-purple-600 px-3 py-1 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-60"
+                          >
+                            {finishMutation.isPending ? "Finalizando..." : "Finalizar"}
+                          </button>
+                        )}
+
                         <Link
                           to={`/organizer/tournament/configure`}
                           className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
