@@ -1,6 +1,22 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router";
 import { Trophy } from "lucide-react";
+import { toast } from "sonner";
+import { loginRequestSchema } from "../types/authSchemas";
+import type { LoginRequest } from "../types/LoginRequest";
+import { useLogin } from "../hooks/useLogin";
+import type { ZodIssue } from "zod";
+
+function zodErrorsToMap(issues: ZodIssue[]): Partial<Record<keyof LoginRequest, string>> {
+  const map: Partial<Record<keyof LoginRequest, string>> = {};
+  for (const issue of issues) {
+    const field = issue.path[0] as keyof LoginRequest;
+    if (field && !map[field]) {
+      map[field] = issue.message;
+    }
+  }
+  return map;
+}
 
 export default function Login() {
   const navigate = useNavigate();
@@ -14,8 +30,15 @@ export default function Login() {
   const allowedDomains = ["@mail.escuelaing.edu.co", "@escuelaing.edu.co", "@gmail.com"];
   const approvedAdminEmails = ["admin@escuelaing.edu.co"];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
+
+    const result = loginRequestSchema.safeParse(formData);
+    if (!result.success) {
+      setFieldErrors(zodErrorsToMap(result.error.issues));
+      return;
+    }
 
     const normalizedEmail = formData.email.trim().toLowerCase();
     const isAllowedDomain = allowedDomains.some((domain) => normalizedEmail.endsWith(domain));
@@ -63,9 +86,15 @@ export default function Login() {
     }
   };
 
+  const inputClass = (field: keyof LoginRequest) =>
+    `w-full rounded-lg border px-4 py-3 text-[var(--color-ink)] focus:outline-none transition-all ${
+      fieldErrors[field]
+        ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-1 focus:ring-destructive"
+        : "border-border bg-[var(--color-mist)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)]"
+    }`;
+
   return (
     <div className="flex min-h-screen">
-      {/* Panel izquierdo */}
       <div className="hidden w-1/2 bg-gradient-to-br from-[var(--color-ink)] via-[var(--color-oxblood)] to-[var(--color-ink)] lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-center">
           <div className="mb-6 flex justify-center">
@@ -78,19 +107,12 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Panel derecho - Formulario */}
       <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
         <div className="w-full max-w-md">
           <div className="mb-8">
             <h2 className="mb-2 text-3xl font-bold">Iniciar sesión</h2>
             <p className="text-muted-foreground">Ingresa tus credenciales para continuar</p>
           </div>
-
-          {error && (
-            <div className="mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -104,9 +126,10 @@ export default function Login() {
                   setError("");
                   setAdminOverride(false);
                 }}
-                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
+                className={inputClass("email")}
                 placeholder="correo@escuelaing.edu.co"
               />
+              {fieldErrors.email && <p className="mt-1 text-xs text-destructive">{fieldErrors.email}</p>}
             </div>
 
             <div>
@@ -120,16 +143,25 @@ export default function Login() {
                   setError("");
                   setAdminOverride(false);
                 }}
-                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
+                className={inputClass("password")}
                 placeholder="Tu contraseña"
               />
+              {fieldErrors.password && <p className="mt-1 text-xs text-destructive">{fieldErrors.password}</p>}
             </div>
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-[var(--color-oxblood)] px-4 py-3 font-semibold text-[var(--color-white-pure)] shadow-md transition-all hover:bg-opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none"
+              disabled={isPending}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-oxblood)] px-4 py-3 font-semibold text-[var(--color-white-pure)] shadow-md transition-all hover:bg-opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none disabled:opacity-60"
             >
-              Ingresar
+              {isPending ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Ingresando...
+                </>
+              ) : (
+                "Ingresar"
+              )}
             </button>
           </form>
 
