@@ -1,22 +1,14 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Shield, Bell } from "lucide-react";
+import { useSearchParams } from "react-router";
+import { BarChart3, Bell, Calendar, Shield, Trophy, User, Users } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
 
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
-
 export default function PlayerDashboard() {
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get("role");
+  const roleLabel = roleParam
+    ? roleParam.charAt(0).toUpperCase() + roleParam.slice(1)
+    : "Jugador";
+
   return (
     <div className="flex min-h-screen flex-col">
       
@@ -32,7 +24,7 @@ export default function PlayerDashboard() {
                   <p className="text-primary-foreground/80">¡Listo para el próximo partido!</p>
                 </div>
                 <Badge variant="info" size="lg">
-                  Jugador
+                  {roleLabel}
                 </Badge>
               </div>
             </div>
@@ -121,3 +113,5 @@ export default function PlayerDashboard() {
     </div>
   );
 }
+
+

@@ -88,7 +88,7 @@ export const router = createBrowserRouter([
 
 			// Admin routes
 			{ path: "admin/dashboard", Component: AdminDashboard },
-			{ path: "admin/users", Component: ManageUsers },
+			{ path: "admin/players", Component: ManageUsers },
 			{ path: "admin/audit", Component: AuditLog },
 
 			// Common routes
@@ -100,3 +100,6 @@ export const router = createBrowserRouter([
 		],
 	},
 ]);
+
+
+

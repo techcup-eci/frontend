@@ -43,7 +43,10 @@ export async function login(credentials: LoginRequest): Promise<AuthUser> {
 	}
 
 	const payload = await response.json();
-	return parseAuthUserPayload(payload);
+	const user = parseAuthUserPayload(payload);
+
+	// TODO: eliminar esto cuando el microservicio de usuarios asigne roles correctamente
+	return { ...user, role: "organizer" };
 }
 
 export async function getCurrentUser(): Promise<AuthUser> {

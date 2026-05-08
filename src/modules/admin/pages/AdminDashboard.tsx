@@ -1,19 +1,5 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, FileText, Trophy, Settings, TrendingUp } from "lucide-react";
+import { Users, FileText, Trophy, TrendingUp } from "lucide-react";
 import { Link } from "react-router";
-
-const adminSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/admin/dashboard", icon: Home },
-      { label: "Usuarios", path: "/admin/users", icon: Users },
-      { label: "Auditoría", path: "/admin/audit", icon: FileText },
-      { label: "Torneos", path: "/organizer/dashboard", icon: Trophy },
-      { label: "Sistema", path: "/admin/settings", icon: Settings },
-    ],
-  },
-];
 
 export default function AdminDashboard() {
   const weeks = [
@@ -125,7 +111,7 @@ export default function AdminDashboard() {
             {/* Accesos rápidos */}
             <div className="grid gap-4 md:grid-cols-2">
               <Link
-                to="/admin/users"
+                to="/admin/players"
                 className="rounded-xl border border-border bg-card p-6 transition hover:shadow-lg"
               >
                 <Users className="mb-3 h-10 w-10 text-primary" />
@@ -151,3 +137,4 @@ export default function AdminDashboard() {
     </div>
   );
 }
+
