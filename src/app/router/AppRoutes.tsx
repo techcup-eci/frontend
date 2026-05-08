@@ -38,6 +38,7 @@ import TournamentStats from "../../shared/components/common/TournamentStats";
 import RootLayout from "../../shared/layouts/RootLayout";
 import AuthLayout from "../../shared/layouts/AuthLayout";
 import DashboardLayout from "../../shared/layouts/DashboardLayout";
+import BecomePlayer from "../../modules/players/pages/BecomePlayer";
 
 export function AppRoutes() {
   return (
@@ -60,7 +61,9 @@ export function AppRoutes() {
       <Route element={<DashboardLayout />}>
         {/* Player */}
         <Route path="/player/dashboard" element={<PlayerDashboard />} />
+        <Route path="/player/dashboard" element={<PlayerDashboard />} />
         <Route path="/player/profile/create" element={<CreateProfile />} />
+        <Route path="/player/profile/becomePlayer" element={<BecomePlayer />} />
         <Route path="/player/profile/edit" element={<EditProfile />} />
         <Route path="/player/profile" element={<ViewProfile />} />
         <Route path="/player/availability" element={<MarkAvailability />} />
@@ -94,7 +97,7 @@ export function AppRoutes() {
 
         {/* Admin */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<ManageUsers />} />
+        <Route path="/admin/players" element={<ManageUsers />} />
         <Route path="/admin/audit" element={<AuditLog />} />
       </Route>
 
@@ -103,3 +106,6 @@ export function AppRoutes() {
     </Routes>
   );
 }
+
+
+

@@ -2,7 +2,7 @@ import { useState } from "react";
 import Navbar from "../../../shared/components/shared/Navbar";
 import Sidebar from "../../../shared/components/shared/Sidebar";
 import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Search } from "lucide-react";
-import PlayerCard from "../../../shared/components/shared/PlayerCard";
+import PlayerCard from "../../../shared/components/shared/playerCard";
 
 const captainSidebar = [
   {
@@ -162,3 +162,5 @@ export default function SearchPlayers() {
     </div>
   );
 }
+
+

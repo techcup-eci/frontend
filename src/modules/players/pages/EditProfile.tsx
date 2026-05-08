@@ -1,31 +1,35 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Upload } from "lucide-react";
-
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
+import { Upload, User } from "lucide-react";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    position: "Mediocampista Central",
-    number: "8",
-    semester: "6",
+  const [formData, setFormData] = useState(() => {
+    const stored = sessionStorage.getItem("playerProfileForm");
+    if (stored) {
+      return JSON.parse(stored) as {
+        position: string;
+        number: string;
+        semester: string;
+        relationship: string;
+        studentLevel: string;
+        professorType: string;
+      };
+    }
+
+    return {
+      position: "Mediocampista Central",
+      number: "8",
+      semester: "6",
+      relationship: "estudiante",
+      studentLevel: "pregrado",
+      professorType: "planta",
+    };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [photoPreview, setPhotoPreview] = useState<string>(() => {
+    return sessionStorage.getItem("playerProfilePhoto") ?? "";
+  });
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -52,7 +56,13 @@ export default function EditProfile() {
       return;
     }
 
-    navigate("/player/profile");
+    sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
+    if (photoPreview) {
+      sessionStorage.setItem("playerProfilePhoto", photoPreview);
+    }
+    sessionStorage.setItem("isPlayer", "true");
+
+    navigate("/player/profile?player=true");
   };
 
   return (
@@ -63,9 +73,9 @@ export default function EditProfile() {
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-3xl space-y-8">
             <div>
-              <h1 className="mb-2 text-3xl font-bold">Editar perfil deportivo</h1>
+              <h1 className="mb-2 text-3xl font-bold">Editar perfil</h1>
               <p className="text-muted-foreground">
-                Actualiza tu información deportiva
+                Actualiza tu información de usuario
               </p>
             </div>
 
@@ -98,6 +108,68 @@ export default function EditProfile() {
                     </div>
                   </div>
                 </div>
+
+                <div>
+                  <label className="mb-2 block font-medium">Vinculo con la universidad</label>
+                  <select
+                    required
+                    value={formData.relationship}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        relationship: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                  >
+                    <option value="estudiante">Estudiante</option>
+                    <option value="profesor">Profesor</option>
+                    <option value="invitado">Invitado</option>
+                    <option value="graduado">Graduado</option>
+                  </select>
+                </div>
+
+                {formData.relationship === "estudiante" && (
+                  <div>
+                    <label className="mb-2 block font-medium">Nivel academico</label>
+                    <select
+                      required
+                      value={formData.studentLevel}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          studentLevel: e.target.value,
+                        })
+                      }
+                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    >
+                      <option value="pregrado">Pregrado</option>
+                      <option value="posgrado">Posgrado</option>
+                      <option value="maestria">Maestria</option>
+                      <option value="doctorado">Doctorado</option>
+                    </select>
+                  </div>
+                )}
+
+                {formData.relationship === "profesor" && (
+                  <div>
+                    <label className="mb-2 block font-medium">Tipo de profesor</label>
+                    <select
+                      required
+                      value={formData.professorType}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          professorType: e.target.value,
+                        })
+                      }
+                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    >
+                      <option value="planta">Planta</option>
+                      <option value="catedra">Catedra</option>
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-2 block font-medium">Posición</label>
@@ -140,22 +212,26 @@ export default function EditProfile() {
                   {errors.number && <p className="mt-1 text-sm text-[#EF4444]">{errors.number}</p>}
                 </div>
 
-                <div>
-                  <label className="mb-2 block font-medium">Semestre actual</label>
-                  <select
-                    required
-                    value={formData.semester}
-                    onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
-                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
-                      <option key={sem} value={sem}>
-                        Semestre {sem}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
+                {formData.relationship === "estudiante" &&
+                  formData.studentLevel === "pregrado" && (
+                  <div>
+                    <label className="mb-2 block font-medium">Semestre actual</label>
+                    <select
+                      required
+                      value={formData.semester}
+                      onChange={(e) =>
+                        setFormData({ ...formData, semester: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
+                        <option key={sem} value={sem}>
+                          Semestre {sem}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
@@ -179,3 +255,5 @@ export default function EditProfile() {
     </div>
   );
 }
+
+

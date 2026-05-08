@@ -1,17 +1,97 @@
 import {
 	Calendar,
 	ChevronRight,
+	LogIn,
+	Shield,
 	TrendingUp,
 	Trophy,
+	UserPlus,
 	Users,
 } from "lucide-react";
 import { Link } from "react-router";
 import MatchCard from "../../../shared/components/shared/MatchCard";
-import Navbar from "../../../shared/components/shared/Navbar";
 
 export default function LandingPage() {
 	return (
 		<div className="min-h-screen bg-background">
+			<section className="relative overflow-hidden border-b border-border">
+				<div className="absolute inset-0 hero-school" />
+				<div className="absolute inset-0 bg-gradient-to-br from-[rgba(153,0,0,0.85)] via-[rgba(20,12,12,0.72)] to-[rgba(10,10,10,0.88)]" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,204,179,0.25),transparent_40%),radial-gradient(circle_at_bottom_right,rgba(153,0,0,0.2),transparent_45%)]" />
+				<div className="relative mx-auto flex min-h-[88vh] max-w-6xl flex-col items-start justify-center gap-10 px-6 py-28 md:min-h-[92vh] md:flex-row md:items-center md:py-32">
+					<div className="max-w-xl text-white">
+						<p className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold uppercase tracking-[0.2em] text-white/90">
+							<Trophy className="h-4 w-4 text-[#ffd1b8]" />
+							TechCup 2026
+						</p>
+						<h1 className="mb-4 text-4xl font-black leading-tight text-white md:text-6xl">
+							El torneo que prende el campus
+						</h1>
+						<p className="mb-6 text-lg text-white/80 md:text-xl">
+							Vive la pasion del futbol universitario con equipos, partidos y
+							historias que se quedan en la tribuna.
+						</p>
+						<div className="flex flex-wrap gap-3 text-sm font-semibold text-white/80">
+							<span className="rounded-full border border-white/20 bg-white/10 px-4 py-2">
+								15 marzo - 30 mayo
+							</span>
+							<span className="rounded-full border border-white/20 bg-white/10 px-4 py-2">
+								Escuela Colombiana de Ingenieria
+							</span>
+						</div>
+					</div>
+					<div className="w-full max-w-sm rounded-3xl border border-white/20 bg-white/10 p-6 text-white shadow-[0_30px_60px_-35px_rgba(0,0,0,0.8)] backdrop-blur-xl">
+						<p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
+							Accesos rapidos
+						</p>
+						<div className="space-y-3">
+							<Link
+								to="/login"
+								className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/15 px-5 py-4 text-base font-semibold transition hover:bg-white/25"
+							>
+								<span className="flex items-center gap-3">
+									<LogIn className="h-5 w-5 text-[#ffd1b8]" />
+									Iniciar sesion
+								</span>
+								<span className="text-white/60">Entrar</span>
+							</Link>
+							<Link
+								to="/register"
+								className="flex items-center justify-between rounded-2xl bg-[#f97316] px-5 py-4 text-base font-semibold text-white shadow-lg shadow-[#f97316]/30 transition hover:bg-[#fb8b34]"
+							>
+								<span className="flex items-center gap-3">
+									<UserPlus className="h-5 w-5" />
+									Registrarme
+								</span>
+								<span className="text-white/80">Unirme</span>
+							</Link>
+							<Link
+								to="/login?role=organizer"
+								className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-base font-semibold text-white transition hover:bg-white/20"
+							>
+								<span className="flex items-center gap-3">
+									<Trophy className="h-5 w-5 text-[#ffd1b8]" />
+									Organizador
+								</span>
+								<span className="text-white/60">Torneos</span>
+							</Link>
+							<Link
+								to="/login?role=admin"
+								className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/10 px-5 py-4 text-base font-semibold text-white transition hover:bg-white/20"
+							>
+								<span className="flex items-center gap-3">
+									<Shield className="h-5 w-5 text-[#ffb7b7]" />
+									Administrador
+								</span>
+								<span className="text-white/60">Panel</span>
+							</Link>
+						</div>
+						<div className="mt-6 rounded-2xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-white/70">
+							Organiza, juega y sigue cada partido desde un solo lugar.
+						</div>
+					</div>
+				</div>
+			</section>
 			{/* Hero */}
 			{/* <section className="relative h-[90vh] overflow-hidden bg-gradient-to-br from-[#1B5E35] via-[#0D0D0D] to-[#1B5E35]">
         <div className="absolute inset-0 opacity-10">

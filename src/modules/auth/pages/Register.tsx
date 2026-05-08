@@ -41,8 +41,8 @@ export default function Register() {
       return;
     }
 
-    // Simulación de registro exitoso
-    navigate("/login");
+    // Si registro exitoso, entonces que nos mande a editar nuestra info
+    navigate("/player/profile/edit");
   };
 
   return (
@@ -209,3 +209,5 @@ export default function Register() {
     </div>
   );
 }
+
+
