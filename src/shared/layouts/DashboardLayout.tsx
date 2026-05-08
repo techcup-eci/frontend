@@ -80,7 +80,7 @@ const organizerSidebar = [
 			{ label: "Inicio", path: "/organizer/dashboard", icon: Home },
 			{ label: "Torneos", path: "/organizer/create-tournament", icon: Trophy },
 			{ label: "Equipos", path: "/organizer/teams", icon: Users },
-			{ label: "Pagos", path: "/organizer/teams", icon: CreditCard },
+			{ label: "Pagos", path: "/organizer/payments", icon: CreditCard },
 			{ label: "Partidos", path: "/organizer/schedule", icon: Calendar },
 			{ label: "Resultados", path: "/organizer/calendar", icon: ListChecks },
 			{
