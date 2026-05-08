@@ -16,15 +16,16 @@ interface PlayerProfileForm {
 
 export default function ViewProfile() {
 	const [searchParams] = useSearchParams();
-  const [isPlayer, setIsPlayer] = useState(() => {
-    const fromQuery = searchParams.get("player") === "true";
-    const fromStorage = sessionStorage.getItem("isPlayer") === "true";
-    return fromQuery || fromStorage;
-  });
   const authUser = useAuthStore((state) => state.user);
   const emailFromQuery = searchParams.get("email");
   const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
   const userEmail = authUser?.email ?? emailFromQuery ?? storedEmail;
+  const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+  const [isPlayer, setIsPlayer] = useState(() => {
+    const fromQuery = searchParams.get("player") === "true";
+    const fromStorage = sessionStorage.getItem(storageKey("isPlayer")) === "true";
+    return fromQuery || fromStorage;
+  });
   const { data: profile, isLoading, isError } = useAthleticProfile(
     userEmail || undefined,
   );
@@ -36,7 +37,7 @@ export default function ViewProfile() {
   }, [userEmail]);
 
   const storedForm = useMemo(() => {
-    const raw = sessionStorage.getItem("playerProfileForm");
+    const raw = sessionStorage.getItem(storageKey("playerProfileForm"));
     if (!raw) {
       return null;
     }
@@ -45,9 +46,9 @@ export default function ViewProfile() {
     } catch {
       return null;
     }
-  }, []);
+  }, [userEmail]);
 
-  const photoPreview = sessionStorage.getItem("playerProfilePhoto") ?? "";
+  const photoPreview = sessionStorage.getItem(storageKey("playerProfilePhoto")) ?? "";
 
   const storedNumber = storedForm?.number ? Number(storedForm.number) : null;
   const storedSemester = storedForm?.semester ? Number(storedForm.semester) : null;
@@ -87,7 +88,7 @@ export default function ViewProfile() {
                   to="/player/profile/edit"
           onClick={() => {
             setIsPlayer(true);
-            sessionStorage.setItem("isPlayer", "true");
+            sessionStorage.setItem(storageKey("isPlayer"), "true");
           }}
                   className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 font-medium text-ink transition hover:bg-secondary/90"
                 >
@@ -99,7 +100,7 @@ export default function ViewProfile() {
                   to="/player/profile/becomePlayer"
           onClick={() => {
             setIsPlayer(false);
-            sessionStorage.setItem("isPlayer", "false");
+            sessionStorage.setItem(storageKey("isPlayer"), "false");
           }}
                   className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
                 >

@@ -1,8 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import axios from "axios";
 import { Upload, User } from "lucide-react";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
-import { useAthleticProfile, useUpdateAthleticProfile } from "../hooks/useAthleticProfile";
+import {
+  useAthleticProfile,
+  useCreateAthleticProfile,
+  useUpdateAthleticProfile,
+} from "../hooks/useAthleticProfile";
 
 export default function EditProfile() {
   const navigate = useNavigate();
@@ -11,8 +16,10 @@ export default function EditProfile() {
   const userEmail = authUser?.email ?? storedEmail;
   const { data: profile } = useAthleticProfile(userEmail || undefined);
   const updateProfile = useUpdateAthleticProfile();
+  const createProfile = useCreateAthleticProfile();
   const [formData, setFormData] = useState(() => {
-    const stored = sessionStorage.getItem("playerProfileForm");
+    const storageKey = userEmail ? `playerProfileForm:${userEmail}` : "playerProfileForm";
+    const stored = sessionStorage.getItem(storageKey);
     if (stored) {
       return JSON.parse(stored) as {
         position: string;
@@ -35,7 +42,8 @@ export default function EditProfile() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [photoPreview, setPhotoPreview] = useState<string>(() => {
-    return sessionStorage.getItem("playerProfilePhoto") ?? "";
+    const storageKey = userEmail ? `playerProfilePhoto:${userEmail}` : "playerProfilePhoto";
+    return sessionStorage.getItem(storageKey) ?? "";
   });
   const [submitError, setSubmitError] = useState("");
 
@@ -71,31 +79,49 @@ export default function EditProfile() {
 
     setSubmitError("");
 
+    const payload = {
+      email: userEmail,
+      dorsalNumber: number,
+      position: formData.position,
+      laterality: profile?.laterality ?? "RIGHT",
+      stature: profile?.stature ?? "1.70",
+      state: profile?.state ?? "ACTIVE",
+    };
+
     try {
       await updateProfile.mutateAsync({
         email: userEmail,
-        payload: {
-          email: userEmail,
-          dorsalNumber: number,
-          position: formData.position,
-          laterality: profile?.laterality ?? "RIGHT",
-          stature: profile?.stature ?? "1.70",
-          state: profile?.state ?? "ACTIVE",
-        },
+        payload,
       });
-
-      sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
-      if (photoPreview) {
-        sessionStorage.setItem("playerProfilePhoto", photoPreview);
-      }
-      sessionStorage.setItem("isPlayer", "true");
-      sessionStorage.setItem("playerEmail", userEmail);
-
-      navigate("/player/profile");
     } catch (error) {
-      const message = error instanceof Error ? error.message : "No fue posible actualizar el perfil.";
-      setSubmitError(message);
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 404 || status === 500) {
+        try {
+          await createProfile.mutateAsync(payload);
+        } catch (createError) {
+          const message =
+            createError instanceof Error
+              ? createError.message
+              : "No fue posible actualizar el perfil.";
+          setSubmitError(message);
+          return;
+        }
+      } else {
+        const message = error instanceof Error ? error.message : "No fue posible actualizar el perfil.";
+        setSubmitError(message);
+        return;
+      }
     }
+
+    const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+    sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
+    if (photoPreview) {
+      sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
+    }
+    sessionStorage.setItem(storageKey("isPlayer"), "true");
+    sessionStorage.setItem("playerEmail", userEmail);
+
+    navigate("/player/profile");
   };
 
   return (

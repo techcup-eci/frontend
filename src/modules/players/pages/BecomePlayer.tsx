@@ -54,6 +54,7 @@ export default function BecomePlayer() {
           setSubmitError("");
 
           try {
+            const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
             await createProfile.mutateAsync({
               email: userEmail,
               dorsalNumber: number,
@@ -63,11 +64,11 @@ export default function BecomePlayer() {
               state: "ACTIVE",
             });
 
-            sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
+            sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
             if (photoPreview) {
-              sessionStorage.setItem("playerProfilePhoto", photoPreview);
+              sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
             }
-            sessionStorage.setItem("isPlayer", "true");
+            sessionStorage.setItem(storageKey("isPlayer"), "true");
             sessionStorage.setItem("playerEmail", userEmail);
 
             navigate("/player/profile");
