@@ -16,6 +16,7 @@ import { useTournaments } from "../hooks/useTournaments";
 import { useActivateTournament } from "../hooks/useActivateTournament";
 import { useFinishTournament } from "../hooks/useFinishTournament";
 import { useDeleteTournament } from "../hooks/useDeleteTournament";
+import { useStartTournament } from "../hooks/useStartTournament";
 
 const organizerSidebar = [
   {
@@ -52,6 +53,20 @@ export default function OrganizerDashboard() {
       },
     });
   };
+
+  const handleStart = (id: string) => {
+    startMutation.mutate(id, {
+        onSuccess: () => toast.success("Torneo iniciado correctamente"),
+        onError: (err: any) => {
+            const message =
+                err?.response?.data?.message ||
+                err?.message ||
+                "No se pudo iniciar el torneo";
+            toast.error(message);
+        },
+    });
+  };
+
   const handleFinish = (id: string) => {
     finishMutation.mutate(id, {
       onSuccess: () => toast.success("Torneo finalizado correctamente"),
@@ -82,6 +97,8 @@ export default function OrganizerDashboard() {
       },
     });
   };
+
+  const startMutation = useStartTournament();
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -276,6 +293,16 @@ export default function OrganizerDashboard() {
                             {activateMutation.isPending ? "Activando..." : "Activar"}
                           </button>
                         )}
+
+                        {tournament.status === "ACTIVE" && (
+                        <button
+                            onClick={() => handleStart(tournament.id)}
+                            disabled={startMutation.isPending}
+                            className="rounded-lg bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                          >
+                              {startMutation.isPending ? "Iniciando..." : "Iniciar"}
+                          </button>
+                          )}
 
                         {tournament.status === "DRAFT" && (
                           <button
