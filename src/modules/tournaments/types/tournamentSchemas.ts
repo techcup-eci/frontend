@@ -12,18 +12,12 @@ export const createTournamentSchema = z
       .string()
       .min(1, "El cierre de inscripciones es obligatorio."),
     maxTeams: z
-      .number({
-        required_error: "El número de equipos es obligatorio.",
-        invalid_type_error: "El número de equipos debe ser un número.",
-      })
+      .number({ invalid_type_error: "El número de equipos debe ser un número." })
       .int("Debe ser un número entero.")
       .min(2, "El número de equipos debe ser al menos 2.")
       .max(32, "El número de equipos no puede superar 32."),
     cost: z
-      .number({
-        required_error: "El costo es obligatorio.",
-        invalid_type_error: "El costo debe ser un número.",
-      })
+      .number({ invalid_type_error: "El costo debe ser un número." })
       .min(0, "El costo no puede ser negativo."),
     regulationsUrl: z
       .union([z.string().url("Debe ser una URL válida."), z.literal("")])

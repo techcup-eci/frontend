@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="248" fill="#990000" stroke="#7a0000" stroke-width="8"/>
+  <!-- Trophy cup -->
+  <g transform="translate(256,220)">
+    <!-- Cup body -->
+    <path d="M-80,-40 L-70,120 L70,120 L80,-40 Z" fill="#ffffff" stroke="#e5e5e5" stroke-width="4"/>
+    <!-- Cup handles -->
+    <path d="M-80,-40 C-140,-40 -140,60 -70,100" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+    <path d="M80,-40 C140,-40 140,60 70,100" fill="none" stroke="#ffffff" stroke-width="16" stroke-linecap="round"/>
+    <!-- Cup top rim -->
+    <rect x="-100" y="-48" width="200" height="16" rx="8" fill="#ffffff" stroke="#e5e5e5" stroke-width="3"/>
+    <!-- Star inside cup -->
+    <text x="0" y="30" text-anchor="middle" font-size="80" font-weight="900" font-family="Arial, sans-serif" fill="#990000">★</text>
+    <!-- Base -->
+    <rect x="-40" y="120" width="80" height="24" rx="6" fill="#ffffff"/>
+    <rect x="-60" y="144" width="120" height="16" rx="6" fill="#ffffff"/>
+  </g>
+  <!-- Text below -->
+  <text x="256" y="420" text-anchor="middle" font-size="48" font-weight="800" font-family="Arial, sans-serif" fill="#ffffff" letter-spacing="6">TECHCUP</text>
+</svg>

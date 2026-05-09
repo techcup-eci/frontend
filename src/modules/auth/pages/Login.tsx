@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { loginRequestSchema } from "../types/authSchemas";
@@ -20,15 +20,13 @@ function zodErrorsToMap(issues: ZodIssue[]): Partial<Record<keyof LoginRequest, 
 
 export default function Login() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [formData, setFormData] = useState({
+  const { login, isPending } = useLogin();
+
+  const [formData, setFormData] = useState<LoginRequest>({
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
-  const [adminOverride, setAdminOverride] = useState(false);
-  const allowedDomains = ["@mail.escuelaing.edu.co", "@escuelaing.edu.co", "@gmail.com"];
-  const approvedAdminEmails = ["admin@escuelaing.edu.co"];
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginRequest, string>>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,49 +38,12 @@ export default function Login() {
       return;
     }
 
-    const normalizedEmail = formData.email.trim().toLowerCase();
-    const isAllowedDomain = allowedDomains.some((domain) => normalizedEmail.endsWith(domain));
-    const searchParams = new URLSearchParams(location.search);
-    const isAdminIntent = searchParams.get("role") === "admin";
-    const isOrganizerIntent = searchParams.get("role") === "organizer";
-
-    // Simulación de login - en producción esto haría una petición al backend
-    if (formData.email && formData.password && isAllowedDomain) {
-      const isAdminDomain = normalizedEmail.endsWith("@escuelaing.edu.co");
-      const isAdminApproved = approvedAdminEmails.includes(normalizedEmail);
-
-      // Redirigir según el rol simulado
-      if (isAdminIntent) {
-        if (!isAdminDomain) {
-          setError("Solo correos @escuelaing.edu.co pueden iniciar como admin");
-          return;
-        }
-
-        if (!isAdminApproved) {
-          if (!adminOverride) {
-            setError("Tu cuenta admin esta pendiente de confirmacion");
-            setAdminOverride(true);
-            return;
-          }
-        }
-
-        navigate("/admin/dashboard");
-        return;
-      }
-
-      if (isOrganizerIntent) {
-        const isInstitutionDomain = normalizedEmail.endsWith("@escuelaing.edu.co");
-        if (!isInstitutionDomain) {
-          setError("Solo correos institucionales pueden iniciar como organizador");
-          return;
-        }
-        navigate("/organizer/dashboard");
-        return;
-      }
-
+    try {
+      await login(result.data);
       navigate("/player/dashboard");
-    } else {
-      setError("Credenciales incorrectas o dominio no permitido");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Credenciales incorrectas.";
+      toast.error(message);
     }
   };
 
@@ -123,8 +84,7 @@ export default function Login() {
                 value={formData.email}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
-                  setError("");
-                  setAdminOverride(false);
+                  if (fieldErrors.email) setFieldErrors((prev) => ({ ...prev, email: undefined }));
                 }}
                 className={inputClass("email")}
                 placeholder="correo@escuelaing.edu.co"
@@ -140,8 +100,7 @@ export default function Login() {
                 value={formData.password}
                 onChange={(e) => {
                   setFormData({ ...formData, password: e.target.value });
-                  setError("");
-                  setAdminOverride(false);
+                  if (fieldErrors.password) setFieldErrors((prev) => ({ ...prev, password: undefined }));
                 }}
                 className={inputClass("password")}
                 placeholder="Tu contraseña"
@@ -176,5 +135,3 @@ export default function Login() {
     </div>
   );
 }
-
-
