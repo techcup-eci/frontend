@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 import { Link } from "react-router";
 import Badge from "./Badge";
+import ThemeToggle from "./ThemeToggle";
 
 interface NavbarProps {
 	userName?: string;
@@ -32,6 +33,8 @@ export default function Navbar({ userName, role, hideActions }: NavbarProps) {
 
 				{!hideActions && (
 					<div className="flex items-center gap-4">
+						<ThemeToggle />
+						
 						{userName && role ? (
 							<>
 								<div className="flex items-center gap-3">
