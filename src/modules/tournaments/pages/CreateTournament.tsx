@@ -173,21 +173,21 @@ export default function CreateTournament() {
 	};
 
 	const inputClass = (id: string) =>
-		`w-full rounded-lg border px-4 py-3 text-[var(--color-ink)] focus:outline-none transition-all ${
+		`w-full rounded-lg border px-4 py-3 text-foreground focus:outline-none transition-all ${
 			errors[id as FieldName]
 				? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-1 focus:ring-destructive"
-				: "border-border bg-[var(--color-mist)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)]"
+				: "border-border bg-muted focus:border-secondary focus:ring-1 focus:ring-secondary"
 		}`;
 
 	return (
 		<div className="min-h-screen bg-background p-6 sm:p-8">
 			<div className="mx-auto max-w-3xl">
 				<div className="mb-8 flex items-center gap-4">
-					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-oxblood)]">
+					<div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
 						<Trophy className="h-6 w-6 text-white" />
 					</div>
 					<div>
-						<h1 className="text-2xl font-bold text-[var(--color-ink)] sm:text-3xl">
+						<h1 className="text-2xl font-bold text-foreground sm:text-3xl">
 							Crear Nuevo Torneo
 						</h1>
 						<p className="text-sm text-muted-foreground">
@@ -204,8 +204,8 @@ export default function CreateTournament() {
 							className="rounded-xl border border-border bg-card p-6 shadow-sm"
 						>
 							<div className="mb-5 flex items-center gap-2 border-b border-border pb-4">
-								<Icon className="h-4 w-4 text-[var(--color-oxblood)]" />
-								<h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--color-ink)]">
+								<Icon className="h-4 w-4 text-primary" />
+								<h2 className="text-sm font-semibold uppercase tracking-wider text-foreground">
 									{section}
 								</h2>
 							</div>
@@ -218,7 +218,7 @@ export default function CreateTournament() {
 									>
 										<label
 											htmlFor={field.id}
-											className="mb-1.5 block text-sm font-medium text-[var(--color-ink)]"
+											className="mb-1.5 block text-sm font-medium text-foreground"
 										>
 											{field.label}
 											{field.required && (
@@ -247,8 +247,8 @@ export default function CreateTournament() {
 						</div>
 					))}
 
-					<div className="flex items-start gap-3 rounded-lg border border-[var(--color-cool-sky)]/30 bg-[var(--color-cool-sky)]/5 p-4 text-sm text-[var(--color-ink)]">
-						<AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-[var(--color-cool-sky)]" />
+					<div className="flex items-start gap-3 rounded-lg border border-secondary/30 bg-secondary/5 p-4 text-sm text-foreground">
+						<AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-secondary" />
 						<span>
 							El torneo se creará en estado <strong>Borrador</strong>. Podrás
 							activarlo desde el panel de control cuando esté listo.
@@ -266,7 +266,7 @@ export default function CreateTournament() {
 						<button
 							type="submit"
 							disabled={createMutation.isPending}
-							className="flex items-center gap-2 rounded-lg bg-[var(--color-oxblood)] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none disabled:opacity-60"
+							className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-white shadow-md transition-all hover:opacity-90 hover:shadow-lg focus:ring-2 focus:ring-secondary focus:outline-none disabled:opacity-60"
 						>
 							{createMutation.isPending ? (
 								<>
