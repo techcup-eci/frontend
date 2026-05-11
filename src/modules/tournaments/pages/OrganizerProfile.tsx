@@ -1,20 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useSearchParams } from "react-router";
-import { AlertCircle, Edit, Shield, Target, Trophy, User, UserPlus } from "lucide-react";
+import { useSearchParams } from "react-router";
+import { AlertCircle, Shield, Target, Trophy, User } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
-import { useAthleticProfile } from "../hooks/useAthleticProfile";
+import { useAthleticProfile } from "../../players/hooks/useAthleticProfile";
 
 interface PlayerProfileForm {
   position: string;
-  dorsalNumber: string;
-  laterality: string;
-  stature: string;
-  state: string;
+  number: string;
+  semester: string;
+  relationship: string;
+  studentLevel: string;
+  professorType: string;
 }
 
-export default function ViewProfile() {
-	const [searchParams] = useSearchParams();
+export default function OrganizerProfile() {
+  const [searchParams] = useSearchParams();
   const authUser = useAuthStore((state) => state.user);
   const emailFromQuery = searchParams.get("email");
   const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
@@ -25,9 +26,7 @@ export default function ViewProfile() {
     const fromStorage = sessionStorage.getItem(storageKey("isPlayer")) === "true";
     return fromQuery || fromStorage;
   });
-  const { data: profile, isLoading, isError } = useAthleticProfile(
-    userEmail || undefined,
-  );
+  const { data: profile, isLoading, isError } = useAthleticProfile(userEmail || undefined);
 
   useEffect(() => {
     if (userEmail) {
@@ -49,64 +48,37 @@ export default function ViewProfile() {
 
   const photoPreview = sessionStorage.getItem(storageKey("playerProfilePhoto")) ?? "";
 
-  const storedNumber = storedForm?.dorsalNumber ? Number(storedForm.dorsalNumber) : null;
+  const storedNumber = storedForm?.number ? Number(storedForm.number) : null;
+  const storedSemester = storedForm?.semester ? Number(storedForm.semester) : null;
   const preferredNumber = profile?.dorsalNumber ??
     (storedNumber && Number.isFinite(storedNumber) ? storedNumber : 8);
+  const currentSemester = storedSemester && Number.isFinite(storedSemester)
+    ? storedSemester
+    : 6;
   const resolvedIsPlayer = Boolean(profile) || isPlayer;
-  const availabilityLabel = profile?.state ?? storedForm?.state ?? "ACTIVE";
-
-  const availabilityText = availabilityLabel === "ACTIVE" ? "Activo" : "Inactivo";
-  const lateralityText = profile?.laterality ?? storedForm?.laterality ?? "RIGHT";
-  const lateralityLabel =
-    lateralityText === "LEFT" ? "Izquierda" : lateralityText === "BOTH" ? "Ambidiestra" : "Derecha";
-  const statureLabel = profile?.stature ?? storedForm?.stature ?? "1.70";
+  const availabilityLabel = profile?.state ?? "Disponible";
 
   const playerInfo = {
     position: profile?.position ?? storedForm?.position ?? "Mediocampista Central",
     preferredNumber,
+    currentSemester,
     teamName: "Los Algoritmos FC",
-    laterality: lateralityLabel,
-    stature: statureLabel,
+    showSemester:
+      storedForm?.relationship === "estudiante" &&
+      storedForm?.studentLevel === "pregrado",
   };
 
-	const roleLabel = resolvedIsPlayer ? "Jugador" : "Usuario";
-  const displayName = authUser?.fullName ?? "Sebastián Torres";
+  const roleLabel = "Organizador";
+  const displayName = authUser?.fullName ?? "Sebastian Torres";
   const displayEmail = profile?.email ?? authUser?.email ?? "sebastian.torres@escuelaing.edu.co";
 
   return (
     <div className="flex min-h-screen flex-col">
-
       <div className="flex flex-1">
-
         <main className="flex-1 bg-[#b42d3c] p-8">
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold">Mi perfil</h1>
-              {resolvedIsPlayer ? (
-                <Link
-                  to="/player/profile/edit"
-          onClick={() => {
-            setIsPlayer(true);
-            sessionStorage.setItem(storageKey("isPlayer"), "true");
-          }}
-                  className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 font-medium text-ink transition hover:bg-secondary/90"
-                >
-                  <Edit className="h-4 w-4" />
-                  Actualizar información
-                </Link>
-              ) : (
-                <Link
-                  to="/player/profile/becomePlayer"
-          onClick={() => {
-            setIsPlayer(false);
-            sessionStorage.setItem(storageKey("isPlayer"), "false");
-          }}
-                  className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  Volverme jugador
-                </Link>
-              )}
             </div>
 
             {isLoading && (
@@ -120,7 +92,6 @@ export default function ViewProfile() {
                 No fue posible cargar el perfil deportivo.
               </div>
             )}
-
 
             <div className="grid gap-8 md:grid-cols-[260px_1fr]">
               <div className="flex flex-col items-center gap-4 md:items-start">
@@ -138,9 +109,7 @@ export default function ViewProfile() {
                 <div className="text-center md:text-left">
                   <p className="text-sm uppercase tracking-[0.2em] text-white/70">Nombre</p>
                   <h2 className="text-2xl font-bold text-white">{displayName}</h2>
-                  <p className="mt-2 text-sm text-white/70">
-                    {displayEmail}
-                  </p>
+                  <p className="mt-2 text-sm text-white/70">{displayEmail}</p>
                 </div>
               </div>
 
@@ -152,8 +121,8 @@ export default function ViewProfile() {
                       <p className="text-lg font-semibold text-foreground">{roleLabel}</p>
                     </div>
                     <div>
-                      <p className="mb-1 text-sm text-muted-foreground">Estado</p>
-                      <Badge variant="success">{availabilityText}</Badge>
+                      <p className="mb-1 text-sm text-muted-foreground">Disponibilidad</p>
+                      <Badge variant="success">{availabilityLabel}</Badge>
                     </div>
                   </div>
                 </div>
@@ -163,7 +132,7 @@ export default function ViewProfile() {
                     <div className="mb-6 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">
                         <Shield className="h-6 w-6 text-primary" />
-                        <h2 className="text-xl font-bold">Información deportiva</h2>
+                        <h2 className="text-xl font-bold">Informacion deportiva</h2>
                       </div>
                       <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-xl font-black text-primary-foreground">
                         {playerInfo.preferredNumber}
@@ -171,17 +140,15 @@ export default function ViewProfile() {
                     </div>
                     <div className="grid gap-6 md:grid-cols-2">
                       <div>
-                        <p className="mb-1 text-sm text-muted-foreground">Posición</p>
+                        <p className="mb-1 text-sm text-muted-foreground">Posicion</p>
                         <p className="text-lg font-bold">{playerInfo.position}</p>
                       </div>
-                      <div>
-                        <p className="mb-1 text-sm text-muted-foreground">Lateralidad</p>
-                        <p className="text-lg font-bold">{playerInfo.laterality}</p>
-                      </div>
-                      <div>
-                        <p className="mb-1 text-sm text-muted-foreground">Estatura</p>
-                        <p className="text-lg font-bold">{playerInfo.stature} m</p>
-                      </div>
+                      {playerInfo.showSemester && (
+                        <div>
+                          <p className="mb-1 text-sm text-muted-foreground">Semestre actual</p>
+                          <p className="text-lg font-bold">{playerInfo.currentSemester}</p>
+                        </div>
+                      )}
                       <div>
                         <p className="mb-1 text-sm text-muted-foreground">Equipo actual</p>
                         <p className="text-lg font-bold">{playerInfo.teamName}</p>
@@ -190,11 +157,10 @@ export default function ViewProfile() {
                   </div>
                 )}
 
-                {/* Estadísticas del torneo */}
                 <div className="rounded-xl border border-[#b42d3c]/35 bg-gradient-to-r from-[#f3d3d3] to-[#ead0d0] p-6 shadow-sm">
                   <div className="mb-6 flex items-center gap-3">
                     <Trophy className="h-6 w-6 text-primary" />
-                    <h2 className="text-xl font-bold">Estadísticas del torneo</h2>
+                    <h2 className="text-xl font-bold">Estadisticas del torneo</h2>
                   </div>
                   <div className="grid gap-4 md:grid-cols-4">
                     <div className="rounded-lg border border-border bg-white p-4 text-center shadow-sm">
@@ -227,5 +193,3 @@ export default function ViewProfile() {
     </div>
   );
 }
-
-

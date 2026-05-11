@@ -56,6 +56,18 @@ const playerSidebar = [
 	},
 ];
 
+const userSidebar = [
+	{
+		items: [
+			{ label: "Inicio", path: "/user/dashboard", icon: Home },
+			{ label: "Mi Perfil", path: "/user/profile", icon: User },
+			{ label: "Equipos", path: "/user/teams", icon: Users },
+			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
+			{ label: "Estadísticas", path: "/stats", icon: BarChart3 },
+		],
+	},
+];
+
 const captainSidebar = [
 	{
 		items: [
@@ -78,6 +90,7 @@ const organizerSidebar = [
 	{
 		items: [
 			{ label: "Inicio", path: "/organizer/dashboard", icon: Home },
+			{ label: "Mi Perfil", path: "/organizer/profile", icon: User },
 			{ label: "Torneos", path: "/organizer/create-tournament", icon: Trophy },
 			{ label: "Equipos", path: "/organizer/teams", icon: Users },
 			{ label: "Pagos", path: "/organizer/payments", icon: CreditCard },
@@ -122,6 +135,10 @@ export default function DashboardLayout() {
 		currentSidebar = playerSidebar;
 		userName = "Jugador";
 		role = "Jugador";
+	} else if (location.pathname.startsWith("/user")) {
+		currentSidebar = userSidebar;
+		userName = "Usuario";
+		role = "Usuario";
 	}
 
 	return (
