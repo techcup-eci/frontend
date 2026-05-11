@@ -1,4 +1,8 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
 import { LoginForm } from "../components/LoginForm";
+import { useAuthStore } from "../hooks/useAuthStore";
+import type { AuthRole } from "../types/AuthUser";
 
 const roleCards = [
 	{
@@ -19,6 +23,27 @@ const roleCards = [
 ];
 
 export function LoginPage() {
+	const navigate = useNavigate();
+	const status = useAuthStore((state) => state.status);
+	const user = useAuthStore((state) => state.user);
+
+	useEffect(() => {
+		if (status !== "authenticated") {
+			return;
+		}
+
+		const roleRoutes: Record<AuthRole, string> = {
+			participant: "/player/dashboard",
+			captain: "/captain/dashboard",
+			organizer: "/organizer/dashboard",
+			referee: "/referee/dashboard",
+			administrator: "/admin/dashboard",
+		};
+
+		const nextRoute = user?.role ? roleRoutes[user.role] : "/player/dashboard";
+		navigate(nextRoute, { replace: true });
+	}, [navigate, status, user]);
+
 	return (
 		<main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
 			<div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 shadow-[0_30px_100px_rgba(15,23,42,0.18)] backdrop-blur sm:grid-cols-[1.1fr_0.9fr]">

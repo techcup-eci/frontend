@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { Trophy } from "lucide-react";
-import { toast } from "sonner";
+import type { ZodIssue } from "zod";
 import { loginRequestSchema } from "../types/authSchemas";
 import type { LoginRequest } from "../types/LoginRequest";
 import { useLogin } from "../hooks/useLogin";
-import type { ZodIssue } from "zod";
+import { useAuthStore } from "../hooks/useAuthStore";
+import type { AuthRole } from "../types/AuthUser";
 
 function zodErrorsToMap(issues: ZodIssue[]): Partial<Record<keyof LoginRequest, string>> {
   const map: Partial<Record<keyof LoginRequest, string>> = {};
@@ -20,69 +21,51 @@ function zodErrorsToMap(issues: ZodIssue[]): Partial<Record<keyof LoginRequest, 
 
 export default function Login() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const [formData, setFormData] = useState({
+  const status = useAuthStore((state) => state.status);
+  const user = useAuthStore((state) => state.user);
+  const { login, isPending, errorMessage, resetState } = useLogin();
+  const [formData, setFormData] = useState<LoginRequest>({
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
-  const [adminOverride, setAdminOverride] = useState(false);
-  const allowedDomains = ["@mail.escuelaing.edu.co", "@escuelaing.edu.co", "@gmail.com"];
-  const approvedAdminEmails = ["admin@escuelaing.edu.co"];
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginRequest, string>>>({});
+
+  useEffect(() => {
+    if (status !== "authenticated") {
+      return;
+    }
+
+    const roleRoutes: Record<AuthRole, string> = {
+      participant: "/player/dashboard",
+      captain: "/captain/dashboard",
+      organizer: "/organizer/dashboard",
+      referee: "/referee/dashboard",
+      administrator: "/admin/dashboard",
+    };
+
+    const nextRoute = user?.role ? roleRoutes[user.role] : "/player/dashboard";
+    navigate(nextRoute, { replace: true });
+  }, [navigate, status, user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setFieldErrors({});
 
-    const result = loginRequestSchema.safeParse(formData);
+    const result = loginRequestSchema.safeParse({
+      email: formData.email,
+      password: formData.password,
+    });
+
     if (!result.success) {
       setFieldErrors(zodErrorsToMap(result.error.issues));
       return;
     }
 
-    const normalizedEmail = formData.email.trim().toLowerCase();
-    const isAllowedDomain = allowedDomains.some((domain) => normalizedEmail.endsWith(domain));
-    const searchParams = new URLSearchParams(location.search);
-    const isAdminIntent = searchParams.get("role") === "admin";
-    const isOrganizerIntent = searchParams.get("role") === "organizer";
-
-    // Simulación de login - en producción esto haría una petición al backend
-    if (formData.email && formData.password && isAllowedDomain) {
-      const isAdminDomain = normalizedEmail.endsWith("@escuelaing.edu.co");
-      const isAdminApproved = approvedAdminEmails.includes(normalizedEmail);
-
-      // Redirigir según el rol simulado
-      if (isAdminIntent) {
-        if (!isAdminDomain) {
-          setError("Solo correos @escuelaing.edu.co pueden iniciar como admin");
-          return;
-        }
-
-        if (!isAdminApproved) {
-          if (!adminOverride) {
-            setError("Tu cuenta admin esta pendiente de confirmacion");
-            setAdminOverride(true);
-            return;
-          }
-        }
-
-        navigate("/admin/dashboard");
-        return;
-      }
-
-      if (isOrganizerIntent) {
-        const isInstitutionDomain = normalizedEmail.endsWith("@escuelaing.edu.co");
-        if (!isInstitutionDomain) {
-          setError("Solo correos institucionales pueden iniciar como organizador");
-          return;
-        }
-        navigate("/organizer/dashboard");
-        return;
-      }
-
-      navigate("/player/dashboard");
-    } else {
-      setError("Credenciales incorrectas o dominio no permitido");
+    try {
+      await login(result.data);
+      sessionStorage.setItem("playerEmail", result.data.email.trim().toLowerCase());
+    } catch {
+      // Error message is handled by the login hook.
     }
   };
 
@@ -123,8 +106,12 @@ export default function Login() {
                 value={formData.email}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
-                  setError("");
-                  setAdminOverride(false);
+                  if (fieldErrors.email) {
+                    setFieldErrors((current) => ({ ...current, email: undefined }));
+                  }
+                  if (errorMessage) {
+                    resetState();
+                  }
                 }}
                 className={inputClass("email")}
                 placeholder="correo@escuelaing.edu.co"
@@ -140,14 +127,24 @@ export default function Login() {
                 value={formData.password}
                 onChange={(e) => {
                   setFormData({ ...formData, password: e.target.value });
-                  setError("");
-                  setAdminOverride(false);
+                  if (fieldErrors.password) {
+                    setFieldErrors((current) => ({ ...current, password: undefined }));
+                  }
+                  if (errorMessage) {
+                    resetState();
+                  }
                 }}
                 className={inputClass("password")}
                 placeholder="Tu contraseña"
               />
               {fieldErrors.password && <p className="mt-1 text-xs text-destructive">{fieldErrors.password}</p>}
             </div>
+
+            {errorMessage ? (
+              <div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {errorMessage}
+              </div>
+            ) : null}
 
             <button
               type="submit"

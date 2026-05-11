@@ -1,9 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Upload, User } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { useCreateAthleticProfile } from "../hooks/useAthleticProfile";
 
 export default function BecomePlayer() {
     const navigate = useNavigate();
+  const authUser = useAuthStore((state) => state.user);
+  const createProfile = useCreateAthleticProfile();
     const [formData, setFormData] = useState({
         position: "Mediocampista Central",
         number: "8",
@@ -14,6 +18,7 @@ export default function BecomePlayer() {
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [submitError, setSubmitError] = useState("");
 
     const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -26,7 +31,7 @@ export default function BecomePlayer() {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
 
@@ -40,13 +45,37 @@ export default function BecomePlayer() {
             return;
         }
 
-        sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
-        if (photoPreview) {
-          sessionStorage.setItem("playerProfilePhoto", photoPreview);
-        }
-        sessionStorage.setItem("isPlayer", "true");
+          const userEmail = authUser?.email ?? sessionStorage.getItem("playerEmail") ?? "";
+          if (!userEmail) {
+            setSubmitError("No se pudo identificar el correo del usuario. Inicia sesión nuevamente.");
+            return;
+          }
 
-        navigate("/player/profile?player=true");
+          setSubmitError("");
+
+          try {
+            const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+            await createProfile.mutateAsync({
+              email: userEmail,
+              dorsalNumber: number,
+              position: formData.position,
+              laterality: "RIGHT",
+              stature: "1.70",
+              state: "ACTIVE",
+            });
+
+            sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
+            if (photoPreview) {
+              sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
+            }
+            sessionStorage.setItem(storageKey("isPlayer"), "true");
+            sessionStorage.setItem("playerEmail", userEmail);
+
+            navigate("/player/profile");
+          } catch (error) {
+            const message = error instanceof Error ? error.message : "No fue posible guardar el perfil.";
+            setSubmitError(message);
+          }
     };
 
     return (
@@ -222,12 +251,19 @@ export default function BecomePlayer() {
                   </div>
                 )}
 
+                                {submitError && (
+                                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+                                    {submitError}
+                                  </div>
+                                )}
+
                                 <div className="flex gap-4 pt-4">
                                     <button
                                         type="submit"
+                                        disabled={createProfile.isPending}
                                         className="flex-1 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
                                     >
-                                        Actualizar perfil
+                                        {createProfile.isPending ? "Guardando..." : "Actualizar perfil"}
                                     </button>
                                     <button
                                         type="button"

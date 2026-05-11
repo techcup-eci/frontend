@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 import { AlertCircle, Edit, Shield, Target, Trophy, User, UserPlus } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { useAthleticProfile } from "../hooks/useAthleticProfile";
 
 interface PlayerProfileForm {
   position: string;
@@ -14,14 +16,28 @@ interface PlayerProfileForm {
 
 export default function ViewProfile() {
 	const [searchParams] = useSearchParams();
+  const authUser = useAuthStore((state) => state.user);
+  const emailFromQuery = searchParams.get("email");
+  const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
+  const userEmail = authUser?.email ?? emailFromQuery ?? storedEmail;
+  const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
   const [isPlayer, setIsPlayer] = useState(() => {
     const fromQuery = searchParams.get("player") === "true";
-    const fromStorage = sessionStorage.getItem("isPlayer") === "true";
+    const fromStorage = sessionStorage.getItem(storageKey("isPlayer")) === "true";
     return fromQuery || fromStorage;
   });
+  const { data: profile, isLoading, isError } = useAthleticProfile(
+    userEmail || undefined,
+  );
+
+  useEffect(() => {
+    if (userEmail) {
+      sessionStorage.setItem("playerEmail", userEmail);
+    }
+  }, [userEmail]);
 
   const storedForm = useMemo(() => {
-    const raw = sessionStorage.getItem("playerProfileForm");
+    const raw = sessionStorage.getItem(storageKey("playerProfileForm"));
     if (!raw) {
       return null;
     }
@@ -30,23 +46,33 @@ export default function ViewProfile() {
     } catch {
       return null;
     }
-  }, []);
+  }, [userEmail]);
 
-  const photoPreview = sessionStorage.getItem("playerProfilePhoto") ?? "";
+  const photoPreview = sessionStorage.getItem(storageKey("playerProfilePhoto")) ?? "";
+
+  const storedNumber = storedForm?.number ? Number(storedForm.number) : null;
+  const storedSemester = storedForm?.semester ? Number(storedForm.semester) : null;
+  const preferredNumber = profile?.dorsalNumber ??
+    (storedNumber && Number.isFinite(storedNumber) ? storedNumber : 8);
+  const currentSemester = storedSemester && Number.isFinite(storedSemester)
+    ? storedSemester
+    : 6;
+  const resolvedIsPlayer = Boolean(profile) || isPlayer;
+  const availabilityLabel = profile?.state ?? "Disponible";
 
   const playerInfo = {
-    position: storedForm?.position ?? "Mediocampista Central",
-    preferredNumber: storedForm?.number ? Number(storedForm.number) : 8,
-    currentSemester: storedForm?.semester
-      ? Number(storedForm.semester)
-      : 6,
+    position: profile?.position ?? storedForm?.position ?? "Mediocampista Central",
+    preferredNumber,
+    currentSemester,
     teamName: "Los Algoritmos FC",
     showSemester:
       storedForm?.relationship === "estudiante" &&
       storedForm?.studentLevel === "pregrado",
   };
 
-	const roleLabel = isPlayer ? "Jugador" : "Usuario";
+	const roleLabel = resolvedIsPlayer ? "Jugador" : "Usuario";
+  const displayName = authUser?.fullName ?? "Sebastián Torres";
+  const displayEmail = profile?.email ?? authUser?.email ?? "sebastian.torres@escuelaing.edu.co";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -57,12 +83,12 @@ export default function ViewProfile() {
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="flex items-center justify-between">
               <h1 className="text-3xl font-bold">Mi perfil</h1>
-              {isPlayer ? (
+              {resolvedIsPlayer ? (
                 <Link
                   to="/player/profile/edit"
           onClick={() => {
             setIsPlayer(true);
-            sessionStorage.setItem("isPlayer", "true");
+            sessionStorage.setItem(storageKey("isPlayer"), "true");
           }}
                   className="flex items-center gap-2 rounded-lg bg-secondary px-4 py-2 font-medium text-ink transition hover:bg-secondary/90"
                 >
@@ -74,7 +100,7 @@ export default function ViewProfile() {
                   to="/player/profile/becomePlayer"
           onClick={() => {
             setIsPlayer(false);
-            sessionStorage.setItem("isPlayer", "false");
+            sessionStorage.setItem(storageKey("isPlayer"), "false");
           }}
                   className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
                 >
@@ -83,6 +109,18 @@ export default function ViewProfile() {
                 </Link>
               )}
             </div>
+
+            {isLoading && (
+              <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+                Cargando perfil desde el servidor...
+              </div>
+            )}
+
+            {isError && (
+              <div className="rounded-lg border border-border bg-red-500/10 px-4 py-3 text-sm text-red-700">
+                No fue posible cargar el perfil deportivo.
+              </div>
+            )}
 
 
             <div className="grid gap-8 md:grid-cols-[260px_1fr]">
@@ -100,9 +138,9 @@ export default function ViewProfile() {
                 </div>
                 <div className="text-center md:text-left">
                   <p className="text-sm uppercase tracking-[0.2em] text-white/70">Nombre</p>
-                  <h2 className="text-2xl font-bold text-white">Sebastián Torres</h2>
+                  <h2 className="text-2xl font-bold text-white">{displayName}</h2>
                   <p className="mt-2 text-sm text-white/70">
-                    sebastian.torres@escuelaing.edu.co
+                    {displayEmail}
                   </p>
                 </div>
               </div>
@@ -116,12 +154,12 @@ export default function ViewProfile() {
                     </div>
                     <div>
                       <p className="mb-1 text-sm text-muted-foreground">Disponibilidad</p>
-                      <Badge variant="success">Disponible</Badge>
+                      <Badge variant="success">{availabilityLabel}</Badge>
                     </div>
                   </div>
                 </div>
 
-                {isPlayer && (
+                {resolvedIsPlayer && (
                   <div className="rounded-xl border border-[#b42d3c]/35 bg-gradient-to-r from-[#f3d3d3] to-[#ead0d0] p-6 shadow-sm">
                     <div className="mb-6 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-3">

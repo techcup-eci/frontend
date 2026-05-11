@@ -1,11 +1,25 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import axios from "axios";
 import { Upload, User } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import {
+  useAthleticProfile,
+  useCreateAthleticProfile,
+  useUpdateAthleticProfile,
+} from "../hooks/useAthleticProfile";
 
 export default function EditProfile() {
   const navigate = useNavigate();
+  const authUser = useAuthStore((state) => state.user);
+  const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
+  const userEmail = authUser?.email ?? storedEmail;
+  const { data: profile } = useAthleticProfile(userEmail || undefined);
+  const updateProfile = useUpdateAthleticProfile();
+  const createProfile = useCreateAthleticProfile();
   const [formData, setFormData] = useState(() => {
-    const stored = sessionStorage.getItem("playerProfileForm");
+    const storageKey = userEmail ? `playerProfileForm:${userEmail}` : "playerProfileForm";
+    const stored = sessionStorage.getItem(storageKey);
     if (stored) {
       return JSON.parse(stored) as {
         position: string;
@@ -28,8 +42,10 @@ export default function EditProfile() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [photoPreview, setPhotoPreview] = useState<string>(() => {
-    return sessionStorage.getItem("playerProfilePhoto") ?? "";
+    const storageKey = userEmail ? `playerProfilePhoto:${userEmail}` : "playerProfilePhoto";
+    return sessionStorage.getItem(storageKey) ?? "";
   });
+  const [submitError, setSubmitError] = useState("");
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -42,7 +58,7 @@ export default function EditProfile() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -56,13 +72,56 @@ export default function EditProfile() {
       return;
     }
 
-    sessionStorage.setItem("playerProfileForm", JSON.stringify(formData));
-    if (photoPreview) {
-      sessionStorage.setItem("playerProfilePhoto", photoPreview);
+    if (!userEmail) {
+      setSubmitError("No se pudo identificar el correo del usuario. Inicia sesión nuevamente.");
+      return;
     }
-    sessionStorage.setItem("isPlayer", "true");
 
-    navigate("/player/profile?player=true");
+    setSubmitError("");
+
+    const payload = {
+      email: userEmail,
+      dorsalNumber: number,
+      position: formData.position,
+      laterality: profile?.laterality ?? "RIGHT",
+      stature: profile?.stature ?? "1.70",
+      state: profile?.state ?? "ACTIVE",
+    };
+
+    try {
+      await updateProfile.mutateAsync({
+        email: userEmail,
+        payload,
+      });
+    } catch (error) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 404 || status === 500) {
+        try {
+          await createProfile.mutateAsync(payload);
+        } catch (createError) {
+          const message =
+            createError instanceof Error
+              ? createError.message
+              : "No fue posible actualizar el perfil.";
+          setSubmitError(message);
+          return;
+        }
+      } else {
+        const message = error instanceof Error ? error.message : "No fue posible actualizar el perfil.";
+        setSubmitError(message);
+        return;
+      }
+    }
+
+    const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+    sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
+    if (photoPreview) {
+      sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
+    }
+    sessionStorage.setItem(storageKey("isPlayer"), "true");
+    sessionStorage.setItem("playerEmail", userEmail);
+
+    navigate("/player/profile");
   };
 
   return (
@@ -232,12 +291,19 @@ export default function EditProfile() {
                     </select>
                   </div>
                 )}
+                {submitError && (
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+                    {submitError}
+                  </div>
+                )}
+
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
+                    disabled={updateProfile.isPending}
                     className="flex-1 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
                   >
-                    Actualizar perfil
+                    {updateProfile.isPending ? "Guardando..." : "Actualizar perfil"}
                   </button>
                   <button
                     type="button"
