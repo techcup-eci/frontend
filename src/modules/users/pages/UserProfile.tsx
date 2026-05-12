@@ -17,10 +17,10 @@ export default function UserProfile() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="flex flex-1">
-        <main className="flex-1 bg-[#b42d3c] p-8">
+        <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="flex items-center justify-between">
-              <h1 className="text-3xl font-bold">Mi perfil</h1>
+              <h1 className="text-3xl font-bold text-foreground">Mi perfil</h1>
               <Link
                 to="/player/profile/becomePlayer"
                 className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
@@ -36,14 +36,14 @@ export default function UserProfile() {
                   <User className="h-24 w-24 text-muted-foreground" />
                 </div>
                 <div className="text-center md:text-left">
-                  <p className="text-sm uppercase tracking-[0.2em] text-white/70">Nombre</p>
-                  <h2 className="text-2xl font-bold text-white">{displayName}</h2>
-                  <p className="mt-2 text-sm text-white/70">{displayEmail}</p>
+                  <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Nombre</p>
+                  <h2 className="text-2xl font-bold text-foreground">{displayName}</h2>
+                  <p className="mt-2 text-sm text-muted-foreground">{displayEmail}</p>
                 </div>
               </div>
 
               <div className="space-y-6">
-                <div className="rounded-xl border border-[#b42d3c]/35 bg-gradient-to-r from-[#f3d3d3] to-[#ead0d0] p-6 shadow-sm">
+                <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <p className="mb-1 text-sm text-muted-foreground">Rol</p>
@@ -56,7 +56,7 @@ export default function UserProfile() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-[#b42d3c]/35 bg-gradient-to-r from-[#f3d3d3] to-[#ead0d0] p-6 shadow-sm">
+                <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
                   <div className="flex items-center gap-3">
                     <User className="h-6 w-6 text-primary" />
                     <h2 className="text-xl font-bold">Perfil general</h2>
