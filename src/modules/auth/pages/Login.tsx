@@ -36,14 +36,14 @@ export default function Login() {
     }
 
     const roleRoutes: Record<AuthRole, string> = {
-      participant: "/player/dashboard",
+      participant: "/user/dashboard",
       captain: "/captain/dashboard",
       organizer: "/organizer/dashboard",
       referee: "/referee/dashboard",
       administrator: "/admin/dashboard",
     };
 
-    const nextRoute = user?.role ? roleRoutes[user.role] : "/player/dashboard";
+    const nextRoute = user?.role ? roleRoutes[user.role] : "/user/dashboard";
     navigate(nextRoute, { replace: true });
   }, [navigate, status, user]);
 

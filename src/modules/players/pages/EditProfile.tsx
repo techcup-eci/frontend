@@ -104,12 +104,10 @@ export default function EditProfile() {
               ? createError.message
               : "No fue posible actualizar el perfil.";
           setSubmitError(message);
-          return;
         }
       } else {
         const message = error instanceof Error ? error.message : "No fue posible actualizar el perfil.";
         setSubmitError(message);
-        return;
       }
     }
 

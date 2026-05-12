@@ -10,11 +10,10 @@ export default function BecomePlayer() {
   const createProfile = useCreateAthleticProfile();
     const [formData, setFormData] = useState({
         position: "Mediocampista Central",
-        number: "8",
-        semester: "6",
-    relationship: "estudiante",
-    studentLevel: "pregrado",
-    professorType: "planta",
+        dorsalNumber: "8",
+        laterality: "RIGHT",
+        stature: "1.70",
+        state: "ACTIVE",
     });
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [photoPreview, setPhotoPreview] = useState<string>("");
@@ -35,9 +34,14 @@ export default function BecomePlayer() {
         e.preventDefault();
         const newErrors: Record<string, string> = {};
 
-        const number = parseInt(formData.number);
+        const number = parseInt(formData.dorsalNumber);
         if (number < 1 || number > 99) {
             newErrors.number = "El dorsal debe ser un número entre 1 y 99";
+        }
+
+        const statureValue = Number(formData.stature);
+        if (!Number.isFinite(statureValue) || statureValue <= 0.5 || statureValue >= 2.5) {
+          newErrors.stature = "La estatura debe estar entre 0.5 y 2.5 metros";
         }
 
         if (Object.keys(newErrors).length > 0) {
@@ -53,29 +57,30 @@ export default function BecomePlayer() {
 
           setSubmitError("");
 
+          const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+
           try {
-            const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
             await createProfile.mutateAsync({
               email: userEmail,
               dorsalNumber: number,
               position: formData.position,
-              laterality: "RIGHT",
-              stature: "1.70",
-              state: "ACTIVE",
+              laterality: formData.laterality,
+              stature: formData.stature,
+              state: formData.state,
             });
-
-            sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
-            if (photoPreview) {
-              sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
-            }
-            sessionStorage.setItem(storageKey("isPlayer"), "true");
-            sessionStorage.setItem("playerEmail", userEmail);
-
-            navigate("/player/profile");
           } catch (error) {
             const message = error instanceof Error ? error.message : "No fue posible guardar el perfil.";
             setSubmitError(message);
           }
+
+          sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
+          if (photoPreview) {
+            sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
+          }
+          sessionStorage.setItem(storageKey("isPlayer"), "true");
+          sessionStorage.setItem("playerEmail", userEmail);
+
+          navigate("/player/profile");
     };
 
     return (
@@ -88,7 +93,7 @@ export default function BecomePlayer() {
                         <div>
                             <h1 className="mb-2 text-3xl font-bold">Volverme jugador</h1>
                             <p className="text-muted-foreground">
-                                Pon información basica acerca de como tu juegas
+                              Completa tu informacion deportiva para participar en el torneo.
                             </p>
                         </div>
 
@@ -125,71 +130,7 @@ export default function BecomePlayer() {
                                 </div>
                               </div>
                             </div>
-                            <div>
-                              <label className="mb-2 block font-medium">Vinculo con la universidad</label>
-                              <select
-                                required
-                                value={formData.relationship}
-                                onChange={(e) =>
-                                  setFormData({
-                                    ...formData,
-                                    relationship: e.target.value,
-                                  })
-                                }
-                                className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                              >
-                                <option value="estudiante">Estudiante</option>
-                                <option value="profesor">Profesor</option>
-                                <option value="invitado">Invitado</option>
-                                <option value="graduado">Graduado</option>
-                              </select>
-                            </div>
-
-                            {formData.relationship === "estudiante" && (
-                              <div>
-                                <label className="mb-2 block font-medium">Nivel academico</label>
-                                <select
-                                  required
-                                  value={formData.studentLevel}
-                                  onChange={(e) =>
-                                    setFormData({
-                                      ...formData,
-                                      studentLevel: e.target.value,
-                                    })
-                                  }
-                                  className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                                >
-                                  <option value="pregrado">Pregrado</option>
-                                  <option value="posgrado">Posgrado</option>
-                                  <option value="maestria">Maestria</option>
-                                  <option value="doctorado">Doctorado</option>
-                                </select>
-                              </div>
-                            )}
-
-                            {formData.relationship === "profesor" && (
-                              <div>
-                                <label className="mb-2 block font-medium">Tipo de profesor</label>
-                                <select
-                                  required
-                                  value={formData.professorType}
-                                  onChange={(e) =>
-                                    setFormData({
-                                      ...formData,
-                                      professorType: e.target.value,
-                                    })
-                                  }
-                                  className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                                >
-                                  <option value="planta">Planta</option>
-                                  <option value="catedra">Catedra</option>
-                                </select>
-                              </div>
-                            )}
-
-
-
-                <div>
+                        <div>
                   <label className="mb-2 block font-medium">Posición</label>
                   <select
                     required
@@ -216,9 +157,9 @@ export default function BecomePlayer() {
                     required
                     min="1"
                     max="99"
-                    value={formData.number}
+                    value={formData.dorsalNumber}
                     onChange={(e) => {
-                      setFormData({ ...formData, number: e.target.value });
+                      setFormData({ ...formData, dorsalNumber: e.target.value });
                       if (errors.number) setErrors({ ...errors, number: "" });
                     }}
                     className={`w-full rounded-lg border px-4 py-3 focus:outline-none ${
@@ -230,26 +171,54 @@ export default function BecomePlayer() {
                   {errors.number && <p className="mt-1 text-sm text-[#EF4444]">{errors.number}</p>}
                 </div>
 
-                {formData.relationship === "estudiante" &&
-                  formData.studentLevel === "pregrado" && (
-                  <div>
-                    <label className="mb-2 block font-medium">Semestre actual</label>
-                    <select
-                      required
-                      value={formData.semester}
-                      onChange={(e) =>
-                        setFormData({ ...formData, semester: e.target.value })
-                      }
-                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
-                        <option key={sem} value={sem}>
-                          Semestre {sem}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                <div>
+                  <label className="mb-2 block font-medium">Lateralidad</label>
+                  <select
+                    required
+                    value={formData.laterality}
+                    onChange={(e) => setFormData({ ...formData, laterality: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                  >
+                    <option value="RIGHT">Derecha</option>
+                    <option value="LEFT">Izquierda</option>
+                    <option value="BOTH">Ambidiestra</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="mb-2 block font-medium">Estatura (m)</label>
+                  <input
+                    type="number"
+                    required
+                    min="0.5"
+                    max="2.5"
+                    step="0.01"
+                    value={formData.stature}
+                    onChange={(e) => {
+                      setFormData({ ...formData, stature: e.target.value });
+                      if (errors.stature) setErrors({ ...errors, stature: "" });
+                    }}
+                    className={`w-full rounded-lg border px-4 py-3 focus:outline-none ${
+                      errors.stature
+                        ? "border-[#EF4444] bg-[#EF4444]/5 focus:border-[#EF4444]"
+                        : "border-border bg-input-background focus:border-primary"
+                    }`}
+                  />
+                  {errors.stature && <p className="mt-1 text-sm text-[#EF4444]">{errors.stature}</p>}
+                </div>
+
+                <div>
+                  <label className="mb-2 block font-medium">Estado</label>
+                  <select
+                    required
+                    value={formData.state}
+                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                  >
+                    <option value="ACTIVE">Activo</option>
+                    <option value="INACTIVE">Inactivo</option>
+                  </select>
+                </div>
 
                                 {submitError && (
                                   <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">

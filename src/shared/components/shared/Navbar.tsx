@@ -1,7 +1,8 @@
 import { LogOut } from "lucide-react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 import Badge from "./Badge";
 import ThemeToggle from "./ThemeToggle";
+import { useAuthStore } from "../../../modules/auth/hooks/useAuthStore";
 
 interface NavbarProps {
 	userName?: string;
@@ -10,9 +11,36 @@ interface NavbarProps {
 }
 
 export default function Navbar({ userName, role, hideActions }: NavbarProps) {
+	const location = useLocation();
+	const authUser = useAuthStore((state) => state.user);
+
+	const roleLabels: Record<string, string> = {
+		participant: "Usuario",
+		captain: "Capitán",
+		organizer: "Organizador",
+		referee: "Árbitro",
+		administrator: "Administrador",
+	};
+
+	const resolvedRoleKey = role ?? authUser?.role;
+	const resolvedRole = resolvedRoleKey ? roleLabels[resolvedRoleKey] ?? resolvedRoleKey : undefined;
+	const resolvedUserName = userName ?? authUser?.fullName;
+	const isAuthenticated = !!resolvedUserName && !!resolvedRoleKey;
+	const isStatsPage = location.pathname === "/stats";
+	const isTournamentInfoPage = location.pathname === "/tournament-info";
+	const statsAllowedRoles = new Set(["participant", "captain"]);
+	const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
+	const hasSessionEmail = storedEmail.trim().length > 0;
+	const showLogoutOnStats = resolvedRoleKey ? statsAllowedRoles.has(resolvedRoleKey) : hasSessionEmail;
+	const showLogoutOnTournamentInfo = isAuthenticated || hasSessionEmail;
+	const shouldShowLogoutOnly =
+		(isStatsPage && showLogoutOnStats) ||
+		(isTournamentInfoPage && showLogoutOnTournamentInfo);
+	const allowActions = !hideActions && (!isStatsPage && !isTournamentInfoPage ? true : shouldShowLogoutOnly);
+
 	const handleLogout = () => {
 		// Simular logout
-		if (role?.toLowerCase() === "admin") {
+		if (resolvedRole?.toLowerCase() === "administrador") {
 			window.location.href = "/login?role=admin";
 			return;
 		}
@@ -31,21 +59,30 @@ export default function Navbar({ userName, role, hideActions }: NavbarProps) {
 					/>
 				</Link>
 
-				{!hideActions && (
+				{allowActions && (
 					<div className="flex items-center gap-4">
 						<ThemeToggle />
 						
-						{userName && role ? (
+						{shouldShowLogoutOnly ? (
+							<button
+								type="button"
+								onClick={handleLogout}
+								className="flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2 text-white transition hover:bg-white/20"
+							>
+								<LogOut className="h-4 w-4" />
+								<span className="text-sm font-medium">Cerrar sesión</span>
+							</button>
+						) : isAuthenticated ? (
 							<>
 								<div className="flex items-center gap-3">
 									<div className="text-right">
-										<p className="font-semibold text-white">{userName}</p>
+										<p className="font-semibold text-white">{resolvedUserName}</p>
 										<Badge variant="info" size="sm">
-											{role}
+											{resolvedRole}
 										</Badge>
 									</div>
 									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/20 text-white font-bold">
-										{userName.charAt(0)}
+										{resolvedUserName.charAt(0)}
 									</div>
 								</div>
 								<button

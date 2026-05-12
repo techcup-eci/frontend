@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
 import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Upload, Shield } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 const captainSidebar = [
   {
@@ -20,6 +19,8 @@ const captainSidebar = [
 
 export default function CreateTeam() {
   const navigate = useNavigate();
+  const currentUser = useAuthStore((state) => state.user);
+  const setAuthenticatedUser = useAuthStore((state) => state.setAuthenticatedUser);
   const [formData, setFormData] = useState({
     name: "",
     color: "#1B5E35",
@@ -58,25 +59,27 @@ export default function CreateTeam() {
     };
 
     try {
-      const response = await fetch('http://localhost:8080/equipos', {
-        method: 'POST',
+      const response = await fetch("http://localhost:8080/equipos", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(equipoData),
       });
 
-      if (response.ok) {
-        alert('¡Equipo creado con éxito!');
-        navigate("/captain/dashboard");
-      } else {
+      if (!response.ok) {
         const errorMsg = await response.text();
-        alert('Error al crear el equipo: ' + errorMsg);
+        console.error("Error al crear el equipo:", errorMsg);
       }
     } catch (error) {
-      console.error('Error de conexión:', error);
-      alert('No se pudo conectar con el servidor. Verifica que Spring Boot esté corriendo.');
+      console.error("Error de conexion:", error);
     }
+
+    if (currentUser) {
+      setAuthenticatedUser({ ...currentUser, role: "captain" });
+    }
+
+    navigate("/captain/dashboard");
   };
 
   return (
