@@ -28,21 +28,21 @@ export default function LandingPage() {
 							El torneo que prende el campus
 						</h1>
 						<p className="mb-6 text-lg text-white/80 md:text-xl">
-							Vive la pasion del futbol universitario con equipos, partidos y
-							historias que se quedan en la tribuna.
+							Vive la pasión del fútbol universitario con equipos, partidos 
+							e historias que se quedan en la tribuna.
 						</p>
 						<div className="flex flex-wrap gap-3 text-sm font-semibold text-white/80">
 							<span className="rounded-full border border-white/20 bg-white/10 px-4 py-2">
 								15 marzo - 30 mayo
 							</span>
 							<span className="rounded-full border border-white/20 bg-white/10 px-4 py-2">
-								Escuela Colombiana de Ingenieria
+								Escuela Colombiana de Ingeniería
 							</span>
 						</div>
 					</div>
 					<div className="w-full max-w-sm rounded-3xl border border-white/20 bg-white/10 p-6 text-white shadow-[0_30px_60px_-35px_rgba(0,0,0,0.8)] backdrop-blur-xl">
 						<p className="mb-4 text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
-							Accesos rapidos
+							Accesos rápidos
 						</p>
 						<div className="space-y-3">
 							<Link
@@ -51,7 +51,7 @@ export default function LandingPage() {
 							>
 								<span className="flex items-center gap-3">
 									<LogIn className="h-5 w-5 text-[#ffd1b8]" />
-									Iniciar sesion
+									Iniciar sesión
 								</span>
 								<span className="text-white/60">Entrar</span>
 							</Link>

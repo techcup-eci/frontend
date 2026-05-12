@@ -49,13 +49,13 @@ export default function Navbar({ userName, role, hideActions }: NavbarProps) {
 	};
 
 	return (
-		<nav className="border-b border-border bg-gradient-to-r from-black to-[#0D0D0D] px-8 py-4">
+		<nav className="border-b border-border bg-gradient-to-r from-black to-[#0D0D0D] px-4 py-0">
 			<div className="flex items-center justify-between">
 				<Link to="/" className="flex items-center gap-3">
 					<img
-						src="/images/logo-techcup.jpg"
+						src="/images/logo-transparent-background.png"
 						alt="TechCup"
-						className="h-12 w-12 rounded-full border border-white/20 object-cover"
+						className="h-20 w-auto object-contain"
 					/>
 				</Link>
 
