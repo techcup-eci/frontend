@@ -38,6 +38,7 @@ export function LoginPage() {
 			organizer: "/organizer/dashboard",
 			referee: "/referee/dashboard",
 			administrator: "/admin/dashboard",
+			invited: "/player/dashboard",
 		};
 
 		const nextRoute = user?.role ? roleRoutes[user.role] : "/player/dashboard";
