@@ -3,13 +3,12 @@ export type AuthRole =
 	| "captain"
 	| "organizer"
 	| "referee"
-	| "administrator";
+	| "administrator"
+	| "invited";
 
 export interface AuthUser {
-	id: string;
-	fullName: string;
 	email: string;
 	role: AuthRole;
-	teamId?: string | null;
-	teamName?: string | null;
+	token: string;
+	expiresAt: number;
 }
