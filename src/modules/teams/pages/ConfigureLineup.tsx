@@ -1,7 +1,11 @@
 import { useState } from "react";
+import { toast } from "sonner";
 import Navbar from "../../../shared/components/shared/Navbar";
 import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, UserPlus, LayoutList, CreditCard, Trophy } from "lucide-react";
+import { Home, Users, UserPlus, LayoutList, CreditCard, Trophy, Loader2, XCircle } from "lucide-react";
+import { useLineup } from "../../competitions/hooks/useLineup";
+import { useCreateLineup } from "../../competitions/hooks/useCreateLineup";
+import type { CreateLineupRequest } from "../../competitions/types/competition";
 
 const captainSidebar = [
   {
@@ -16,233 +20,277 @@ const captainSidebar = [
   },
 ];
 
-type Position = {
-  id: number;
-  name: string;
-  top: string;
-  left: string;
-};
+const FORMATIONS = [
+  { value: "TWO_THREE_ONE", label: "2-3-1" },
+  { value: "THREE_TWO_ONE", label: "3-2-1" },
+  { value: "FOUR_ONE_ONE", label: "4-1-1" },
+  { value: "ONE_THREE_TWO", label: "1-3-2" },
+] as const;
 
-type Player = {
-  id: number;
-  name: string;
-  dorsal: number;
-  position: string;
-};
+const ROLES = [
+  { value: "GOALKEEPER", label: "Portero" },
+  { value: "DEFENDER", label: "Defensa" },
+  { value: "MIDFIELDER", label: "Mediocampista" },
+  { value: "FORWARD", label: "Delantero" },
+] as const;
 
-const formations = {
-  "4-4-2": [
-    { id: 1, name: "Portero", top: "85%", left: "50%" },
-    { id: 2, name: "Lateral Izquierdo", top: "65%", left: "15%" },
-    { id: 3, name: "Defensa Central", top: "70%", left: "40%" },
-    { id: 4, name: "Defensa Central", top: "70%", left: "60%" },
-    { id: 5, name: "Lateral Derecho", top: "65%", left: "85%" },
-    { id: 6, name: "Mediocampista", top: "45%", left: "20%" },
-    { id: 7, name: "Mediocampista", top: "45%", left: "45%" },
-    { id: 8, name: "Mediocampista", top: "45%", left: "55%" },
-    { id: 9, name: "Mediocampista", top: "45%", left: "80%" },
-    { id: 10, name: "Delantero", top: "20%", left: "40%" },
-    { id: 11, name: "Delantero", top: "20%", left: "60%" },
-  ],
-  "4-3-3": [
-    { id: 1, name: "Portero", top: "85%", left: "50%" },
-    { id: 2, name: "Lateral Izquierdo", top: "65%", left: "15%" },
-    { id: 3, name: "Defensa Central", top: "70%", left: "40%" },
-    { id: 4, name: "Defensa Central", top: "70%", left: "60%" },
-    { id: 5, name: "Lateral Derecho", top: "65%", left: "85%" },
-    { id: 6, name: "Mediocampista", top: "50%", left: "30%" },
-    { id: 7, name: "Mediocampista", top: "50%", left: "50%" },
-    { id: 8, name: "Mediocampista", top: "50%", left: "70%" },
-    { id: 9, name: "Delantero", top: "20%", left: "25%" },
-    { id: 10, name: "Delantero", top: "15%", left: "50%" },
-    { id: 11, name: "Delantero", top: "20%", left: "75%" },
-  ],
-  "3-5-2": [
-    { id: 1, name: "Portero", top: "85%", left: "50%" },
-    { id: 2, name: "Defensa Central", top: "70%", left: "30%" },
-    { id: 3, name: "Defensa Central", top: "70%", left: "50%" },
-    { id: 4, name: "Defensa Central", top: "70%", left: "70%" },
-    { id: 5, name: "Mediocampista", top: "50%", left: "15%" },
-    { id: 6, name: "Mediocampista", top: "50%", left: "35%" },
-    { id: 7, name: "Mediocampista", top: "45%", left: "50%" },
-    { id: 8, name: "Mediocampista", top: "50%", left: "65%" },
-    { id: 9, name: "Mediocampista", top: "50%", left: "85%" },
-    { id: 10, name: "Delantero", top: "20%", left: "40%" },
-    { id: 11, name: "Delantero", top: "20%", left: "60%" },
-  ],
+type PlayerSlot = {
+  key: string;
+  playerId: string;
+  role: string;
 };
 
 export default function ConfigureLineup() {
-  const [selectedFormation, setSelectedFormation] = useState<keyof typeof formations>("4-4-2");
-  const [assignments, setAssignments] = useState<Record<number, Player | null>>({});
+  // TODO: Replace these hardcoded values with route params/context
+  const [tournamentId] = useState<string>("tournament-uuid-placeholder");
+  const [matchId] = useState<string>("match-uuid-placeholder");
+  const [teamId] = useState<string>("team-uuid-placeholder");
+  const [userId] = useState<string>("captain-uuid-placeholder");
 
-  const availablePlayers: Player[] = [
-    { id: 1, name: "Carlos Muñoz", dorsal: 1, position: "Portero" },
-    { id: 2, name: "Sebastián Torres", dorsal: 8, position: "Mediocampista Central" },
-    { id: 3, name: "Andrea Ramírez", dorsal: 10, position: "Delantero Centro" },
-    { id: 4, name: "Miguel Ángel Castro", dorsal: 5, position: "Defensa Central" },
-    { id: 5, name: "Laura Gómez", dorsal: 7, position: "Extremo Derecho" },
-    { id: 6, name: "Diego Fernández", dorsal: 3, position: "Lateral Izquierdo" },
-    { id: 7, name: "Camila Herrera", dorsal: 4, position: "Defensa Central" },
-    { id: 8, name: "Juan Pablo Rojas", dorsal: 6, position: "Mediocampista Defensivo" },
-    { id: 9, name: "Valentina Ruiz", dorsal: 11, position: "Extremo Izquierdo" },
-  ];
+  const {
+    data: existingLineup,
+    isLoading,
+    isError,
+    error,
+  } = useLineup(tournamentId, matchId, teamId);
+  const createLineupMutation = useCreateLineup(tournamentId, matchId, teamId);
 
-  const handleDragStart = (e: React.DragEvent, player: Player) => {
-    e.dataTransfer.setData("player", JSON.stringify(player));
+  const [formation, setFormation] = useState<string>("TWO_THREE_ONE");
+  const [players, setPlayers] = useState<PlayerSlot[]>([
+    { key: "1", playerId: "", role: "GOALKEEPER" },
+  ]);
+
+  const addPlayerSlot = () => {
+    setPlayers([...players, { key: `slot-${Date.now()}`, playerId: "", role: "MIDFIELDER" }]);
   };
 
-  const handleDrop = (e: React.DragEvent, positionId: number) => {
+  const removePlayerSlot = (key: string) => {
+    if (players.length <= 1) return;
+    setPlayers(players.filter((p) => p.key !== key));
+  };
+
+  const updatePlayer = (key: string, field: keyof PlayerSlot, value: string) => {
+    setPlayers(players.map((p) => (p.key === key ? { ...p, [field]: value } : p)));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const player = JSON.parse(e.dataTransfer.getData("player"));
-    setAssignments({ ...assignments, [positionId]: player });
+
+    const filledPlayers = players.filter((p) => p.playerId.trim());
+    if (filledPlayers.length === 0) {
+      toast.error("Debes agregar al menos un jugador");
+      return;
+    }
+
+    const payload: CreateLineupRequest = {
+      formation,
+      players: filledPlayers.map((p) => ({
+        playerId: p.playerId,
+        role: p.role,
+      })),
+    };
+
+    createLineupMutation.mutate(
+      { lineup: payload, userId },
+      {
+        onSuccess: () => toast.success("Alineación guardada exitosamente"),
+        onError: (err: unknown) => {
+          const message =
+            (err as { response?: { data?: { message?: string } }; message?: string })?.response
+              ?.data?.message ||
+            (err as Error)?.message ||
+            "No se pudo guardar la alineación";
+          toast.error(message);
+        },
+      },
+    );
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex flex-1">
+          <Sidebar sections={captainSidebar} />
+          <main className="flex flex-1 items-center justify-center bg-background">
+            <div className="flex flex-col items-center gap-4">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <p className="text-muted-foreground">Cargando alineación...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
-  const removePlayer = (positionId: number) => {
-    const newAssignments = { ...assignments };
-    delete newAssignments[positionId];
-    setAssignments(newAssignments);
-  };
-
-  const assignedPlayerIds = Object.values(assignments)
-    .filter((p) => p !== null)
-    .map((p) => p!.id);
-
-  const unassignedPlayers = availablePlayers.filter((p) => !assignedPlayerIds.includes(p.id));
+  if (isError) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <div className="flex flex-1">
+          <Sidebar sections={captainSidebar} />
+          <main className="flex flex-1 items-center justify-center bg-background">
+            <div className="flex flex-col items-center gap-3 text-center">
+              <XCircle className="h-10 w-10 text-destructive/60" />
+              <p className="text-muted-foreground">
+                {error instanceof Error
+                  ? error.message
+                  : "No se pudo cargar la alineación."}
+              </p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
-      
+      <Navbar />
       <div className="flex flex-1">
-        
+        <Sidebar sections={captainSidebar} />
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             <div>
               <h1 className="mb-2 text-3xl font-bold">Configurar alineación</h1>
               <p className="text-muted-foreground">
-                Arrastra los jugadores a las posiciones en el campo
+                Define la formación y los jugadores para el partido
               </p>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-[2fr,1fr]">
-              {/* Campo de fútbol */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <label className="font-semibold">Formación:</label>
-                  <select
-                    value={selectedFormation}
-                    onChange={(e) => {
-                      setSelectedFormation(e.target.value as keyof typeof formations);
-                      setAssignments({});
-                    }}
-                    className="rounded-lg border border-border bg-input-background px-4 py-2 focus:border-primary focus:outline-none"
-                  >
-                    <option value="4-4-2">4-4-2</option>
-                    <option value="4-3-3">4-3-3</option>
-                    <option value="3-5-2">3-5-2</option>
-                  </select>
+            {/* Existing lineup read-only view */}
+            {existingLineup && (
+              <div className="rounded-xl border border-border bg-card p-6">
+                <h2 className="mb-4 text-xl font-bold">Alineación actual</h2>
+                <div className="mb-4">
+                  <p className="text-sm text-muted-foreground">
+                    Formación:{" "}
+                    <span className="font-semibold text-foreground">
+                      {existingLineup.formation}
+                    </span>
+                  </p>
+                </div>
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {existingLineup.players.map((p) => (
+                    <div
+                      key={p.playerId}
+                      className="rounded-lg border border-border bg-background p-3"
+                    >
+                      <p className="font-semibold">{p.playerId}</p>
+                      <p className="text-sm text-muted-foreground">{p.role}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* New lineup form */}
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="rounded-xl border border-border bg-card p-6">
+                <h2 className="mb-6 text-xl font-bold">
+                  {existingLineup ? "Actualizar alineación" : "Nueva alineación"}
+                </h2>
+
+                {/* Formation selector */}
+                <div className="mb-6">
+                  <label className="mb-3 block font-semibold">Formación:</label>
+                  <div className="flex flex-wrap gap-3">
+                    {FORMATIONS.map((f) => (
+                      <label
+                        key={f.value}
+                        className={`cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition ${
+                          formation === f.value
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background hover:bg-accent"
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name="formation"
+                          value={f.value}
+                          checked={formation === f.value}
+                          onChange={(e) => setFormation(e.target.value)}
+                          className="sr-only"
+                        />
+                        {f.label}
+                      </label>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="relative h-[700px] overflow-hidden rounded-xl border-4 border-white bg-gradient-to-b from-[#4ADE80] to-[#22C55E]">
-                  {/* Líneas del campo */}
-                  <div className="absolute inset-0">
-                    {/* Línea central */}
-                    <div className="absolute left-0 right-0 top-1/2 h-1 -translate-y-1/2 bg-white"></div>
-                    {/* Círculo central */}
-                    <div className="absolute left-1/2 top-1/2 h-24 w-24 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white"></div>
-                    {/* Área superior */}
-                    <div className="absolute left-1/2 top-0 h-20 w-48 -translate-x-1/2 border-2 border-b-0 border-white"></div>
-                    {/* Área inferior */}
-                    <div className="absolute bottom-0 left-1/2 h-20 w-48 -translate-x-1/2 border-2 border-t-0 border-white"></div>
+                {/* Player slots */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">Jugadores</h3>
+                    <button
+                      type="button"
+                      onClick={addPlayerSlot}
+                      className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
+                    >
+                      + Agregar jugador
+                    </button>
                   </div>
 
-                  {/* Posiciones */}
-                  {formations[selectedFormation].map((position) => (
+                  {players.map((slot) => (
                     <div
-                      key={position.id}
-                      onDrop={(e) => handleDrop(e, position.id)}
-                      onDragOver={handleDragOver}
-                      className="absolute -translate-x-1/2 -translate-y-1/2"
-                      style={{ top: position.top, left: position.left }}
+                      key={slot.key}
+                      className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-background p-4 sm:flex-nowrap"
                     >
-                      {assignments[position.id] ? (
-                        <div className="group relative">
-                          <div className="flex h-16 w-16 flex-col items-center justify-center rounded-full border-4 border-white bg-primary text-xs font-bold text-white shadow-lg">
-                            <div className="text-2xl">{assignments[position.id]!.dorsal}</div>
-                          </div>
-                          <div className="absolute -bottom-8 left-1/2 w-32 -translate-x-1/2 text-center text-xs font-bold text-white drop-shadow-lg">
-                            {assignments[position.id]!.name.split(" ")[0]}
-                          </div>
-                          <button
-                            onClick={() => removePlayer(position.id)}
-                            className="absolute -right-2 -top-2 hidden h-6 w-6 items-center justify-center rounded-full bg-[#EF4444] text-xs font-bold text-white group-hover:flex"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-dashed border-white/50 bg-white/20 text-xs font-bold text-white">
-                          ?
-                        </div>
+                      <input
+                        type="text"
+                        placeholder="Player ID (UUID)"
+                        value={slot.playerId}
+                        onChange={(e) => updatePlayer(slot.key, "playerId", e.target.value)}
+                        className="flex-1 rounded-lg border border-border bg-input-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                      />
+                      <select
+                        value={slot.role}
+                        onChange={(e) => updatePlayer(slot.key, "role", e.target.value)}
+                        className="rounded-lg border border-border bg-input-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+                      >
+                        {ROLES.map((r) => (
+                          <option key={r.value} value={r.value}>
+                            {r.label}
+                          </option>
+                        ))}
+                      </select>
+                      {players.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removePlayerSlot(slot.key)}
+                          className="rounded-lg bg-[#EF4444] px-3 py-2 text-sm font-medium text-white transition hover:bg-[#DC2626]"
+                        >
+                          Eliminar
+                        </button>
                       )}
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Panel de jugadores */}
-              <div className="space-y-4">
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h2 className="mb-4 text-xl font-bold">Jugadores disponibles</h2>
-                  <div className="space-y-2">
-                    {unassignedPlayers.length > 0 ? (
-                      unassignedPlayers.map((player) => (
-                        <div
-                          key={player.id}
-                          draggable
-                          onDragStart={(e) => handleDragStart(e, player)}
-                          className="flex cursor-move items-center gap-3 rounded-lg border border-border bg-background p-3 transition hover:border-primary hover:bg-accent"
-                        >
-                          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-lg font-bold text-primary-foreground">
-                            {player.dorsal}
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold">{player.name}</p>
-                            <p className="text-xs text-muted-foreground">{player.position}</p>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-center text-sm text-muted-foreground">
-                        Todos los jugadores asignados
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="rounded-lg bg-blue-500/10 p-4 text-sm text-blue-600">
-                  <p className="font-semibold">Instrucciones:</p>
-                  <ul className="mt-2 space-y-1 text-xs">
-                    <li>• Arrastra los jugadores al campo</li>
-                    <li>• Haz clic en la X para remover</li>
-                    <li>• Cambia de formación arriba</li>
-                  </ul>
-                </div>
-
-                <button className="w-full rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90">
-                  Guardar alineación
-                </button>
+              <div className="rounded-lg bg-blue-500/10 p-4 text-sm text-blue-600">
+                <p className="font-semibold">Nota:</p>
+                <p className="mt-1 text-xs">
+                  Los IDs de jugador deben corresponder a jugadores registrados en tu equipo.
+                  La alineación se asociará al partido seleccionado.
+                </p>
               </div>
-            </div>
+
+              <button
+                type="submit"
+                disabled={createLineupMutation.isPending}
+                className="w-full rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+              >
+                {createLineupMutation.isPending
+                  ? "Guardando..."
+                  : existingLineup
+                    ? "Actualizar alineación"
+                    : "Guardar alineación"}
+              </button>
+            </form>
           </div>
         </main>
       </div>
     </div>
   );
 }
-
-
