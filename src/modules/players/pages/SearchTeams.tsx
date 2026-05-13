@@ -1,22 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
 import TeamCard from "../../../shared/components/shared/TeamCard";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Search } from "lucide-react";
-
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
+import { Users, Search } from "lucide-react";
 
 export default function SearchTeams() {
   const navigate = useNavigate();

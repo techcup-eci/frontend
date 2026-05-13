@@ -1,21 +1,5 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Trash2, Eye } from "lucide-react";
+import { Trash2, Eye } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
-
-const captainSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/captain/dashboard", icon: Home },
-      { label: "Mi Equipo", path: "/captain/manage", icon: Users },
-      { label: "Buscar Jugadores", path: "/captain/search-players", icon: UserPlus },
-      { label: "Pagos", path: "/captain/payment", icon: CreditCard },
-      { label: "Alineación", path: "/captain/lineup", icon: LayoutList },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-    ],
-  },
-];
  
 export default function ManageTeam() {
   const players = [

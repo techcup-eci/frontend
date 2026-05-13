@@ -1,22 +1,34 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Trophy, Users, CreditCard, Calendar, ListChecks, Table, Layers } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
 
-const organizerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/organizer/dashboard", icon: Home },
-      { label: "Torneos", path: "/organizer/create-tournament", icon: Trophy },
-      { label: "Equipos", path: "/organizer/teams", icon: Users },
-      { label: "Pagos", path: "/organizer/teams", icon: CreditCard },
-      { label: "Partidos", path: "/organizer/schedule", icon: Calendar },
-      { label: "Resultados", path: "/organizer/calendar", icon: ListChecks },
-      { label: "Tabla de Posiciones", path: "/organizer/standings", icon: Table },
-      { label: "Llaves", path: "/organizer/bracket", icon: Layers },
-    ],
-  },
-];
+interface MatchBoxProps {
+  team1: string;
+  team2: string;
+  score1: number | null;
+  score2: number | null;
+}
+
+function MatchBox({ team1, team2, score1, score2 }: MatchBoxProps) {
+  return (
+    <div className="relative flex min-w-[240px] flex-col gap-1 rounded-lg border border-border bg-card p-3">
+      <div
+        className={`flex items-center justify-between rounded px-3 py-2 ${
+          score1 !== null && score1 > (score2 || 0) ? "bg-primary/10 font-bold" : "bg-background"
+        }`}
+      >
+        <span>{team1}</span>
+        <span className="font-mono">{score1 ?? "-"}</span>
+      </div>
+      <div
+        className={`flex items-center justify-between rounded px-3 py-2 ${
+          score2 !== null && score2 > (score1 || 0) ? "bg-primary/10 font-bold" : "bg-background"
+        }`}
+      >
+        <span>{team2}</span>
+        <span className="font-mono">{score2 ?? "-"}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function Bracket() {
   const matches = {
@@ -33,98 +45,49 @@ export default function Bracket() {
     final: { id: 7, team1: "Por definir", team2: "Por definir", score1: null, score2: null },
   };
 
-  const MatchBox = ({ team1, team2, score1, score2 }: any) => (
-    <div className="relative flex min-w-[240px] flex-col gap-1 rounded-lg border border-border bg-card p-3">
-      <div
-        className={`flex items-center justify-between rounded px-3 py-2 ${
-          score1 !== null && score1 > (score2 || 0) ? "bg-primary/10 font-bold" : "bg-background"
-        }`}
-      >
-        <span className="text-sm">{team1}</span>
-        <span className="text-lg font-bold">{score1 ?? "-"}</span>
-      </div>
-      <div
-        className={`flex items-center justify-between rounded px-3 py-2 ${
-          score2 !== null && score2 > (score1 || 0) ? "bg-primary/10 font-bold" : "bg-background"
-        }`}
-      >
-        <span className="text-sm">{team2}</span>
-        <span className="text-lg font-bold">{score2 ?? "-"}</span>
-      </div>
-    </div>
-  );
-
   return (
-    <div className="flex min-h-screen flex-col">
-      
-      <div className="flex flex-1">
-        
-        <main className="flex-1 bg-background p-8">
-          <div className="mx-auto max-w-7xl space-y-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="mb-2 text-3xl font-bold">Llaves eliminatorias</h1>
-                <p className="text-muted-foreground">Fase final del torneo TechCup 2025-1</p>
-              </div>
-              <Badge variant="progress">Cuartos de final - 2 de 4 jugados</Badge>
+    <div className="p-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold">Llaves del Torneo</h1>
+          <p className="text-muted-foreground">Estructura de eliminación directa</p>
+        </div>
+
+        <div className="space-y-12">
+          {/* Cuartos de final */}
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <Badge variant="info" size="md">Cuartos de final</Badge>
             </div>
-
-            <div className="overflow-x-auto">
-              <div className="inline-flex min-w-full gap-8 p-4">
-                {/* Cuartos de final */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">CUARTOS DE FINAL</h3>
-                  {matches.quarters.map((match) => (
-                    <MatchBox key={match.id} {...match} />
-                  ))}
-                </div>
-
-                {/* Conectores */}
-                <div className="flex flex-col justify-around py-12">
-                  <div className="h-24 border-r-2 border-t-2 border-border" />
-                  <div className="h-24 border-r-2 border-b-2 border-border" />
-                  <div className="h-24 border-r-2 border-t-2 border-border" />
-                  <div className="h-24 border-r-2 border-b-2 border-border" />
-                </div>
-
-                {/* Semifinales */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">SEMIFINALES</h3>
-                  <div className="space-y-32">
-                    {matches.semis.map((match) => (
-                      <MatchBox key={match.id} {...match} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Conectores */}
-                <div className="flex flex-col justify-around py-12">
-                  <div className="h-48 border-r-2 border-t-2 border-border" />
-                  <div className="h-48 border-r-2 border-b-2 border-border" />
-                </div>
-
-                {/* Final */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">FINAL</h3>
-                  <div className="mt-48">
-                    <MatchBox {...matches.final} />
-                  </div>
-                </div>
-
-                {/* Campeón */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">CAMPEÓN</h3>
-                  <div className="mt-48 flex h-32 w-48 items-center justify-center rounded-lg border-2 border-dashed border-primary bg-primary/5">
-                    <div className="text-center">
-                      <Trophy className="mx-auto mb-2 h-12 w-12 text-primary" />
-                      <p className="font-bold text-primary">Por definir</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              {matches.quarters.map((m) => (
+                <MatchBox key={m.id} {...m} />
+              ))}
             </div>
           </div>
-        </main>
+
+          {/* Semifinales */}
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <Badge variant="warning" size="md">Semifinales</Badge>
+            </div>
+            <div className="flex flex-wrap justify-center gap-4">
+              {matches.semis.map((m) => (
+                <MatchBox key={m.id} {...m} />
+              ))}
+            </div>
+          </div>
+
+          {/* Final */}
+          <div>
+            <div className="mb-4 flex items-center gap-2">
+              <Badge variant="success" size="md">Final</Badge>
+            </div>
+            <div className="flex justify-center">
+              <MatchBox {...matches.final} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

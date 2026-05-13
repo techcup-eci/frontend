@@ -1,26 +1,9 @@
 import { useState, useEffect } from "react";
 import { Target, AlertCircle, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, Calendar, Trophy, FileText, DollarSign, BarChart3 } from "lucide-react";
 import { useMatchDetail } from "../../competitions/hooks/useMatchDetail";
 import { useReportResult } from "../../competitions/hooks/useReportResult";
 import type { MatchResultRequest } from "../../competitions/types/competition";
-
-const organizerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/organizer/dashboard", icon: Home },
-      { label: "Equipos", path: "/organizer/teams", icon: Users },
-      { label: "Programar Partidos", path: "/organizer/schedule", icon: Calendar },
-      { label: "Tabla de Posiciones", path: "/organizer/standings", icon: Trophy },
-      { label: "Registrar Resultado", path: "/organizer/results", icon: FileText },
-      { label: "Pagos", path: "/organizer/payments", icon: DollarSign },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-    ],
-  },
-];
 
 type PlayerGoal = {
   key: string;
@@ -55,7 +38,7 @@ export default function RegisterResult() {
 
   useEffect(() => {
     if (match) {
-      setHomeScore(match.homeScore);
+      setHomeScore(match.homeScore); // eslint-disable-line react-hooks/set-state-in-effect
       setAwayScore(match.awayScore);
     }
   }, [match]);
@@ -184,16 +167,10 @@ export default function RegisterResult() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <Navbar />
-        <div className="flex flex-1">
-          <Sidebar sections={organizerSidebar} />
-          <main className="flex flex-1 items-center justify-center bg-background">
-            <div className="flex flex-col items-center gap-4">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-muted-foreground">Cargando información del partido...</p>
-            </div>
-          </main>
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando información del partido...</p>
         </div>
       </div>
     );
@@ -201,354 +178,342 @@ export default function RegisterResult() {
 
   if (isError || !match) {
     return (
-      <div className="flex min-h-screen flex-col">
-        <Navbar />
-        <div className="flex flex-1">
-          <Sidebar sections={organizerSidebar} />
-          <main className="flex flex-1 items-center justify-center bg-background">
-            <div className="flex flex-col items-center gap-3 text-center">
-              <XCircle className="h-10 w-10 text-destructive/60" />
-              <p className="text-muted-foreground">
-                {error instanceof Error
-                  ? error.message
-                  : "No se pudo cargar la información del partido."}
-              </p>
-            </div>
-          </main>
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <XCircle className="h-10 w-10 text-destructive/60" />
+          <p className="text-muted-foreground">
+            {error instanceof Error
+              ? error.message
+              : "No se pudo cargar la información del partido."}
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
-      <div className="flex flex-1">
-        <Sidebar sections={organizerSidebar} />
-        <main className="flex-1 bg-background p-8">
-          <div className="mx-auto max-w-7xl space-y-8">
-            <div>
-              <h1 className="mb-2 text-3xl font-bold">Registrar resultado del partido</h1>
-              <p className="text-muted-foreground">
-                Ingresa el marcador y las estadísticas del partido
-              </p>
+    <div className="p-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold">Registrar resultado del partido</h1>
+          <p className="text-muted-foreground">
+            Ingresa el marcador y las estadísticas del partido
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Información del partido */}
+          <div className="rounded-xl border border-border bg-card p-6">
+            <h2 className="mb-6 text-xl font-bold">Información del partido</h2>
+            <div className="mb-6 rounded-lg border-2 border-primary bg-gradient-to-r from-primary/10 to-accent/10 p-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <p className="mb-2 text-sm text-muted-foreground">Fecha</p>
+                  <p className="font-semibold">
+                    {new Date(match.scheduledAt).toLocaleDateString("es-CO", {
+                      weekday: "long",
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                    })}
+                  </p>
+                </div>
+                <div>
+                  <p className="mb-2 text-sm text-muted-foreground">Cancha</p>
+                  <p className="font-semibold">{match.fieldName ?? "No asignada"}</p>
+                </div>
+              </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-8">
-              {/* Información del partido */}
-              <div className="rounded-xl border border-border bg-card p-6">
-                <h2 className="mb-6 text-xl font-bold">Información del partido</h2>
-                <div className="mb-6 rounded-lg border-2 border-primary bg-gradient-to-r from-primary/10 to-accent/10 p-6">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="mb-2 text-sm text-muted-foreground">Fecha</p>
-                      <p className="font-semibold">
-                        {new Date(match.scheduledAt).toLocaleDateString("es-CO", {
-                          weekday: "long",
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="mb-2 text-sm text-muted-foreground">Cancha</p>
-                      <p className="font-semibold">{match.fieldName ?? "No asignada"}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Marcador */}
-                <div className="grid items-center gap-4 md:grid-cols-[1fr,auto,1fr]">
-                  <div className="text-center">
-                    <p className="mb-3 text-lg font-bold">{match.homeTeamId}</p>
-                    <input
-                      type="number"
-                      min="0"
-                      max="20"
-                      required
-                      value={homeScore}
-                      onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)}
-                      className="w-24 rounded-lg border border-border bg-input-background px-4 py-3 text-center text-3xl font-bold focus:border-primary focus:outline-none"
-                    />
-                  </div>
-
-                  <div className="text-4xl font-bold text-muted-foreground">-</div>
-
-                  <div className="text-center">
-                    <p className="mb-3 text-lg font-bold">{match.awayTeamId}</p>
-                    <input
-                      type="number"
-                      min="0"
-                      max="20"
-                      required
-                      value={awayScore}
-                      onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)}
-                      className="w-24 rounded-lg border border-border bg-input-background px-4 py-3 text-center text-3xl font-bold focus:border-primary focus:outline-none"
-                    />
-                  </div>
-                </div>
+            {/* Marcador */}
+            <div className="grid items-center gap-4 md:grid-cols-[1fr,auto,1fr]">
+              <div className="text-center">
+                <p className="mb-3 text-lg font-bold">{match.homeTeamId}</p>
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  required
+                  value={homeScore}
+                  onChange={(e) => setHomeScore(parseInt(e.target.value) || 0)}
+                  className="w-24 rounded-lg border border-border bg-input-background px-4 py-3 text-center text-3xl font-bold focus:border-primary focus:outline-none"
+                />
               </div>
 
-              {/* Estadísticas por equipo */}
-              <div className="grid gap-8 lg:grid-cols-2">
-                {/* Equipo local */}
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h2 className="mb-6 text-xl font-bold">{match.homeTeamId}</h2>
+              <div className="text-4xl font-bold text-muted-foreground">-</div>
 
-                  <div className="mb-6">
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 font-semibold">
-                        <Target className="h-4 w-4" />
-                        Goles ({homeGoals.filter((g) => g.playerId && Number(g.minute) > 0).length})
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={addHomeGoal}
-                        className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
-                      >
-                        + Agregar gol
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {homeGoals.map((goal) => (
-                        <div
-                          key={goal.key}
-                          className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
-                        >
-                          <input
-                            type="text"
-                            placeholder="Player ID"
-                            value={goal.playerId}
-                            onChange={(e) => updateHomeGoal(goal.key, "playerId", e.target.value)}
-                            className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
-                          />
-                          <input
-                            type="number"
-                            placeholder="Min"
-                            min={0}
-                            max={120}
-                            value={goal.minute || ""}
-                            onChange={(e) =>
-                              updateHomeGoal(goal.key, "minute", parseInt(e.target.value) || 0)
-                            }
-                            className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeHomeGoal(goal.key)}
-                            className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      {homeGoals.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Sin goles registrados</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 font-semibold">
-                        <AlertCircle className="h-4 w-4" />
-                        Tarjetas ({homeCards.length})
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={addHomeCard}
-                        className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
-                      >
-                        + Agregar tarjeta
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {homeCards.map((card) => (
-                        <div
-                          key={card.key}
-                          className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
-                        >
-                          <input
-                            type="text"
-                            placeholder="Player ID"
-                            value={card.playerId}
-                            onChange={(e) => updateHomeCard(card.key, "playerId", e.target.value)}
-                            className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
-                          />
-                          <select
-                            value={card.type}
-                            onChange={(e) => updateHomeCard(card.key, "type", e.target.value)}
-                            className="rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
-                          >
-                            <option value="YELLOW">Amarilla</option>
-                            <option value="RED">Roja</option>
-                          </select>
-                          <input
-                            type="number"
-                            placeholder="Min"
-                            min={0}
-                            max={120}
-                            value={card.minute || ""}
-                            onChange={(e) =>
-                              updateHomeCard(card.key, "minute", parseInt(e.target.value) || 0)
-                            }
-                            className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeHomeCard(card.key)}
-                            className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      {homeCards.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Sin tarjetas registradas</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Equipo visitante */}
-                <div className="rounded-xl border border-border bg-card p-6">
-                  <h2 className="mb-6 text-xl font-bold">{match.awayTeamId}</h2>
-
-                  <div className="mb-6">
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 font-semibold">
-                        <Target className="h-4 w-4" />
-                        Goles ({awayGoals.filter((g) => g.playerId && Number(g.minute) > 0).length})
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={addAwayGoal}
-                        className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
-                      >
-                        + Agregar gol
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {awayGoals.map((goal) => (
-                        <div
-                          key={goal.key}
-                          className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
-                        >
-                          <input
-                            type="text"
-                            placeholder="Player ID"
-                            value={goal.playerId}
-                            onChange={(e) => updateAwayGoal(goal.key, "playerId", e.target.value)}
-                            className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
-                          />
-                          <input
-                            type="number"
-                            placeholder="Min"
-                            min={0}
-                            max={120}
-                            value={goal.minute || ""}
-                            onChange={(e) =>
-                              updateAwayGoal(goal.key, "minute", parseInt(e.target.value) || 0)
-                            }
-                            className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeAwayGoal(goal.key)}
-                            className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      {awayGoals.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Sin goles registrados</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="mb-3 flex items-center justify-between">
-                      <h3 className="flex items-center gap-2 font-semibold">
-                        <AlertCircle className="h-4 w-4" />
-                        Tarjetas ({awayCards.length})
-                      </h3>
-                      <button
-                        type="button"
-                        onClick={addAwayCard}
-                        className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
-                      >
-                        + Agregar tarjeta
-                      </button>
-                    </div>
-                    <div className="space-y-2">
-                      {awayCards.map((card) => (
-                        <div
-                          key={card.key}
-                          className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
-                        >
-                          <input
-                            type="text"
-                            placeholder="Player ID"
-                            value={card.playerId}
-                            onChange={(e) => updateAwayCard(card.key, "playerId", e.target.value)}
-                            className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
-                          />
-                          <select
-                            value={card.type}
-                            onChange={(e) => updateAwayCard(card.key, "type", e.target.value)}
-                            className="rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
-                          >
-                            <option value="YELLOW">Amarilla</option>
-                            <option value="RED">Roja</option>
-                          </select>
-                          <input
-                            type="number"
-                            placeholder="Min"
-                            min={0}
-                            max={120}
-                            value={card.minute || ""}
-                            onChange={(e) =>
-                              updateAwayCard(card.key, "minute", parseInt(e.target.value) || 0)
-                            }
-                            className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeAwayCard(card.key)}
-                            className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
-                          >
-                            ×
-                          </button>
-                        </div>
-                      ))}
-                      {awayCards.length === 0 && (
-                        <p className="text-sm text-muted-foreground">Sin tarjetas registradas</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+              <div className="text-center">
+                <p className="mb-3 text-lg font-bold">{match.awayTeamId}</p>
+                <input
+                  type="number"
+                  min="0"
+                  max="20"
+                  required
+                  value={awayScore}
+                  onChange={(e) => setAwayScore(parseInt(e.target.value) || 0)}
+                  className="w-24 rounded-lg border border-border bg-input-background px-4 py-3 text-center text-3xl font-bold focus:border-primary focus:outline-none"
+                />
               </div>
-
-              <div className="flex items-center gap-4">
-                <button
-                  type="submit"
-                  disabled={reportMutation.isPending}
-                  className="flex-1 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
-                >
-                  {reportMutation.isPending ? "Guardando..." : "Guardar resultado"}
-                </button>
-                <button
-                  type="button"
-                  className="rounded-lg border border-border bg-background px-6 py-3 font-semibold transition hover:bg-accent"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
+            </div>
           </div>
-        </main>
+
+          {/* Estadísticas por equipo */}
+          <div className="grid gap-8 lg:grid-cols-2">
+            {/* Equipo local */}
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="mb-6 text-xl font-bold">{match.homeTeamId}</h2>
+
+              <div className="mb-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <Target className="h-4 w-4" />
+                    Goles ({homeGoals.filter((g) => g.playerId && Number(g.minute) > 0).length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={addHomeGoal}
+                    className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
+                  >
+                    + Agregar gol
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {homeGoals.map((goal) => (
+                    <div
+                      key={goal.key}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Player ID"
+                        value={goal.playerId}
+                        onChange={(e) => updateHomeGoal(goal.key, "playerId", e.target.value)}
+                        className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        min={0}
+                        max={120}
+                        value={goal.minute || ""}
+                        onChange={(e) =>
+                          updateHomeGoal(goal.key, "minute", parseInt(e.target.value) || 0)
+                        }
+                        className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeHomeGoal(goal.key)}
+                        className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {homeGoals.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Sin goles registrados</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <AlertCircle className="h-4 w-4" />
+                    Tarjetas ({homeCards.length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={addHomeCard}
+                    className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
+                  >
+                    + Agregar tarjeta
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {homeCards.map((card) => (
+                    <div
+                      key={card.key}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Player ID"
+                        value={card.playerId}
+                        onChange={(e) => updateHomeCard(card.key, "playerId", e.target.value)}
+                        className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                      />
+                      <select
+                        value={card.type}
+                        onChange={(e) => updateHomeCard(card.key, "type", e.target.value)}
+                        className="rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                      >
+                        <option value="YELLOW">Amarilla</option>
+                        <option value="RED">Roja</option>
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        min={0}
+                        max={120}
+                        value={card.minute || ""}
+                        onChange={(e) =>
+                          updateHomeCard(card.key, "minute", parseInt(e.target.value) || 0)
+                        }
+                        className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeHomeCard(card.key)}
+                        className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {homeCards.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Sin tarjetas registradas</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Equipo visitante */}
+            <div className="rounded-xl border border-border bg-card p-6">
+              <h2 className="mb-6 text-xl font-bold">{match.awayTeamId}</h2>
+
+              <div className="mb-6">
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <Target className="h-4 w-4" />
+                    Goles ({awayGoals.filter((g) => g.playerId && Number(g.minute) > 0).length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={addAwayGoal}
+                    className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
+                  >
+                    + Agregar gol
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {awayGoals.map((goal) => (
+                    <div
+                      key={goal.key}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Player ID"
+                        value={goal.playerId}
+                        onChange={(e) => updateAwayGoal(goal.key, "playerId", e.target.value)}
+                        className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                      />
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        min={0}
+                        max={120}
+                        value={goal.minute || ""}
+                        onChange={(e) =>
+                          updateAwayGoal(goal.key, "minute", parseInt(e.target.value) || 0)
+                        }
+                        className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeAwayGoal(goal.key)}
+                        className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {awayGoals.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Sin goles registrados</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-center justify-between">
+                  <h3 className="flex items-center gap-2 font-semibold">
+                    <AlertCircle className="h-4 w-4" />
+                    Tarjetas ({awayCards.length})
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={addAwayCard}
+                    className="rounded-lg bg-accent px-3 py-1 text-sm font-medium transition hover:bg-accent/80"
+                  >
+                    + Agregar tarjeta
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {awayCards.map((card) => (
+                    <div
+                      key={card.key}
+                      className="flex items-center gap-2 rounded-lg border border-border bg-background p-3"
+                    >
+                      <input
+                        type="text"
+                        placeholder="Player ID"
+                        value={card.playerId}
+                        onChange={(e) => updateAwayCard(card.key, "playerId", e.target.value)}
+                        className="flex-1 rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                      />
+                      <select
+                        value={card.type}
+                        onChange={(e) => updateAwayCard(card.key, "type", e.target.value)}
+                        className="rounded border border-border bg-input-background px-2 py-1 text-sm focus:border-primary focus:outline-none"
+                      >
+                        <option value="YELLOW">Amarilla</option>
+                        <option value="RED">Roja</option>
+                      </select>
+                      <input
+                        type="number"
+                        placeholder="Min"
+                        min={0}
+                        max={120}
+                        value={card.minute || ""}
+                        onChange={(e) =>
+                          updateAwayCard(card.key, "minute", parseInt(e.target.value) || 0)
+                        }
+                        className="w-16 rounded border border-border bg-input-background px-2 py-1 text-center text-sm focus:border-primary focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeAwayCard(card.key)}
+                        className="rounded p-1 text-[#EF4444] transition hover:bg-[#EF4444]/10"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  {awayCards.length === 0 && (
+                    <p className="text-sm text-muted-foreground">Sin tarjetas registradas</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <button
+              type="submit"
+              disabled={reportMutation.isPending}
+              className="flex-1 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
+            >
+              {reportMutation.isPending ? "Guardando..." : "Guardar resultado"}
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border border-border bg-background px-6 py-3 font-semibold transition hover:bg-accent"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

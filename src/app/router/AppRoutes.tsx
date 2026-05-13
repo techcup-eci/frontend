@@ -72,7 +72,6 @@ export function AppRoutes() {
 
         {/* Player */}
         <Route path="/player/dashboard" element={<PlayerDashboard />} />
-        <Route path="/player/dashboard" element={<PlayerDashboard />} />
         <Route path="/player/profile/create" element={<CreateProfile />} />
         <Route path="/player/profile/becomePlayer" element={<BecomePlayer />} />
         <Route path="/player/profile/edit" element={<EditProfile />} />

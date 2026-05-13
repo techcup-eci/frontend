@@ -1,23 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Upload } from "lucide-react";
+import { User, Upload } from "lucide-react";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import { useCreateAthleticProfile } from "../hooks/useAthleticProfile";
-
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
 
 export default function CreateProfile() {
   const navigate = useNavigate();

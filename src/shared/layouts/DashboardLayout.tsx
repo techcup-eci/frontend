@@ -157,7 +157,7 @@ export default function DashboardLayout() {
 							<Button
 								variant="outline"
 								size="icon"
-								className="h-8 w-8 bg-black/50 text-white border-none"
+								className="h-8 w-8 bg-background/80 text-foreground border-border shadow-sm backdrop-blur-sm"
 							>
 								<Menu className="h-4 w-4" />
 							</Button>
