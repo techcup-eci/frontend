@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
+import { useParams } from "react-router-dom";
 import { Target, Calendar, Trophy, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 
 const API_BASE = "http://localhost:8080/api/v1";
-const TOURNAMENT_ID = "a0000000-0000-0000-0000-000000000001";
 
 interface TopScorerResponse {
   playerId: string;
@@ -14,15 +14,14 @@ interface TopScorerResponse {
 
 interface MatchHistoryResponse {
   matchId: string;
-  round: string;          // enum Round → Spring lo serializa como string
+  round: string;
   matchOrder: number;
   homeTeamId: string;
   awayTeamId: string;
   homeScore: number | null;
   awayScore: number | null;
-  scheduledAt: string;    // LocalDateTime → ISO string en JSON
-  status: string;         // enum MatchStatus → string
-  // Igual que arriba, Spring puede enriquecer con nombres:
+  scheduledAt: string;
+  status: string;
   homeTeamName?: string;
   awayTeamName?: string;
   fieldName?: string;
@@ -37,7 +36,6 @@ interface TeamStatsResponse {
   goalsReceived: number;
 }
 
-// ─── Servicio de llamadas al backend ─────────────────────────────────────────
 const statsApi = {
   getTopScorers: (tournamentId: string): Promise<TopScorerResponse[]> =>
     fetch(`${API_BASE}/tournaments/${tournamentId}/stats/top-scorers`)
@@ -52,7 +50,6 @@ const statsApi = {
       .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); }),
 };
 
-// ─── Hook genérico para fetch con loading/error ───────────────────────────────
 function useFetch<T>(fetchFn: () => Promise<T>, deps: unknown[] = []) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
@@ -65,7 +62,6 @@ function useFetch<T>(fetchFn: () => Promise<T>, deps: unknown[] = []) {
       .then(setData)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 
   useEffect(() => { load(); }, [load]);
@@ -73,7 +69,6 @@ function useFetch<T>(fetchFn: () => Promise<T>, deps: unknown[] = []) {
   return { data, loading, error, refetch: load };
 }
 
-// ─── Componentes de estado ────────────────────────────────────────────────────
 function LoadingState() {
   return (
     <div className="flex items-center justify-center py-20 text-muted-foreground">
@@ -99,11 +94,10 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
   );
 }
 
-// ─── Tab: Goleadores ──────────────────────────────────────────────────────────
-function TopScorersTab() {
+function TopScorersTab({ tournamentId }: { tournamentId: string }) {
   const { data, loading, error, refetch } = useFetch(
-    () => statsApi.getTopScorers(TOURNAMENT_ID),
-    [TOURNAMENT_ID]
+    () => statsApi.getTopScorers(tournamentId),
+    [tournamentId]
   );
 
   if (loading) return <LoadingState />;
@@ -157,11 +151,10 @@ function TopScorersTab() {
   );
 }
 
-// ─── Tab: Historial de partidos ───────────────────────────────────────────────
-function MatchHistoryTab() {
+function MatchHistoryTab({ tournamentId }: { tournamentId: string }) {
   const { data, loading, error, refetch } = useFetch(
-    () => statsApi.getMatchHistory(TOURNAMENT_ID),
-    [TOURNAMENT_ID]
+    () => statsApi.getMatchHistory(tournamentId),
+    [tournamentId]
   );
 
   if (loading) return <LoadingState />;
@@ -216,18 +209,15 @@ function MatchHistoryTab() {
   );
 }
 
-// ─── Tab: Stats por equipo ────────────────────────────────────────────────────
-// ⚠️ Para el selector necesitas un endpoint GET /tournaments/{id}/teams
-// Por ahora recibe el teamId como input manual; ajusta cuando tengas ese endpoint.
-function TeamStatsTab() {
+function TeamStatsTab({ tournamentId }: { tournamentId: string }) {
   const [teamId, setTeamId] = useState("");
   const [submittedId, setSubmittedId] = useState<string | null>(null);
 
   const { data, loading, error, refetch } = useFetch(
     () => submittedId
-      ? statsApi.getTeamStats(TOURNAMENT_ID, submittedId)
+      ? statsApi.getTeamStats(tournamentId, submittedId)
       : Promise.resolve(null),
-    [submittedId]
+    [tournamentId, submittedId]
   );
 
   const goalDiff = data ? data.goalsScored - data.goalsReceived : null;
@@ -295,8 +285,8 @@ function TeamStatsTab() {
   );
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────────
 export default function TournamentStats() {
+  const { tournamentId } = useParams<{ tournamentId: string }>();
   const [activeTab, setActiveTab] = useState<"scorers" | "history" | "teams">("scorers");
 
   const tabs = [
@@ -304,6 +294,15 @@ export default function TournamentStats() {
     { id: "history" as const, label: "Historial de partidos", icon: Calendar },
     { id: "teams"   as const, label: "Resultados por equipo", icon: Trophy },
   ];
+
+  if (!tournamentId) {
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        <AlertCircle className="mr-2 h-5 w-5" />
+        <span>No se especificó un torneo en la URL.</span>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -333,9 +332,9 @@ export default function TournamentStats() {
             ))}
           </div>
 
-          {activeTab === "scorers" && <TopScorersTab />}
-          {activeTab === "history" && <MatchHistoryTab />}
-          {activeTab === "teams"   && <TeamStatsTab />}
+          {activeTab === "scorers" && <TopScorersTab tournamentId={tournamentId} />}
+          {activeTab === "history" && <MatchHistoryTab tournamentId={tournamentId} />}
+          {activeTab === "teams"   && <TeamStatsTab tournamentId={tournamentId} />}
         </div>
       </main>
     </div>
