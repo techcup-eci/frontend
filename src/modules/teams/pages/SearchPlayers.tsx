@@ -22,6 +22,7 @@ const captainSidebar = [
   },
 ];
 
+
 export default function SearchPlayers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [positionFilter, setPositionFilter] = useState("");
@@ -222,3 +223,5 @@ export default function SearchPlayers() {
     </div>
   );
 }
+
+

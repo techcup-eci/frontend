@@ -11,21 +11,16 @@
 		--color-mist: #eef2ff;
 		--color-sand: #fff7ed;
 
-		font-family: "Space Grotesk", "Segoe UI Variable", "Trebuchet MS", sans-serif;
+		--font-family: "Space Grotesk", "Segoe UI Variable", "Trebuchet MS", sans-serif;
+		--bg-gradient: radial-gradient(circle at top left, rgba(72, 172, 240, 0.18), transparent 32%),
+			radial-gradient(circle at bottom right, rgba(153, 0, 0, 0.16), transparent 24%), 
+			linear-gradient(135deg, #f8fafc 0%, #eef2ff 45%, #fff7ed 100%);
+		
+		font-family: var(--font-family);
 		line-height: 1.5;
 		font-weight: 400;
 		color: var(--color-ink);
-		background:
-			radial-gradient(
-				circle at top left,
-				rgba(72, 172, 240, 0.18),
-				transparent 32%
-			),
-			radial-gradient(
-				circle at bottom right,
-				rgba(153, 0, 0, 0.16),
-				transparent 24%
-			), linear-gradient(135deg, #f8fafc 0%, #eef2ff 45%, #fff7ed 100%);
+		background: var(--bg-gradient);
 		font-synthesis: none;
 		text-rendering: optimizeLegibility;
 		-webkit-font-smoothing: antialiased;
@@ -74,34 +69,44 @@
 	}
 
 	.dark {
-		--background: oklch(0.145 0 0);
-		--foreground: oklch(0.985 0 0);
-		--card: oklch(0.145 0 0);
-		--card-foreground: oklch(0.985 0 0);
-		--popover: oklch(0.145 0 0);
-		--popover-foreground: oklch(0.985 0 0);
+		color-scheme: dark;
+		--color-oxblood: #ef4444; /* Brighter red for dark mode contrast */
+		--color-cool-sky: #38bdf8; /* Brighter blue for dark mode contrast */
+		
+		--bg-gradient: radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 35%),
+			radial-gradient(circle at bottom right, rgba(239, 68, 68, 0.10), transparent 30%), 
+			linear-gradient(135deg, #09090b 0%, #18181b 45%, #0f172a 100%);
+
+		--background: #09090b;
+		--foreground: #fafafa;
+		--card: #18181b;
+		--card-foreground: #fafafa;
+		--popover: #18181b;
+		--popover-foreground: #fafafa;
 		--primary: var(--color-oxblood);
-		--primary-foreground: oklch(0.985 0 0);
+		--primary-foreground: #ffffff;
 		--secondary: var(--color-cool-sky);
-		--secondary-foreground: oklch(0.985 0 0);
-		--muted: oklch(0.269 0 0);
-		--muted-foreground: oklch(0.708 0 0);
-		--accent: oklch(0.269 0 0);
-		--accent-foreground: oklch(0.985 0 0);
-		--destructive: oklch(0.396 0.141 25.723);
-		--destructive-foreground: oklch(0.637 0.237 25.331);
-		--border: oklch(0.269 0 0);
-		--input: oklch(0.269 0 0);
+		--secondary-foreground: #09090b;
+		--muted: #27272a;
+		--muted-foreground: #a1a1aa;
+		--accent: #27272a;
+		--accent-foreground: #fafafa;
+		--destructive: #7f1d1d;
+		--destructive-foreground: #fef2f2;
+		--border: #27272a;
+		--input: transparent;
+		--input-background: #18181b;
+		--switch-background: #3f3f46;
 		--ring: var(--color-oxblood);
 		--font-weight-medium: 500;
 		--font-weight-normal: 400;
-		--sidebar: oklch(0.205 0 0);
-		--sidebar-foreground: oklch(0.985 0 0);
+		--sidebar: #09090b;
+		--sidebar-foreground: #fafafa;
 		--sidebar-primary: var(--color-oxblood);
-		--sidebar-primary-foreground: oklch(0.985 0 0);
-		--sidebar-accent: oklch(0.269 0 0);
-		--sidebar-accent-foreground: oklch(0.985 0 0);
-		--sidebar-border: oklch(0.269 0 0);
+		--sidebar-primary-foreground: #fafafa;
+		--sidebar-accent: #27272a;
+		--sidebar-accent-foreground: #fafafa;
+		--sidebar-border: #27272a;
 		--sidebar-ring: var(--color-oxblood);
 	}
 
@@ -154,5 +159,25 @@
 	
 	input {
 		font-weight: var(--font-weight-normal);
+	}
+}
+
+@layer components {
+	.hero-school {
+		background-image: url("/images/eci-campus.jpg");
+		background-size: 120%;
+		background-position: center;
+		filter: blur(2px) saturate(1.1);
+		transform: scale(1.04);
+		animation: hero-drift 22s ease-in-out infinite alternate;
+	}
+}
+
+@keyframes hero-drift {
+	0% {
+		background-position: 45% 40%;
+	}
+	100% {
+		background-position: 55% 60%;
 	}
 }

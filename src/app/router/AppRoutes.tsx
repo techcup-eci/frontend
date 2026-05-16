@@ -33,15 +33,21 @@ import CreateTournament from "../../modules/tournaments/pages/CreateTournament";
 import ManageTeams from "../../modules/tournaments/pages/ManageTeams";
 import MatchCalendar from "../../modules/tournaments/pages/MatchCalendar";
 import OrganizerDashboard from "../../modules/tournaments/pages/OrganizerDashboard";
+import OrganizerProfile from "../../modules/tournaments/pages/OrganizerProfile";
 import RegisterResult from "../../modules/tournaments/pages/RegisterResult";
 import ScheduleMatches from "../../modules/tournaments/pages/ScheduleMatches";
 import Standings from "../../modules/tournaments/pages/Standings";
+import UserDashboard from "../../modules/users/pages/UserDashboard";
+import UserProfile from "../../modules/users/pages/UserProfile";
+import UserTeams from "../../modules/users/pages/UserTeams";
 import PlayerPublicProfile from "../../shared/components/common/PlayerPublicProfile";
 import TournamentInfo from "../../shared/components/common/TournamentInfo";
 import TournamentStats from "../../shared/components/common/TournamentStats";
 import RootLayout from "../../shared/layouts/RootLayout";
 import AuthLayout from "../../shared/layouts/AuthLayout";
 import DashboardLayout from "../../shared/layouts/DashboardLayout";
+import ManageRegistrations from "../../modules/registrations/pages/ManageRegistrations";
+import BecomePlayer from "../../modules/players/pages/BecomePlayer";
 
 export function AppRoutes() {
   return (
@@ -62,9 +68,16 @@ export function AppRoutes() {
 
       {/* Protected/Dashboard Routes with Navbar & Sidebar */}
       <Route element={<DashboardLayout />}>
+        {/* User */}
+        <Route path="/user/dashboard" element={<UserDashboard />} />
+        <Route path="/user/profile" element={<UserProfile />} />
+        <Route path="/user/teams" element={<UserTeams />} />
+        <Route path="/user/teams/:id" element={<TeamDetail />} />
+
         {/* Player */}
         <Route path="/player/dashboard" element={<PlayerDashboard />} />
         <Route path="/player/profile/create" element={<CreateProfile />} />
+        <Route path="/player/profile/becomePlayer" element={<BecomePlayer />} />
         <Route path="/player/profile/edit" element={<EditProfile />} />
         <Route path="/player/profile" element={<ViewProfile />} />
         <Route path="/player/availability" element={<MarkAvailability />} />
@@ -87,9 +100,11 @@ export function AppRoutes() {
 
         {/* Organizer */}
         <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
+        <Route path="/organizer/profile" element={<OrganizerProfile />} />
         <Route path="/organizer/create-tournament" element={<CreateTournament />} />
         <Route path="/organizer/tournament/configure" element={<ConfigureTournament />} />
         <Route path="/organizer/teams" element={<ManageTeams />} />
+        <Route path="/organizer/payments" element={<ManageRegistrations />} />
         <Route path="/organizer/schedule" element={<ScheduleMatches />} />
         <Route path="/organizer/result/:id" element={<RegisterResult />} />
         <Route path="/organizer/calendar" element={<MatchCalendar />} />
@@ -102,7 +117,7 @@ export function AppRoutes() {
 
         {/* Admin */}
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/users" element={<ManageUsers />} />
+        <Route path="/admin/players" element={<ManageUsers />} />
         <Route path="/admin/audit" element={<AuditLog />} />
       </Route>
 
@@ -111,3 +126,6 @@ export function AppRoutes() {
     </Routes>
   );
 }
+
+
+

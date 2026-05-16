@@ -28,9 +28,9 @@ const adminSidebar = [
 	{
 		items: [
 			{ label: "Inicio", path: "/admin/dashboard", icon: Home },
-			{ label: "Usuarios", path: "/admin/users", icon: Users },
+			{ label: "Usuarios", path: "/admin/players", icon: Users },
 			{ label: "Auditoría", path: "/admin/audit", icon: FileText },
-			{ label: "Torneos", path: "/organizer/dashboard", icon: Trophy },
+			{ label: "Torneos", path: "/admin/tournaments", icon: Trophy },
 			{ label: "Sistema", path: "/admin/settings", icon: Settings },
 		],
 	},
@@ -59,6 +59,18 @@ const playerSidebar = [
 	},
 ];
 
+const userSidebar = [
+	{
+		items: [
+			{ label: "Inicio", path: "/user/dashboard", icon: Home },
+			{ label: "Mi Perfil", path: "/user/profile", icon: User },
+			{ label: "Equipos", path: "/user/teams", icon: Users },
+			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
+			{ label: "Estadísticas", path: "/stats", icon: BarChart3 },
+		],
+	},
+];
+
 const captainSidebar = [
 	{
 		items: [
@@ -82,9 +94,10 @@ const organizerSidebar = [
 	{
 		items: [
 			{ label: "Inicio", path: "/organizer/dashboard", icon: Home },
+			{ label: "Mi Perfil", path: "/organizer/profile", icon: User },
 			{ label: "Torneos", path: "/organizer/create-tournament", icon: Trophy },
 			{ label: "Equipos", path: "/organizer/teams", icon: Users },
-			{ label: "Pagos", path: "/organizer/teams", icon: CreditCard },
+			{ label: "Pagos", path: "/organizer/payments", icon: CreditCard },
 			{ label: "Partidos", path: "/organizer/schedule", icon: Calendar },
 			{ label: "Resultados", path: "/organizer/calendar", icon: ListChecks },
 			{
@@ -126,6 +139,10 @@ export default function DashboardLayout() {
 		currentSidebar = playerSidebar;
 		userName = "Jugador";
 		role = "Jugador";
+	} else if (location.pathname.startsWith("/user")) {
+		currentSidebar = userSidebar;
+		userName = "Usuario";
+		role = "Usuario";
 	}
 
 	return (
@@ -144,7 +161,7 @@ export default function DashboardLayout() {
 							<Button
 								variant="outline"
 								size="icon"
-								className="h-8 w-8 bg-black/50 text-white border-none"
+								className="h-8 w-8 bg-background/80 text-foreground border-border shadow-sm backdrop-blur-sm"
 							>
 								<Menu className="h-4 w-4" />
 							</Button>
@@ -162,3 +179,5 @@ export default function DashboardLayout() {
 		</div>
 	);
 }
+
+

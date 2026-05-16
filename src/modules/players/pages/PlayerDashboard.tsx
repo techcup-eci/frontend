@@ -1,22 +1,14 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Shield, Bell } from "lucide-react";
+import { Link, useSearchParams } from "react-router";
+import { BarChart3, Bell, Calendar, Shield, Trophy, UserPlus, Users } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
 
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
-
 export default function PlayerDashboard() {
+  const [searchParams] = useSearchParams();
+  const roleParam = searchParams.get("role");
+  const roleLabel = roleParam
+    ? roleParam.charAt(0).toUpperCase() + roleParam.slice(1)
+    : "Jugador";
+
   return (
     <div className="flex min-h-screen flex-col">
       
@@ -32,8 +24,17 @@ export default function PlayerDashboard() {
                   <p className="text-primary-foreground/80">¡Listo para el próximo partido!</p>
                 </div>
                 <Badge variant="info" size="lg">
-                  Jugador
+                  {roleLabel}
                 </Badge>
+              </div>
+              <div className="mt-6">
+                <Link
+                  to="/captain/create-team"
+                  className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/20"
+                >
+                  <UserPlus className="h-5 w-5" />
+                  Crear equipo
+                </Link>
               </div>
             </div>
 
@@ -121,3 +122,5 @@ export default function PlayerDashboard() {
     </div>
   );
 }
+
+

@@ -1,24 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Upload } from "lucide-react";
-
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
+import { User, Upload } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { useCreateAthleticProfile } from "../hooks/useAthleticProfile";
 
 export default function CreateProfile() {
   const navigate = useNavigate();
+  const authUser = useAuthStore((state) => state.user);
+  const createProfile = useCreateAthleticProfile();
   const [formData, setFormData] = useState({
     photo: "",
     position: "",
@@ -27,6 +16,7 @@ export default function CreateProfile() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [submitError, setSubmitError] = useState("");
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,7 +29,7 @@ export default function CreateProfile() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -53,8 +43,37 @@ export default function CreateProfile() {
       return;
     }
 
-    // Simulación de guardado exitoso
-    navigate("/player/profile");
+    const userEmail = authUser?.email ?? sessionStorage.getItem("playerEmail") ?? "";
+    if (!userEmail) {
+      setSubmitError("No se pudo identificar el correo del usuario. Inicia sesión nuevamente.");
+      return;
+    }
+
+    setSubmitError("");
+
+    try {
+      const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+      await createProfile.mutateAsync({
+        email: userEmail,
+        dorsalNumber: number,
+        position: formData.position,
+        laterality: "RIGHT",
+        stature: "1.70",
+        state: "ACTIVE",
+      });
+
+      sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
+      if (photoPreview) {
+        sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
+      }
+      sessionStorage.setItem(storageKey("isPlayer"), "true");
+      sessionStorage.setItem("playerEmail", userEmail);
+
+      navigate("/player/profile");
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "No fue posible guardar el perfil.";
+      setSubmitError(message);
+    }
   };
 
   return (
@@ -171,13 +190,20 @@ export default function CreateProfile() {
                   </select>
                 </div>
 
+                {submitError && (
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+                    {submitError}
+                  </div>
+                )}
+
                 {/* Botones */}
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
+                    disabled={createProfile.isPending}
                     className="flex-1 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
                   >
-                    Guardar perfil
+                    {createProfile.isPending ? "Guardando..." : "Guardar perfil"}
                   </button>
                   <button
                     type="button"
@@ -195,3 +221,5 @@ export default function CreateProfile() {
     </div>
   );
 }
+
+

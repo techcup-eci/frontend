@@ -1,5 +1,4 @@
-import Navbar from "../shared/Navbar";
-import { Calendar, MapPin, AlertCircle } from "lucide-react";
+import { Calendar, MapPin } from "lucide-react";
 
 export default function TournamentInfo() {
   const timeline = [

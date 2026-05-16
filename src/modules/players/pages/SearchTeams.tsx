@@ -1,7 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
 import TeamCard from "../../../shared/components/shared/TeamCard";
 import {
   Dialog,
@@ -13,78 +11,33 @@ import {
 } from "../../../shared/components/ui/dialog";
 import { Home, User, Users, Trophy, BarChart3, Calendar, Search, Hash } from "lucide-react";
 
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
 
 export default function SearchTeams() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
-  const [positionFilter, setPositionFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [joinCodeOpen, setJoinCodeOpen] = useState(false);
   const [teamCode, setTeamCode] = useState("");
+  const [teams, setTeams] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const teams = [
-    {
-      id: 1,
-      name: "Los Algoritmos FC",
-      captain: "Felipe Jiménez",
-      players: 9,
-      maxPlayers: 12,
-      status: "approved" as const,
-      positions: ["Mediocampista Central", "Delantero Centro"],
-    },
-    {
-      id: 2,
-      name: "Byte Brothers",
-      captain: "Andrés Morales",
-      players: 10,
-      maxPlayers: 12,
-      status: "approved" as const,
-      positions: ["Defensa Central", "Lateral Derecho"],
-    },
-    {
-      id: 3,
-      name: "Neural FC",
-      captain: "Camila Herrera",
-      players: 8,
-      maxPlayers: 12,
-      status: "approved" as const,
-      positions: ["Portero", "Mediocampista Defensivo"],
-    },
-    {
-      id: 4,
-      name: "Los Cibernéticos",
-      captain: "Valentina Ruiz",
-      players: 11,
-      maxPlayers: 12,
-      status: "review" as const,
-      positions: ["Extremo Derecho"],
-    },
-  ];
+  useEffect(() => {
+    fetch(`${API_URL}/teams`)
+      .then((res) => res.json())
+      .then((data) => { setTeams(data); setLoading(false); })
+      .catch((err) => { console.error("Error cargando equipos:", err); setLoading(false); });
+  }, []);
 
   const filteredTeams = teams.filter((team) => {
-    const matchesSearch = team.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPosition = !positionFilter || team.positions.includes(positionFilter);
-    const matchesStatus = !statusFilter || team.status === statusFilter;
-    return matchesSearch && matchesPosition && matchesStatus;
+    const matchesSearch = team.name?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || team.state === statusFilter;
+    return matchesSearch && matchesStatus;
   });
 
   return (
     <div className="flex min-h-screen flex-col">
-      
       <div className="flex flex-1">
-        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -101,7 +54,6 @@ export default function SearchTeams() {
               </button>
             </div>
 
-            {/* Modal: unirse con código */}
             <Dialog open={joinCodeOpen} onOpenChange={setJoinCodeOpen}>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -122,83 +74,48 @@ export default function SearchTeams() {
                   />
                 </div>
                 <DialogFooter>
-                  <button
-                    onClick={() => {
-                      setJoinCodeOpen(false);
-                      setTeamCode("");
-                    }}
-                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent"
-                  >
+                  <button onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
+                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent">
                     Cancelar
                   </button>
-                  <button
-                    disabled={teamCode.trim().length === 0}
-                    onClick={() => {
-                      // TODO: conectar al backend — POST /api/teams/join con { code: teamCode }
-                      setJoinCodeOpen(false);
-                      setTeamCode("");
-                    }}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-                  >
+                  <button disabled={teamCode.trim().length === 0}
+                    onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
                     Confirmar
                   </button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
 
-            {/* Filtros */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Buscar por nombre..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:border-primary focus:outline-none"
-                />
+                <input type="text" placeholder="Buscar por nombre..."
+                  value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:border-primary focus:outline-none" />
               </div>
-              <select
-                value={positionFilter}
-                onChange={(e) => setPositionFilter(e.target.value)}
-                className="rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-              >
-                <option value="">Todas las posiciones</option>
-                <option value="Portero">Portero</option>
-                <option value="Defensa Central">Defensa Central</option>
-                <option value="Mediocampista Central">Mediocampista Central</option>
-                <option value="Delantero Centro">Delantero Centro</option>
-              </select>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-              >
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none">
                 <option value="">Todos los estados</option>
-                <option value="approved">Aprobados</option>
-                <option value="review">En revisión</option>
-                <option value="pending">Pendientes</option>
+                <option value="ACTIVE">Aprobados</option>
+                <option value="DRAFT">En revisión</option>
+                <option value="NONE">Pendientes</option>
               </select>
             </div>
 
-            {/* Grid de equipos */}
-            {filteredTeams.length > 0 ? (
+            {loading ? (
+              <div className="flex justify-center py-16">
+                <p className="text-muted-foreground">Cargando equipos...</p>
+              </div>
+            ) : filteredTeams.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredTeams.map((team) => (
-                  <TeamCard
-                    key={team.id}
-                    name={team.name}
-                    captain={team.captain}
-                    players={team.players}
-                    maxPlayers={team.maxPlayers}
-                    status={team.status}
-                    positions={team.positions}
+                  <TeamCard key={team.id} name={team.name} captain={team.idCaptain}
+                    players={team.currentPlayers} maxPlayers={12}
+                    status={team.state === "ACTIVE" ? "approved" : "review"}
+                    positions={[]}
                     onView={() => navigate(`/player/teams/${team.id}`)}
-                    onJoin={() => {
-                      // Aquí iría la lógica para solicitar unirse
-                      alert(`Solicitud enviada a ${team.name}`);
-                    }}
-                  />
+                    onJoin={() => alert(`Solicitud enviada a ${team.name}`)} />
                 ))}
               </div>
             ) : (

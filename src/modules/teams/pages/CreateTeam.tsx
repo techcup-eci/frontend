@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
 import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Upload, Shield } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 const captainSidebar = [
   {
@@ -20,11 +19,16 @@ const captainSidebar = [
 
 export default function CreateTeam() {
   const navigate = useNavigate();
+  const currentUser = useAuthStore((state) => state.user);
+  const setAuthenticatedUser = useAuthStore((state) => state.setAuthenticatedUser);
   const [formData, setFormData] = useState({
     name: "",
     color: "#1B5E35",
     description: "",
+    captainId: "",
+    playersInput: "",
   });
+  
   const [shieldPreview, setShieldPreview] = useState<string>("");
 
   const handleShieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -38,9 +42,43 @@ export default function CreateTeam() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulación de creación exitosa
+
+    const playersArray = formData.playersInput
+      .split(',')
+      .map(id => parseInt(id.trim()))
+      .filter(id => !isNaN(id));
+
+    const equipoData = {
+      name: formData.name,
+      colors: formData.color,
+      captainId: parseInt(formData.captainId),
+      photo: shieldPreview || "", 
+      players: playersArray
+    };
+
+    try {
+      const response = await fetch("http://localhost:8080/equipos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(equipoData),
+      });
+
+      if (!response.ok) {
+        const errorMsg = await response.text();
+        console.error("Error al crear el equipo:", errorMsg);
+      }
+    } catch (error) {
+      console.error("Error de conexion:", error);
+    }
+
+    if (currentUser) {
+      setAuthenticatedUser({ ...currentUser, role: "captain" });
+    }
+
     navigate("/captain/dashboard");
   };
 
@@ -60,6 +98,7 @@ export default function CreateTeam() {
 
             <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-8">
               <div className="space-y-6">
+                
                 {/* Nombre del equipo */}
                 <div>
                   <label className="mb-2 block font-medium">Nombre del equipo</label>
@@ -71,6 +110,33 @@ export default function CreateTeam() {
                     className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
                     placeholder="Los Algoritmos FC"
                   />
+                </div>
+
+                {/* ID del Capitán */}
+                <div>
+                  <label className="mb-2 block font-medium">ID del Capitán</label>
+                  <input
+                    type="number"
+                    required
+                    value={formData.captainId}
+                    onChange={(e) => setFormData({ ...formData, captainId: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    placeholder="Ej: 100123"
+                  />
+                </div>
+
+                {/* IDs de los Jugadores*/}
+                <div>
+                  <label className="mb-2 block font-medium">IDs de los Jugadores</label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.playersInput}
+                    onChange={(e) => setFormData({ ...formData, playersInput: e.target.value })}
+                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    placeholder="Ej: 5, 12, 18, 21 (Separados por coma)"
+                  />
+                  <p className="mt-1 text-sm text-muted-foreground">Recuerda: Mínimo 7, máximo 12 jugadores.</p>
                 </div>
 
                 {/* Escudo */}
@@ -145,7 +211,8 @@ export default function CreateTeam() {
                       </div>
                       <div>
                         <h3 className="text-lg font-bold">{formData.name}</h3>
-                        <p className="text-sm text-muted-foreground">Capitán: Felipe Jiménez</p>
+                        {/* Actualicé el nombre para que muestre el ID real que se está escribiendo */}
+                        <p className="text-sm text-muted-foreground">Capitán: ID {formData.captainId || "Por definir"}</p>
                       </div>
                     </div>
                   </div>
