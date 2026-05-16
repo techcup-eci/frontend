@@ -51,7 +51,8 @@ export function AppRoutes() {
       {/* Public Routes with Navbar */}
       <Route element={<RootLayout />}>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/stats" element={<TournamentStats />} />
+        {/* tournamentId viene en la URL: /tournaments/:tournamentId/stats */}
+        <Route path="/tournaments/:tournamentId/stats" element={<TournamentStats />} />
         <Route path="/tournament-info" element={<TournamentInfo />} />
         <Route path="/players/:id" element={<PlayerPublicProfile />} />
       </Route>
@@ -118,6 +119,3 @@ export function AppRoutes() {
     </Routes>
   );
 }
-
-
-
