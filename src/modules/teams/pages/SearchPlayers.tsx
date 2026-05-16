@@ -1,8 +1,12 @@
 import { useState } from "react";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Search } from "lucide-react";
+import axios from "axios";
+import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Search, CheckCircle, XCircle } from "lucide-react";
 import PlayerCard from "../../../shared/components/shared/PlayerCard";
+
+// TODO: obtener del contexto de autenticación, estos son casos de prueba
+const TEAM_ID = "1";
+
+const BASE_URL = "http://localhost:8080";
 
 const captainSidebar = [
   {
@@ -22,9 +26,16 @@ export default function SearchPlayers() {
   const [searchTerm, setSearchTerm] = useState("");
   const [positionFilter, setPositionFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
+  const [invitingId, setInvitingId] = useState<string | null>(null);
+  const [inviteFeedback, setInviteFeedback] = useState<{
+    playerId: string;
+    success: boolean;
+    msg: string;
+  } | null>(null);
 
   const availablePlayers = [
     {
+      id: "10",
       name: "Roberto Vargas",
       position: "Defensa Central",
       number: 4,
@@ -32,6 +43,7 @@ export default function SearchPlayers() {
       available: true,
     },
     {
+      id: "11",
       name: "Carolina Díaz",
       position: "Mediocampista Central",
       number: 10,
@@ -39,6 +51,7 @@ export default function SearchPlayers() {
       available: true,
     },
     {
+      id: "12",
       name: "Javier Ortiz",
       position: "Delantero Centro",
       number: 9,
@@ -46,6 +59,7 @@ export default function SearchPlayers() {
       available: false,
     },
     {
+      id: "13",
       name: "Sofía Ramírez",
       position: "Extremo Derecho",
       number: 7,
@@ -53,6 +67,7 @@ export default function SearchPlayers() {
       available: true,
     },
     {
+      id: "14",
       name: "Miguel Ángel Castro",
       position: "Portero",
       number: 1,
@@ -60,6 +75,7 @@ export default function SearchPlayers() {
       available: true,
     },
     {
+      id: "15",
       name: "Daniela Reyes",
       position: "Lateral Izquierdo",
       number: 3,
@@ -67,6 +83,32 @@ export default function SearchPlayers() {
       available: true,
     },
   ];
+
+  async function handleInvite(playerId: string, playerName: string) {
+    if (invitingId) return;
+    setInvitingId(playerId);
+    setInviteFeedback(null);
+    try {
+      await axios.post(
+        `${BASE_URL}/api/players/${playerId}/solicitudes`,
+        {},
+        { headers: { "X-User-Id": TEAM_ID } }
+      );
+      setInviteFeedback({
+        playerId,
+        success: true,
+        msg: `Invitación enviada a ${playerName} exitosamente`,
+      });
+    } catch (err: unknown) {
+      const msg = axios.isAxiosError(err)
+        ? (err.response?.data?.message ?? err.message)
+        : `Error al enviar la invitación a ${playerName}`;
+      setInviteFeedback({ playerId, success: false, msg });
+    } finally {
+      setInvitingId(null);
+      setTimeout(() => setInviteFeedback(null), 4000);
+    }
+  }
 
   const filteredPlayers = availablePlayers.filter((player) => {
     const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -88,6 +130,24 @@ export default function SearchPlayers() {
                 Invita jugadores sin equipo a unirse a Los Algoritmos FC
               </p>
             </div>
+
+            {/* Invite feedback */}
+            {inviteFeedback && (
+              <div
+                className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium ${
+                  inviteFeedback.success
+                    ? "bg-[#4ADE80]/10 text-[#4ADE80]"
+                    : "bg-[#EF4444]/10 text-[#EF4444]"
+                }`}
+              >
+                {inviteFeedback.success ? (
+                  <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                ) : (
+                  <XCircle className="h-5 w-5 flex-shrink-0" />
+                )}
+                {inviteFeedback.msg}
+              </div>
+            )}
 
             {/* Filtros */}
             <div className="grid gap-4 md:grid-cols-3">
@@ -134,16 +194,16 @@ export default function SearchPlayers() {
             {/* Grid de jugadores */}
             {filteredPlayers.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredPlayers.map((player, idx) => (
+                {filteredPlayers.map((player) => (
                   <PlayerCard
-                    key={idx}
+                    key={player.id}
                     name={player.name}
                     position={player.position}
                     number={player.number}
                     semester={player.semester}
                     available={player.available}
                     onView={() => alert(`Ver perfil de ${player.name}`)}
-                    onInvite={() => alert(`Invitación enviada a ${player.name}`)}
+                    onInvite={() => handleInvite(player.id, player.name)}
                   />
                 ))}
               </div>

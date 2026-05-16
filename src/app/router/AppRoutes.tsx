@@ -12,8 +12,10 @@ import CreateProfile from "../../modules/players/pages/CreateProfile";
 import EditProfile from "../../modules/players/pages/EditProfile";
 import MarkAvailability from "../../modules/players/pages/MarkAvailability";
 import PlayerDashboard from "../../modules/players/pages/PlayerDashboard";
+import PlayerInvitations from "../../modules/players/pages/PlayerInvitations";
 import SearchTeams from "../../modules/players/pages/SearchTeams";
 import TeamDetail from "../../modules/players/pages/TeamDetail";
+import TeamInvitationDetail from "../../modules/players/pages/TeamInvitationDetail";
 import ViewLineup from "../../modules/players/pages/ViewLineup";
 import ViewProfile from "../../modules/players/pages/ViewProfile";
 import ViewRivalLineup from "../../modules/players/pages/ViewRivalLineup";
@@ -68,6 +70,8 @@ export function AppRoutes() {
         <Route path="/player/availability" element={<MarkAvailability />} />
         <Route path="/player/teams" element={<SearchTeams />} />
         <Route path="/player/teams/:id" element={<TeamDetail />} />
+        <Route path="/player/invitations" element={<PlayerInvitations />} />
+        <Route path="/player/invitations/:teamId" element={<TeamInvitationDetail />} />
         <Route path="/player/lineup" element={<ViewLineup />} />
         <Route path="/player/lineup/rival/:id" element={<ViewRivalLineup />} />
 
