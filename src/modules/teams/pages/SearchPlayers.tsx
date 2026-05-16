@@ -1,22 +1,6 @@
 import { useState } from "react";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import PlayerCard from "../../../shared/components/shared/PlayerCard";
-
-const captainSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/captain/dashboard", icon: Home },
-      { label: "Mi Equipo", path: "/captain/manage", icon: Users },
-      { label: "Buscar Jugadores", path: "/captain/search-players", icon: UserPlus },
-      { label: "Pagos", path: "/captain/payment", icon: CreditCard },
-      { label: "Alineación", path: "/captain/lineup", icon: LayoutList },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-    ],
-  },
-];
 
 export default function SearchPlayers() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -162,3 +146,5 @@ export default function SearchPlayers() {
     </div>
   );
 }
+
+

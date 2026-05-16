@@ -41,8 +41,9 @@ export default function Register() {
       return;
     }
 
-    // Simulación de registro exitoso
-    navigate("/login");
+    // Si registro exitoso, redirigir al dashboard de usuario.
+    sessionStorage.setItem("playerEmail", formData.email.trim().toLowerCase());
+    navigate("/user/dashboard");
   };
 
   return (
@@ -209,3 +210,5 @@ export default function Register() {
     </div>
   );
 }
+
+

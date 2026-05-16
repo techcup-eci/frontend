@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
 import TeamCard from "../../../shared/components/shared/TeamCard";
+<<<<<<< HEAD
 import {
   Dialog,
   DialogContent,
@@ -25,6 +24,9 @@ const playerSidebar = [
     ],
   },
 ];
+=======
+import { Users, Search } from "lucide-react";
+>>>>>>> origin/develop
 
 export default function SearchTeams() {
   const navigate = useNavigate();
@@ -214,3 +216,5 @@ export default function SearchTeams() {
     </div>
   );
 }
+
+

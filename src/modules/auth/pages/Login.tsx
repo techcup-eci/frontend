@@ -1,30 +1,83 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Trophy } from "lucide-react";
+import type { ZodIssue } from "zod";
+import { loginRequestSchema } from "../types/authSchemas";
+import type { LoginRequest } from "../types/LoginRequest";
+import { useLogin } from "../hooks/useLogin";
+import { useAuthStore } from "../hooks/useAuthStore";
+import type { AuthRole } from "../types/AuthUser";
+
+function zodErrorsToMap(issues: ZodIssue[]): Partial<Record<keyof LoginRequest, string>> {
+  const map: Partial<Record<keyof LoginRequest, string>> = {};
+  for (const issue of issues) {
+    const field = issue.path[0] as keyof LoginRequest;
+    if (field && !map[field]) {
+      map[field] = issue.message;
+    }
+  }
+  return map;
+}
 
 export default function Login() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const status = useAuthStore((state) => state.status);
+  const user = useAuthStore((state) => state.user);
+  const { login, isPending, errorMessage, resetState } = useLogin();
+  const [formData, setFormData] = useState<LoginRequest>({
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof LoginRequest, string>>>({});
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (status !== "authenticated") {
+      return;
+    }
+
+    const roleRoutes: Record<AuthRole, string> = {
+      participant: "/user/dashboard",
+      captain: "/captain/dashboard",
+      organizer: "/organizer/dashboard",
+      referee: "/referee/dashboard",
+      administrator: "/admin/dashboard",
+    };
+
+    const nextRoute = user?.role ? roleRoutes[user.role] : "/user/dashboard";
+    navigate(nextRoute, { replace: true });
+  }, [navigate, status, user]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFieldErrors({});
 
-    // Simulación de login - en producción esto haría una petición al backend
-    if (formData.email && formData.password) {
-      // Redirigir según el rol simulado
-      navigate("/player/dashboard");
-    } else {
-      setError("Credenciales incorrectas. Verifica tu correo y contraseña");
+    const result = loginRequestSchema.safeParse({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (!result.success) {
+      setFieldErrors(zodErrorsToMap(result.error.issues));
+      return;
+    }
+
+    try {
+      await login(result.data);
+      sessionStorage.setItem("playerEmail", result.data.email.trim().toLowerCase());
+    } catch {
+      // Error message is handled by the login hook.
     }
   };
 
+  const inputClass = (field: keyof LoginRequest) =>
+    `w-full rounded-lg border px-4 py-3 text-[var(--color-ink)] focus:outline-none transition-all ${
+      fieldErrors[field]
+        ? "border-destructive bg-destructive/5 focus:border-destructive focus:ring-1 focus:ring-destructive"
+        : "border-border bg-[var(--color-mist)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)]"
+    }`;
+
   return (
     <div className="flex min-h-screen">
-      {/* Panel izquierdo */}
       <div className="hidden w-1/2 bg-gradient-to-br from-[var(--color-ink)] via-[var(--color-oxblood)] to-[var(--color-ink)] lg:flex lg:flex-col lg:items-center lg:justify-center lg:p-12">
         <div className="max-w-md text-center">
           <div className="mb-6 flex justify-center">
@@ -37,19 +90,12 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Panel derecho - Formulario */}
       <div className="flex w-full items-center justify-center p-8 lg:w-1/2">
         <div className="w-full max-w-md">
           <div className="mb-8">
             <h2 className="mb-2 text-3xl font-bold">Iniciar sesión</h2>
             <p className="text-muted-foreground">Ingresa tus credenciales para continuar</p>
           </div>
-
-          {error && (
-            <div className="mb-4 rounded-lg border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
-              {error}
-            </div>
-          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -60,11 +106,17 @@ export default function Login() {
                 value={formData.email}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
-                  setError("");
+                  if (fieldErrors.email) {
+                    setFieldErrors((current) => ({ ...current, email: undefined }));
+                  }
+                  if (errorMessage) {
+                    resetState();
+                  }
                 }}
-                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
+                className={inputClass("email")}
                 placeholder="correo@escuelaing.edu.co"
               />
+              {fieldErrors.email && <p className="mt-1 text-xs text-destructive">{fieldErrors.email}</p>}
             </div>
 
             <div>
@@ -75,18 +127,38 @@ export default function Login() {
                 value={formData.password}
                 onChange={(e) => {
                   setFormData({ ...formData, password: e.target.value });
-                  setError("");
+                  if (fieldErrors.password) {
+                    setFieldErrors((current) => ({ ...current, password: undefined }));
+                  }
+                  if (errorMessage) {
+                    resetState();
+                  }
                 }}
-                className="w-full rounded-lg border border-border bg-[var(--color-mist)] px-4 py-3 text-[var(--color-ink)] focus:border-[var(--color-cool-sky)] focus:ring-1 focus:ring-[var(--color-cool-sky)] focus:outline-none transition-all"
+                className={inputClass("password")}
                 placeholder="Tu contraseña"
               />
+              {fieldErrors.password && <p className="mt-1 text-xs text-destructive">{fieldErrors.password}</p>}
             </div>
+
+            {errorMessage ? (
+              <div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {errorMessage}
+              </div>
+            ) : null}
 
             <button
               type="submit"
-              className="w-full rounded-lg bg-[var(--color-oxblood)] px-4 py-3 font-semibold text-[var(--color-white-pure)] shadow-md transition-all hover:bg-opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none"
+              disabled={isPending}
+              className="flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-oxblood)] px-4 py-3 font-semibold text-[var(--color-white-pure)] shadow-md transition-all hover:bg-opacity-90 hover:shadow-lg focus:ring-2 focus:ring-[var(--color-cool-sky)] focus:outline-none disabled:opacity-60"
             >
-              Ingresar
+              {isPending ? (
+                <>
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  Ingresando...
+                </>
+              ) : (
+                "Ingresar"
+              )}
             </button>
           </form>
 
@@ -101,3 +173,5 @@ export default function Login() {
     </div>
   );
 }
+
+

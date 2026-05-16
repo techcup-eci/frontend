@@ -1,18 +1,6 @@
 import { useState } from "react";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, FileText, Search, Edit, Trash2 } from "lucide-react";
+import { Search, Edit, Trash2 } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
-
-const adminSidebar = [
-  {
-    items: [
-      { label: "Dashboard", path: "/admin/dashboard", icon: Home },
-      { label: "Gestionar Usuarios", path: "/admin/users", icon: Users },
-      { label: "Registro de Auditoría", path: "/admin/audit", icon: FileText },
-    ],
-  },
-];
 
 type User = {
   id: number;
@@ -79,6 +67,7 @@ export default function ManageUsers() {
   const [roleFilter, setRoleFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -97,10 +86,26 @@ export default function ManageUsers() {
 
   const handleUpdateUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingUser) {
+    if (isCreating && editingUser) {
+      setUsers([...users, { ...editingUser, id: Date.now(), lastLogin: new Date().toISOString() }]);
+      setEditingUser(null);
+      setIsCreating(false);
+    } else if (editingUser) {
       setUsers(users.map((u) => (u.id === editingUser.id ? editingUser : u)));
       setEditingUser(null);
     }
+  };
+
+  const handleCreateUser = () => {
+    setIsCreating(true);
+    setEditingUser({
+      id: 0,
+      name: "",
+      email: "",
+      role: "Jugador",
+      status: "active",
+      lastLogin: new Date().toISOString(),
+    });
   };
 
   const getRoleBadgeVariant = (role: string) => {
@@ -169,7 +174,10 @@ export default function ManageUsers() {
             <div className="rounded-xl border border-border bg-card p-6">
               <div className="mb-6 flex items-center justify-between">
                 <h2 className="text-xl font-bold">Usuarios ({filteredUsers.length})</h2>
-                <button className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:bg-primary/90">
+                <button 
+                  onClick={handleCreateUser}
+                  className="rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:bg-primary/90"
+                >
                   Crear usuario
                 </button>
               </div>
@@ -238,11 +246,11 @@ export default function ManageUsers() {
             </div>
           </div>
 
-          {/* Modal de edición */}
+          {/* Modal de edición / creación */}
           {editingUser && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
               <div className="w-full max-w-md rounded-xl border border-border bg-card p-6">
-                <h2 className="mb-6 text-xl font-bold">Editar usuario</h2>
+                <h2 className="mb-6 text-xl font-bold">{isCreating ? "Crear usuario" : "Editar usuario"}</h2>
                 <form onSubmit={handleUpdateUser} className="space-y-4">
                   <div>
                     <label className="mb-2 block text-sm font-medium">Nombre completo</label>
@@ -310,7 +318,10 @@ export default function ManageUsers() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEditingUser(null)}
+                      onClick={() => {
+                        setEditingUser(null);
+                        setIsCreating(false);
+                      }}
                       className="flex-1 rounded-lg border border-border bg-background px-6 py-3 font-semibold transition hover:bg-accent"
                     >
                       Cancelar
@@ -325,3 +336,4 @@ export default function ManageUsers() {
     </div>
   );
 }
+

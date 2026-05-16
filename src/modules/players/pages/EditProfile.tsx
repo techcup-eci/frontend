@@ -1,31 +1,51 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Upload } from "lucide-react";
-
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
+import axios from "axios";
+import { Upload, User } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import {
+  useAthleticProfile,
+  useCreateAthleticProfile,
+  useUpdateAthleticProfile,
+} from "../hooks/useAthleticProfile";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    position: "Mediocampista Central",
-    number: "8",
-    semester: "6",
+  const authUser = useAuthStore((state) => state.user);
+  const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
+  const userEmail = authUser?.email ?? storedEmail;
+  const { data: profile } = useAthleticProfile(userEmail || undefined);
+  const updateProfile = useUpdateAthleticProfile();
+  const createProfile = useCreateAthleticProfile();
+  const [formData, setFormData] = useState(() => {
+    const storageKey = userEmail ? `playerProfileForm:${userEmail}` : "playerProfileForm";
+    const stored = sessionStorage.getItem(storageKey);
+    if (stored) {
+      return JSON.parse(stored) as {
+        position: string;
+        number: string;
+        semester: string;
+        relationship: string;
+        studentLevel: string;
+        professorType: string;
+      };
+    }
+
+    return {
+      position: "Mediocampista Central",
+      number: "8",
+      semester: "6",
+      relationship: "estudiante",
+      studentLevel: "pregrado",
+      professorType: "planta",
+    };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [photoPreview, setPhotoPreview] = useState<string>("");
+  const [photoPreview, setPhotoPreview] = useState<string>(() => {
+    const storageKey = userEmail ? `playerProfilePhoto:${userEmail}` : "playerProfilePhoto";
+    return sessionStorage.getItem(storageKey) ?? "";
+  });
+  const [submitError, setSubmitError] = useState("");
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,7 +58,7 @@ export default function EditProfile() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -52,6 +72,53 @@ export default function EditProfile() {
       return;
     }
 
+    if (!userEmail) {
+      setSubmitError("No se pudo identificar el correo del usuario. Inicia sesión nuevamente.");
+      return;
+    }
+
+    setSubmitError("");
+
+    const payload = {
+      email: userEmail,
+      dorsalNumber: number,
+      position: formData.position,
+      laterality: profile?.laterality ?? "RIGHT",
+      stature: profile?.stature ?? "1.70",
+      state: profile?.state ?? "ACTIVE",
+    };
+
+    try {
+      await updateProfile.mutateAsync({
+        email: userEmail,
+        payload,
+      });
+    } catch (error) {
+      const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+      if (status === 404 || status === 500) {
+        try {
+          await createProfile.mutateAsync(payload);
+        } catch (createError) {
+          const message =
+            createError instanceof Error
+              ? createError.message
+              : "No fue posible actualizar el perfil.";
+          setSubmitError(message);
+        }
+      } else {
+        const message = error instanceof Error ? error.message : "No fue posible actualizar el perfil.";
+        setSubmitError(message);
+      }
+    }
+
+    const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+    sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));
+    if (photoPreview) {
+      sessionStorage.setItem(storageKey("playerProfilePhoto"), photoPreview);
+    }
+    sessionStorage.setItem(storageKey("isPlayer"), "true");
+    sessionStorage.setItem("playerEmail", userEmail);
+
     navigate("/player/profile");
   };
 
@@ -63,9 +130,9 @@ export default function EditProfile() {
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-3xl space-y-8">
             <div>
-              <h1 className="mb-2 text-3xl font-bold">Editar perfil deportivo</h1>
+              <h1 className="mb-2 text-3xl font-bold">Editar perfil</h1>
               <p className="text-muted-foreground">
-                Actualiza tu información deportiva
+                Actualiza tu información de usuario
               </p>
             </div>
 
@@ -98,6 +165,68 @@ export default function EditProfile() {
                     </div>
                   </div>
                 </div>
+
+                <div>
+                  <label className="mb-2 block font-medium">Vinculo con la universidad</label>
+                  <select
+                    required
+                    value={formData.relationship}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        relationship: e.target.value,
+                      })
+                    }
+                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                  >
+                    <option value="estudiante">Estudiante</option>
+                    <option value="profesor">Profesor</option>
+                    <option value="invitado">Invitado</option>
+                    <option value="graduado">Graduado</option>
+                  </select>
+                </div>
+
+                {formData.relationship === "estudiante" && (
+                  <div>
+                    <label className="mb-2 block font-medium">Nivel academico</label>
+                    <select
+                      required
+                      value={formData.studentLevel}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          studentLevel: e.target.value,
+                        })
+                      }
+                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    >
+                      <option value="pregrado">Pregrado</option>
+                      <option value="posgrado">Posgrado</option>
+                      <option value="maestria">Maestria</option>
+                      <option value="doctorado">Doctorado</option>
+                    </select>
+                  </div>
+                )}
+
+                {formData.relationship === "profesor" && (
+                  <div>
+                    <label className="mb-2 block font-medium">Tipo de profesor</label>
+                    <select
+                      required
+                      value={formData.professorType}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          professorType: e.target.value,
+                        })
+                      }
+                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    >
+                      <option value="planta">Planta</option>
+                      <option value="catedra">Catedra</option>
+                    </select>
+                  </div>
+                )}
 
                 <div>
                   <label className="mb-2 block font-medium">Posición</label>
@@ -140,28 +269,39 @@ export default function EditProfile() {
                   {errors.number && <p className="mt-1 text-sm text-[#EF4444]">{errors.number}</p>}
                 </div>
 
-                <div>
-                  <label className="mb-2 block font-medium">Semestre actual</label>
-                  <select
-                    required
-                    value={formData.semester}
-                    onChange={(e) => setFormData({ ...formData, semester: e.target.value })}
-                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                  >
-                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
-                      <option key={sem} value={sem}>
-                        Semestre {sem}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                {formData.relationship === "estudiante" &&
+                  formData.studentLevel === "pregrado" && (
+                  <div>
+                    <label className="mb-2 block font-medium">Semestre actual</label>
+                    <select
+                      required
+                      value={formData.semester}
+                      onChange={(e) =>
+                        setFormData({ ...formData, semester: e.target.value })
+                      }
+                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
+                        <option key={sem} value={sem}>
+                          Semestre {sem}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                {submitError && (
+                  <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+                    {submitError}
+                  </div>
+                )}
 
                 <div className="flex gap-4 pt-4">
                   <button
                     type="submit"
+                    disabled={updateProfile.isPending}
                     className="flex-1 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90"
                   >
-                    Actualizar perfil
+                    {updateProfile.isPending ? "Guardando..." : "Actualizar perfil"}
                   </button>
                   <button
                     type="button"
@@ -179,3 +319,5 @@ export default function EditProfile() {
     </div>
   );
 }
+
+

@@ -29,6 +29,7 @@ import CreateTournament from "../../modules/tournaments/pages/CreateTournament";
 import ManageTeams from "../../modules/tournaments/pages/ManageTeams";
 import MatchCalendar from "../../modules/tournaments/pages/MatchCalendar";
 import OrganizerDashboard from "../../modules/tournaments/pages/OrganizerDashboard";
+import ManageRegistrations from "../../modules/registrations/pages/ManageRegistrations";
 import RegisterResult from "../../modules/tournaments/pages/RegisterResult";
 import ScheduleMatches from "../../modules/tournaments/pages/ScheduleMatches";
 import Standings from "../../modules/tournaments/pages/Standings";
@@ -73,6 +74,8 @@ export const router = createBrowserRouter([
 				Component: ConfigureTournament,
 			},
 			{ path: "organizer/teams", Component: ManageTeams },
+			{ path: "organizer/registrations", Component: ManageRegistrations },
+			{ path: "organizer/payments", Component: ManageRegistrations },
 			{ path: "organizer/schedule", Component: ScheduleMatches },
 			{ path: "organizer/result/:id", Component: RegisterResult },
 			{ path: "organizer/calendar", Component: MatchCalendar },
@@ -85,7 +88,7 @@ export const router = createBrowserRouter([
 
 			// Admin routes
 			{ path: "admin/dashboard", Component: AdminDashboard },
-			{ path: "admin/users", Component: ManageUsers },
+			{ path: "admin/players", Component: ManageUsers },
 			{ path: "admin/audit", Component: AuditLog },
 
 			// Common routes
@@ -97,3 +100,6 @@ export const router = createBrowserRouter([
 		],
 	},
 ]);
+
+
+

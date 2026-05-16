@@ -1,18 +1,6 @@
 import { useState } from "react";
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Users, FileText, Search, Calendar, Filter } from "lucide-react";
+import { Search, Calendar } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
-
-const adminSidebar = [
-  {
-    items: [
-      { label: "Dashboard", path: "/admin/dashboard", icon: Home },
-      { label: "Gestionar Usuarios", path: "/admin/users", icon: Users },
-      { label: "Registro de Auditoría", path: "/admin/audit", icon: FileText },
-    ],
-  },
-];
 
 type AuditEntry = {
   id: number;
@@ -271,3 +259,4 @@ export default function AuditLog() {
     </div>
   );
 }
+

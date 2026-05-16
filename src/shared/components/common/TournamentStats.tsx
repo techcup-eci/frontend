@@ -1,5 +1,4 @@
 import { useState } from "react";
-import Navbar from "../shared/Navbar";
 import { Target, Calendar, Trophy } from "lucide-react";
 
 export default function TournamentStats() {

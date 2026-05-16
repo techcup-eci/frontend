@@ -1,16 +1,5 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Calendar, LayoutList, MapPin, Clock } from "lucide-react";
+import { Calendar, MapPin, Clock } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
-
-const refereeSidebar = [
-  {
-    items: [
-      { label: "Mis Partidos", path: "/referee/dashboard", icon: Calendar },
-      { label: "Alineaciones", path: "/referee/lineups", icon: LayoutList },
-    ],
-  },
-];
 
 export default function RefereeDashboard() {
   const matches = [
