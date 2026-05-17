@@ -12,8 +12,10 @@ import CreateProfile from "../../modules/players/pages/CreateProfile";
 import EditProfile from "../../modules/players/pages/EditProfile";
 import MarkAvailability from "../../modules/players/pages/MarkAvailability";
 import PlayerDashboard from "../../modules/players/pages/PlayerDashboard";
+import PlayerInvitations from "../../modules/players/pages/PlayerInvitations";
 import SearchTeams from "../../modules/players/pages/SearchTeams";
 import TeamDetail from "../../modules/players/pages/TeamDetail";
+import TeamInvitationDetail from "../../modules/players/pages/TeamInvitationDetail";
 import ViewLineup from "../../modules/players/pages/ViewLineup";
 import ViewProfile from "../../modules/players/pages/ViewProfile";
 import ViewRivalLineup from "../../modules/players/pages/ViewRivalLineup";
@@ -21,6 +23,8 @@ import CaptainDashboard from "../../modules/teams/pages/CaptainDashboard";
 import ConfigureLineup from "../../modules/teams/pages/ConfigureLineup";
 import CreateTeam from "../../modules/teams/pages/CreateTeam";
 import ManageTeam from "../../modules/teams/pages/ManageTeam";
+import PendingRequests from "../../modules/teams/pages/PendingRequests";
+import PlayerRequestDetail from "../../modules/teams/pages/PlayerRequestDetail";
 import SearchPlayers from "../../modules/teams/pages/SearchPlayers";
 import UploadPayment from "../../modules/teams/pages/UploadPayment";
 import Bracket from "../../modules/tournaments/pages/Bracket";
@@ -80,6 +84,8 @@ export function AppRoutes() {
         <Route path="/player/availability" element={<MarkAvailability />} />
         <Route path="/player/teams" element={<SearchTeams />} />
         <Route path="/player/teams/:id" element={<TeamDetail />} />
+        <Route path="/player/invitations" element={<PlayerInvitations />} />
+        <Route path="/player/invitations/:teamId" element={<TeamInvitationDetail />} />
         <Route path="/player/lineup" element={<ViewLineup />} />
         <Route path="/player/lineup/rival/:id" element={<ViewRivalLineup />} />
 
@@ -90,6 +96,8 @@ export function AppRoutes() {
         <Route path="/captain/search-players" element={<SearchPlayers />} />
         <Route path="/captain/payment" element={<UploadPayment />} />
         <Route path="/captain/lineup" element={<ConfigureLineup />} />
+        <Route path="/captain/requests" element={<PendingRequests />} />
+        <Route path="/captain/requests/:jugadorId" element={<PlayerRequestDetail />} />
 
         {/* Organizer */}
         <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />

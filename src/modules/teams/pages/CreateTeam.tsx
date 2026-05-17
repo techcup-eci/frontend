@@ -59,7 +59,7 @@ export default function CreateTeam() {
     };
 
     try {
-      const response = await fetch("http://localhost:8080/equipos", {
+      const response = await fetch("https://teams-ms-app.orangemeadow-ea12992b.eastus2.azurecontainerapps.io/api/teams", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

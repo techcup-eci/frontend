@@ -7,6 +7,10 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.claude/
+CHANGES.md
+PROJECT_MEMORY.md
+
 node_modules
 dist
 dist-ssr
