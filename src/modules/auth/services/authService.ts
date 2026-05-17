@@ -4,14 +4,62 @@ import type { LoginRequest } from "../types/LoginRequest";
 import type { RegisterRequest } from "../types/RegisterRequest";
 import { useAuthStore } from "../hooks/useAuthStore";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8080").replace(/\/$/, "");
 
-async function extractErrorMessage(response: Response) {
+type AuthRequestContext = "login" | "register" | "session";
+
+async function extractErrorMessage(response: Response): Promise<string | null> {
 	try {
-		const payload = (await response.json()) as { message?: string; error?: string };
-		return payload.message ?? payload.error ?? null;
+		const payload = (await response.json()) as Record<string, unknown>;
+		if (typeof payload.message === "string" && payload.message.trim()) {
+			return payload.message;
+		}
+		if (typeof payload.error === "string" && payload.error.trim()) {
+			return payload.error;
+		}
+		const fieldMessage = Object.values(payload).find((value) => typeof value === "string");
+		return typeof fieldMessage === "string" ? fieldMessage : null;
 	} catch {
 		return null;
+	}
+}
+
+function resolveAuthErrorMessage(
+	response: Response,
+	backendMessage: string | null,
+	context: AuthRequestContext,
+): string {
+	if (backendMessage) {
+		return backendMessage;
+	}
+
+	switch (response.status) {
+		case 401:
+			return context === "login" ? "Credenciales inválidas." : "Sesión inválida o expirada.";
+		case 403:
+			return "No tienes permiso para realizar esta acción.";
+		case 404:
+			return "No se encontró el servicio de autenticación. Verifica que el gateway esté en ejecución.";
+		case 502:
+		case 503:
+		case 504:
+			return "El servicio de autenticación no está disponible. Intenta de nuevo en unos momentos.";
+		case 500:
+			return "Error interno en el servidor. Intenta de nuevo más tarde.";
+		case 400:
+			return context === "login"
+				? "Datos de inicio de sesión incorrectos."
+				: context === "register"
+					? "Datos de registro incorrectos."
+					: "No fue posible validar la sesión.";
+		default:
+			if (context === "login") {
+				return "No fue posible iniciar sesión. Revisa tu conexión e intenta de nuevo.";
+			}
+			if (context === "register") {
+				return "No fue posible registrar el usuario. Intenta de nuevo.";
+			}
+			return "No fue posible validar la sesión. Intenta iniciar sesión de nuevo.";
 	}
 }
 
@@ -25,8 +73,7 @@ export async function login(credentials: LoginRequest): Promise<AuthUser> {
 
 	if (!response.ok) {
 		const message = await extractErrorMessage(response);
-		if (response.status === 401) throw new Error(message ?? "Credenciales inválidas.");
-		throw new Error(message ?? "No fue posible iniciar sesión. Verifica que tu usuario esté activo.");
+		throw new Error(resolveAuthErrorMessage(response, message, "login"));
 	}
 
 	const payload = await response.json();
@@ -51,8 +98,7 @@ export async function register(credentials: RegisterRequest): Promise<AuthUser> 
 
 	if (!response.ok) {
 		const message = await extractErrorMessage(response);
-		if (response.status === 400 || response.status === 409) throw new Error(message ?? "No fue posible registrar el usuario.");
-		throw new Error(message ?? "No fue posible registrar el usuario. Intenta de nuevo.");
+		throw new Error(resolveAuthErrorMessage(response, message, "register"));
 	}
 
 	const payload = await response.json();
@@ -74,8 +120,7 @@ export async function getMe(): Promise<Pick<AuthUser, "email" | "role">> {
 
 	if (!response.ok) {
 		const message = await extractErrorMessage(response);
-		if (response.status === 401) throw new Error(message ?? "Token inválido o expirado.");
-		throw new Error(message ?? "No fue posible validar el usuario.");
+		throw new Error(resolveAuthErrorMessage(response, message, "session"));
 	}
 
 	const payload = await response.json();
