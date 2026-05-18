@@ -2,7 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "../../modules/auth/hooks/useAuthStore";
 
 export const apiClient = axios.create({
-	baseURL: import.meta.env.VITE_API_URL || "http://localhost:8080",
+	baseURL: import.meta.env.VITE_API_URL || "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io",
 	headers: {
 		"Content-Type": "application/json",
 	},

@@ -6,7 +6,7 @@ import PlayerCard from "../../../shared/components/shared/PlayerCard";
 // TODO: obtener del contexto de autenticación, estos son casos de prueba
 const TEAM_ID = "1";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
 
 const captainSidebar = [
   {

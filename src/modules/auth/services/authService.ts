@@ -4,7 +4,7 @@ import type { LoginRequest } from "../types/LoginRequest";
 import type { RegisterRequest } from "../types/RegisterRequest";
 import { useAuthStore } from "../hooks/useAuthStore";
 
-const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8080").replace(/\/$/, "");
+const BASE_URL = (import.meta.env.VITE_API_URL ?? "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io").replace(/\/$/, "");
 
 type AuthRequestContext = "login" | "register" | "session";
 

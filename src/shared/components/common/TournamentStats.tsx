@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import { Target, Calendar, Trophy, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 
-const API_BASE = "http://localhost:8080/api/v1";
+const API_BASE = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io/api/v1";
 
 interface TopScorerResponse {
   playerId: string;

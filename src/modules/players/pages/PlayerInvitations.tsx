@@ -6,7 +6,7 @@ import { Mail, Users, ChevronRight, Loader2, XCircle } from "lucide-react";
 // TODO: obtener del contexto de autenticación, estos son casos de prueba
 const PLAYER_ID = "1";
 
-const BASE_URL = "http://localhost:8080";
+const BASE_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
 
 interface TeamInfo {
   id: string;
