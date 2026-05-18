@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router";
-import { AlertCircle, Edit, Shield, Target, Trophy, User, UserPlus } from "lucide-react";
+import { Edit, Shield, Target, Trophy, User, UserPlus } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import { useAthleticProfile } from "../hooks/useAthleticProfile";
@@ -20,6 +20,11 @@ export default function ViewProfile() {
   const storedEmail = sessionStorage.getItem("playerEmail") ?? "";
   const userEmail = authUser?.email ?? emailFromQuery ?? storedEmail;
   const storageKey = (base: string) => (userEmail ? `${base}:${userEmail}` : base);
+
+  // Use the actual role from auth store — not session storage
+  const userRole = authUser?.role ?? "invited";
+  const isPlayerRole = userRole === "player" || userRole === "captain";
+
   const [isPlayer, setIsPlayer] = useState(() => {
     const fromQuery = searchParams.get("player") === "true";
     const fromStorage = sessionStorage.getItem(storageKey("isPlayer")) === "true";
@@ -52,7 +57,7 @@ export default function ViewProfile() {
   const storedNumber = storedForm?.dorsalNumber ? Number(storedForm.dorsalNumber) : null;
   const preferredNumber = profile?.dorsalNumber ??
     (storedNumber && Number.isFinite(storedNumber) ? storedNumber : 8);
-  const resolvedIsPlayer = Boolean(profile) || isPlayer;
+  const resolvedIsPlayer = Boolean(profile) || isPlayer || isPlayerRole;
   const availabilityLabel = profile?.state ?? storedForm?.state ?? "ACTIVE";
 
   const availabilityText = availabilityLabel === "ACTIVE" ? "Activo" : "Inactivo";
@@ -64,14 +69,22 @@ export default function ViewProfile() {
   const playerInfo = {
     position: profile?.position ?? storedForm?.position ?? "Mediocampista Central",
     preferredNumber,
-    teamName: "Los Algoritmos FC",
+    teamName: "Sin equipo",
     laterality: lateralityLabel,
     stature: statureLabel,
   };
 
-	const roleLabel = resolvedIsPlayer ? "Jugador" : "Usuario";
-  const displayName = authUser?.fullName ?? "Sebastián Torres";
-  const displayEmail = profile?.email ?? authUser?.email ?? "sebastian.torres@escuelaing.edu.co";
+	const roleLabels: Record<string, string> = {
+    player: "Jugador",
+    captain: "Capitán",
+    organizer: "Organizador",
+    referee: "Árbitro",
+    admin: "Administrador",
+    invited: "Invitado",
+  };
+	const roleLabel = roleLabels[userRole] ?? userRole;
+  const displayName = authUser?.name ?? "Usuario";
+  const displayEmail = profile?.email ?? authUser?.email ?? "";
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -116,8 +129,11 @@ export default function ViewProfile() {
             )}
 
             {isError && (
-              <div className="rounded-lg border border-border bg-red-500/10 px-4 py-3 text-sm text-red-700">
-                No fue posible cargar el perfil deportivo.
+              <div className="rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground">
+                No tienes un perfil deportivo aún.{' '}
+                <Link to="/player/profile/becomePlayer" className="text-primary underline hover:no-underline">
+                  Crea uno aquí
+                </Link>
               </div>
             )}
 
@@ -190,35 +206,36 @@ export default function ViewProfile() {
                   </div>
                 )}
 
-                {/* Estadísticas del torneo */}
-                <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-                  <div className="mb-6 flex items-center gap-3">
-                    <Trophy className="h-6 w-6 text-primary" />
-                    <h2 className="text-xl font-bold">Estadísticas del torneo</h2>
-                  </div>
-                  <div className="grid gap-4 md:grid-cols-4">
-                    <div className="rounded-lg border border-border bg-background p-4 text-center shadow-sm">
-                      <Target className="mx-auto mb-2 h-8 w-8 text-primary" />
-                      <p className="mb-1 text-3xl font-bold">3</p>
-                      <p className="text-sm text-muted-foreground">Goles marcados</p>
+                {/* Estadísticas del torneo — solo para jugadores */}
+                {resolvedIsPlayer ? (
+                  <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <div className="mb-6 flex items-center gap-3">
+                      <Trophy className="h-6 w-6 text-primary" />
+                      <h2 className="text-xl font-bold">Estadísticas del torneo</h2>
                     </div>
-                    <div className="rounded-lg border border-border bg-background p-4 text-center shadow-sm">
-                      <Trophy className="mx-auto mb-2 h-8 w-8 text-[#4ADE80]" />
-                      <p className="mb-1 text-3xl font-bold">4</p>
-                      <p className="text-sm text-muted-foreground">Partidos jugados</p>
-                    </div>
-                    <div className="rounded-lg border border-border bg-background p-4 text-center shadow-sm">
-                      <AlertCircle className="mx-auto mb-2 h-8 w-8 text-[#FACC15]" />
-                      <p className="mb-1 text-3xl font-bold">1</p>
-                      <p className="text-sm text-muted-foreground">Tarjetas amarillas</p>
-                    </div>
-                    <div className="rounded-lg border border-border bg-background p-4 text-center shadow-sm">
-                      <AlertCircle className="mx-auto mb-2 h-8 w-8 text-[#EF4444]" />
-                      <p className="mb-1 text-3xl font-bold">0</p>
-                      <p className="text-sm text-muted-foreground">Tarjetas rojas</p>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Target className="mb-3 h-12 w-12 text-muted-foreground" />
+                      <p className="text-lg font-semibold text-muted-foreground">Sin estadísticas aún</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Tus estadísticas aparecerán cuando participes en partidos del torneo
+                      </p>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+                    <div className="mb-6 flex items-center gap-3">
+                      <Trophy className="h-6 w-6 text-muted-foreground" />
+                      <h2 className="text-xl font-bold text-muted-foreground">Estadísticas del torneo</h2>
+                    </div>
+                    <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <Trophy className="mb-3 h-12 w-12 text-muted-foreground" />
+                      <p className="text-lg font-semibold text-muted-foreground">No aplica</p>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Las estadísticas del torneo están disponibles solo para jugadores
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -227,5 +244,3 @@ export default function ViewProfile() {
     </div>
   );
 }
-
-

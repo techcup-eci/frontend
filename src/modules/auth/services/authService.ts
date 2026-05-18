@@ -1,50 +1,66 @@
-import { loginRequestSchema, loginResponseSchema } from "../types/authSchemas";
-import type { AuthUser } from "../types/AuthUser";
+import {
+	loginRequestSchema,
+	loginResponseSchema,
+	type LoginResponse,
+	registerRequestSchema,
+	registerResponseSchema,
+	type RegisterResponse,
+} from "../types/authSchemas";
 import type { LoginRequest } from "../types/LoginRequest";
+import type { RegisterRequest } from "../types/authSchemas";
 import { useAuthStore } from "../hooks/useAuthStore";
+import { apiClient } from "../../../core/api/apiClient";
 
-const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8080").replace(/\/$/, "");
+// ── Login ────────────────────────────────────────────────────────────────
 
-async function extractErrorMessage(response: Response) {
-	try {
-		const payload = (await response.json()) as { message?: string; error?: string };
-		return payload.message ?? payload.error ?? null;
-	} catch {
-		return null;
-	}
-}
+export async function login(credentials: LoginRequest): Promise<LoginResponse> {
+	const parsed = loginRequestSchema.parse(credentials);
 
-export async function login(credentials: LoginRequest): Promise<AuthUser> {
-	const parsedCredentials = loginRequestSchema.parse(credentials);
-	const response = await fetch(`${BASE_URL}/api/identity/login`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ email: parsedCredentials.email, password: parsedCredentials.password }),
+	const response = await apiClient.post("/api/auth/login", {
+		email: parsed.email,
+		password: parsed.password,
 	});
 
-	if (!response.ok) {
-		const message = await extractErrorMessage(response);
-		if (response.status === 401) throw new Error(message ?? "Credenciales inválidas.");
-		throw new Error(message ?? "No fue posible iniciar sesión. Verifica que tu usuario esté activo.");
-	}
+	return loginResponseSchema.parse(response.data);
+}
 
-	const payload = await response.json();
+// ── Register ─────────────────────────────────────────────────────────────
+
+export async function register(data: RegisterRequest): Promise<RegisterResponse> {
+	const parsed = registerRequestSchema.parse(data);
+
+	const body = {
+		email: parsed.email,
+		password: parsed.password,
+		role: parsed.role,
+		fullName: parsed.fullName,
+		relationship: parsed.relationship,
+		program: parsed.program,
+		semester: parsed.semester ?? null,
+		documentType: parsed.documentType,
+		documentNumber: parsed.documentNumber,
+		birthDate: parsed.birthDate,
+	};
+
+	const response = await apiClient.post("/api/auth/register", body);
+	return registerResponseSchema.parse(response.data);
+}
+
+// ── Logout ───────────────────────────────────────────────────────────────
+
+export async function logout(): Promise<void> {
+	const token = useAuthStore.getState().accessToken;
+	if (!token) return;
+
 	try {
-		return loginResponseSchema.parse(payload);
+		await apiClient.post("/api/auth/logout");
 	} catch {
-		throw new Error("El servidor respondió con un formato no válido.");
+		// Proceed with local cleanup even if API call fails
 	}
 }
 
-export async function logout(): Promise<void> {
-	const token = useAuthStore.getState().user?.token;
-	if (!token) return;
-	try {
-		await fetch(`${BASE_URL}/api/identity/logout`, {
-			method: "POST",
-			headers: { Authorization: `Bearer ${token}` },
-		});
-	} finally {
-		useAuthStore.getState().setUnauthenticated();
-	}
+// ── Role Management ──────────────────────────────────────────────────────
+
+export async function updateRole(userId: number, role: string): Promise<void> {
+	await apiClient.put(`/api/auth/users/${userId}/role`, { role });
 }

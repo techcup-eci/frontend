@@ -3,14 +3,18 @@ import { useAuthStore } from "./useAuthStore";
 
 export const authMeQueryKey = ["auth", "me"] as const;
 
+/**
+ * Runs a client-side auth check on mount.
+ * The store's checkAuth() already handles this on app load,
+ * but this hook provides a way for individual components to re-trigger.
+ */
 export function useAuthSession() {
-	const setUnauthenticated = useAuthStore((state) => state.setUnauthenticated);
-	const user = useAuthStore((state) => state.user);
+	const checkAuth = useAuthStore((state) => state.checkAuth);
+	const status = useAuthStore((state) => state.status);
 
 	useEffect(() => {
-		if (!user) return;
-		if (Date.now() >= user.expiresAt) {
-			setUnauthenticated();
+		if (status === "unauthenticated") {
+			checkAuth();
 		}
-	}, [user, setUnauthenticated]);
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 }

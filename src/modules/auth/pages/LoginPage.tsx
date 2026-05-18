@@ -1,8 +1,7 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { LoginForm } from "../components/LoginForm";
 import { useAuthStore } from "../hooks/useAuthStore";
-import type { AuthRole } from "../types/AuthUser";
 
 const roleCards = [
 	{
@@ -24,26 +23,33 @@ const roleCards = [
 
 export function LoginPage() {
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
 	const status = useAuthStore((state) => state.status);
-	const user = useAuthStore((state) => state.user);
+
+	// Redirect after successful authentication — role-aware
+	const redirectTo = searchParams.get("redirect");
 
 	useEffect(() => {
-		if (status !== "authenticated") {
+		if (status !== "authenticated") return;
+
+		if (redirectTo) {
+			navigate(decodeURIComponent(redirectTo), { replace: true });
 			return;
 		}
 
-		const roleRoutes: Record<AuthRole, string> = {
-			participant: "/player/dashboard",
-			captain: "/captain/dashboard",
+		// Role-based default dashboard
+		const user = useAuthStore.getState().user;
+		const roleDashboards: Record<string, string> = {
+			admin: "/admin/dashboard",
 			organizer: "/organizer/dashboard",
+			captain: "/captain/dashboard",
 			referee: "/referee/dashboard",
-			administrator: "/admin/dashboard",
-			invited: "/player/dashboard",
+			player: "/player/dashboard",
+			invited: "/user/dashboard",
 		};
-
-		const nextRoute = user?.role ? roleRoutes[user.role] : "/player/dashboard";
-		navigate(nextRoute, { replace: true });
-	}, [navigate, status, user]);
+		const dest = roleDashboards[user?.role ?? "invited"] ?? "/user/dashboard";
+		navigate(dest, { replace: true });
+	}, [navigate, status, redirectTo]);
 
 	return (
 		<main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">

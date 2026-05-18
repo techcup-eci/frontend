@@ -1,54 +1,64 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { AthleticProfileDto } from "../types/athleticProfile";
 import {
-  createAthleticProfile,
-  deleteAthleticProfile,
-  getAthleticProfileByEmail,
-  getAthleticProfiles,
-  updateAthleticProfile,
+	createAthleticProfile,
+	deleteAthleticProfile,
+	getAthleticProfileByEmail,
+	getAthleticProfiles,
+	updateAthleticProfile,
 } from "../services/athleticProfileService";
+import type { AthleticProfileDto } from "../types/athleticProfile";
 
 export const athleticProfilesQueryKey = ["athletic-profiles"] as const;
 export const athleticProfileQueryKey = (email: string) =>
-  ["athletic-profile", email] as const;
+	["athletic-profile", email] as const;
 
 type UpdateAthleticProfileInput = {
-  email: string;
-  payload: AthleticProfileDto;
+	userId: number;
+	payload: AthleticProfileDto;
 };
 
-export function useAthleticProfiles() {
-  return useQuery({
-    queryKey: athleticProfilesQueryKey,
-    queryFn: getAthleticProfiles,
-  });
+export function useUpdateAthleticProfile() {
+	const queryClient = useQueryClient();
+
+	return useMutation({
+		mutationFn: ({ userId, payload }: UpdateAthleticProfileInput) =>
+			updateAthleticProfile(userId, payload),
+		onSuccess: (_, variables) => {
+			queryClient.invalidateQueries({ queryKey: athleticProfilesQueryKey });
+			if (variables.payload.email) {
+				queryClient.invalidateQueries({
+					queryKey: athleticProfileQueryKey(variables.payload.email),
+				});
+			}
+		},
+	});
 }
 
 export function useAthleticProfile(email?: string) {
-  return useQuery({
-    queryKey: athleticProfileQueryKey(email ?? ""),
-    queryFn: () => getAthleticProfileByEmail(email as string),
-    enabled: Boolean(email),
-  });
+	return useQuery({
+		queryKey: athleticProfileQueryKey(email ?? ""),
+		queryFn: () => getAthleticProfileByEmail(email as string),
+		enabled: Boolean(email),
+	});
 }
 
 export function useCreateAthleticProfile() {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (payload: AthleticProfileDto) => createAthleticProfile(payload),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: athleticProfilesQueryKey });
-      if (data?.email) {
-        queryClient.invalidateQueries({
-          queryKey: athleticProfileQueryKey(data.email),
-        });
-      }
-    },
-  });
+	return useMutation({
+		mutationFn: (payload: AthleticProfileDto) => createAthleticProfile(payload),
+		onSuccess: (data) => {
+			queryClient.invalidateQueries({ queryKey: athleticProfilesQueryKey });
+			if (data?.email) {
+				queryClient.invalidateQueries({
+					queryKey: athleticProfileQueryKey(data.email),
+				});
+			}
+		},
+	});
 }
 
-export function useUpdateAthleticProfile() {
+/* export function useUpdateAthleticProfile() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -61,18 +71,18 @@ export function useUpdateAthleticProfile() {
       });
     },
   });
-}
+} */
 
 export function useDeleteAthleticProfile() {
-  const queryClient = useQueryClient();
+	const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: (email: string) => deleteAthleticProfile(email),
-    onSuccess: (_, email) => {
-      queryClient.invalidateQueries({ queryKey: athleticProfilesQueryKey });
-      queryClient.invalidateQueries({
-        queryKey: athleticProfileQueryKey(email),
-      });
-    },
-  });
+	return useMutation({
+		mutationFn: (email: string) => deleteAthleticProfile(email),
+		onSuccess: (_, email) => {
+			queryClient.invalidateQueries({ queryKey: athleticProfilesQueryKey });
+			queryClient.invalidateQueries({
+				queryKey: athleticProfileQueryKey(email),
+			});
+		},
+	});
 }

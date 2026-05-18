@@ -89,8 +89,13 @@ export default function EditProfile() {
     };
 
     try {
+      const userId = authUser?.id;
+      if (!userId) {
+        setSubmitError("No se pudo identificar el usuario. Inicia sesión nuevamente.");
+        return;
+      }
       await updateProfile.mutateAsync({
-        email: userEmail,
+        userId,
         payload,
       });
     } catch (error) {

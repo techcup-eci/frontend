@@ -23,28 +23,62 @@ import Navbar from "../components/shared/Navbar";
 import Sidebar from "../components/shared/Sidebar";
 import { Button } from "../components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "../components/ui/sheet";
+import { useAuthStore } from "../../modules/auth/hooks/useAuthStore";
 
+// ── Admin ─────────────────────────────────────────────────────────────────────
 const adminSidebar = [
 	{
 		items: [
 			{ label: "Inicio", path: "/admin/dashboard", icon: Home },
 			{ label: "Usuarios", path: "/admin/players", icon: Users },
 			{ label: "Auditoría", path: "/admin/audit", icon: FileText },
-			{ label: "Torneos", path: "/admin/tournaments", icon: Trophy },
-			{ label: "Sistema", path: "/admin/settings", icon: Settings },
 		],
 	},
 ];
 
+// ── Organizer ─────────────────────────────────────────────────────────────────
+const organizerSidebar = [
+	{
+		items: [
+			{ label: "Inicio", path: "/organizer/dashboard", icon: Home },
+			{ label: "Mi Perfil", path: "/organizer/profile", icon: User },
+			{ label: "Crear Torneo", path: "/organizer/create-tournament", icon: Trophy },
+			{ label: "Equipos", path: "/organizer/teams", icon: Users },
+			{ label: "Pagos", path: "/organizer/payments", icon: CreditCard },
+			{ label: "Programar Partidos", path: "/organizer/schedule", icon: Calendar },
+			{ label: "Resultados", path: "/organizer/calendar", icon: ListChecks },
+			{ label: "Tabla de Posiciones", path: "/organizer/standings", icon: Table },
+			{ label: "Llaves", path: "/organizer/bracket", icon: Layers },
+		],
+	},
+];
+
+// ── Captain ───────────────────────────────────────────────────────────────────
+const captainSidebar = [
+	{
+		items: [
+			{ label: "Inicio", path: "/captain/dashboard", icon: Home },
+			{ label: "Mi Equipo", path: "/captain/manage-team", icon: Users },
+			{ label: "Buscar Jugadores", path: "/captain/search-players", icon: UserPlus },
+			{ label: "Solicitudes", path: "/captain/requests", icon: Bell },
+			{ label: "Pagos", path: "/captain/payment", icon: CreditCard },
+			{ label: "Alineación", path: "/captain/lineup", icon: LayoutList },
+			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
+			{ label: "Estadísticas", path: "/tournament-stats", icon: BarChart3 },
+		],
+	},
+];
+
+// ── Referee ───────────────────────────────────────────────────────────────────
 const refereeSidebar = [
 	{
 		items: [
 			{ label: "Mis Partidos", path: "/referee/dashboard", icon: Calendar },
-			{ label: "Alineaciones", path: "/referee/lineups", icon: LayoutList },
 		],
 	},
 ];
 
+// ── Player ────────────────────────────────────────────────────────────────────
 const playerSidebar = [
 	{
 		items: [
@@ -53,108 +87,65 @@ const playerSidebar = [
 			{ label: "Buscar Equipos", path: "/player/teams", icon: Users },
 			{ label: "Invitaciones", path: "/player/invitations", icon: Mail },
 			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
-			{ label: "Estadísticas", path: "/stats", icon: BarChart3 },
-			{ label: "Disponibilidad", path: "/player/availability", icon: Calendar },
+			{ label: "Estadísticas", path: "/tournament-stats", icon: BarChart3 },
 		],
 	},
 ];
 
-const userSidebar = [
+// ── Invited (no es jugador aún) ───────────────────────────────────────────────
+const invitedSidebar = [
 	{
 		items: [
 			{ label: "Inicio", path: "/user/dashboard", icon: Home },
 			{ label: "Mi Perfil", path: "/user/profile", icon: User },
-			{ label: "Equipos", path: "/user/teams", icon: Users },
+			{ label: "Volverme Jugador", path: "/player/profile/becomePlayer", icon: UserPlus },
 			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
-			{ label: "Estadísticas", path: "/stats", icon: BarChart3 },
 		],
 	},
 ];
 
-const captainSidebar = [
-	{
-		items: [
-			{ label: "Inicio", path: "/captain/dashboard", icon: Home },
-			{ label: "Mi Equipo", path: "/captain/manage", icon: Users },
-			{
-				label: "Buscar Jugadores",
-				path: "/captain/search-players",
-				icon: UserPlus,
-			},
-			{ label: "Solicitudes", path: "/captain/requests", icon: Bell },
-			{ label: "Pagos", path: "/captain/payment", icon: CreditCard },
-			{ label: "Alineación", path: "/captain/lineup", icon: LayoutList },
-			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
-			{ label: "Estadísticas", path: "/stats", icon: BarChart3 },
-		],
-	},
-];
+// ── Role label mapping (auth store values → display labels) ───────────────────
+const ROLE_LABELS: Record<string, string> = {
+	admin: "Administrador",
+	organizer: "Organizador",
+	captain: "Capitán",
+	referee: "Árbitro",
+	player: "Jugador",
+	invited: "Invitado",
+};
 
-const organizerSidebar = [
-	{
-		items: [
-			{ label: "Inicio", path: "/organizer/dashboard", icon: Home },
-			{ label: "Mi Perfil", path: "/organizer/profile", icon: User },
-			{ label: "Torneos", path: "/organizer/create-tournament", icon: Trophy },
-			{ label: "Equipos", path: "/organizer/teams", icon: Users },
-			{ label: "Pagos", path: "/organizer/payments", icon: CreditCard },
-			{ label: "Partidos", path: "/organizer/schedule", icon: Calendar },
-			{ label: "Resultados", path: "/organizer/calendar", icon: ListChecks },
-			{
-				label: "Tabla de Posiciones",
-				path: "/organizer/standings",
-				icon: Table,
-			},
-			{ label: "Llaves", path: "/organizer/bracket", icon: Layers },
-		],
-	},
-];
+// ── Sidebar registry ─────────────────────────────────────────────────────────
+const SIDEBAR_MAP: Record<string, object[]> = {
+	admin: adminSidebar,
+	organizer: organizerSidebar,
+	captain: captainSidebar,
+	referee: refereeSidebar,
+	player: playerSidebar,
+	invited: invitedSidebar,
+};
 
 export default function DashboardLayout() {
 	const location = useLocation();
 	const [open, setOpen] = useState(false);
+	const authUser = useAuthStore((state) => state.user);
 
-	// Determine sidebar based on current route path
-	let currentSidebar = playerSidebar; // default
-	let userName = "Usuario";
-	let role = "Jugador";
+	const userRole = authUser?.role ?? "invited";
+	const roleLabel = ROLE_LABELS[userRole] ?? userRole;
+	const userName = authUser?.name ?? "Usuario";
 
-	if (location.pathname.startsWith("/admin")) {
-		currentSidebar = adminSidebar;
-		userName = "Admin User";
-		role = "Admin";
-	} else if (location.pathname.startsWith("/organizer")) {
-		currentSidebar = organizerSidebar;
-		userName = "Organizador";
-		role = "Organizador";
-	} else if (location.pathname.startsWith("/captain")) {
-		currentSidebar = captainSidebar;
-		userName = "Capitán Equipo";
-		role = "Capitán";
-	} else if (location.pathname.startsWith("/referee")) {
-		currentSidebar = refereeSidebar;
-		userName = "Árbitro Principal";
-		role = "Árbitro";
-	} else if (location.pathname.startsWith("/player")) {
-		currentSidebar = playerSidebar;
-		userName = "Jugador";
-		role = "Jugador";
-	} else if (location.pathname.startsWith("/user")) {
-		currentSidebar = userSidebar;
-		userName = "Usuario";
-		role = "Usuario";
-	}
+	// Pick sidebar by role — fallback to invited if unknown
+	const currentSidebar = SIDEBAR_MAP[userRole] ?? invitedSidebar;
 
 	return (
 		<div className="flex min-h-screen flex-col bg-background">
-			<Navbar userName={userName} role={role} />
+			<Navbar userName={userName} role={roleLabel} />
 			<div className="flex flex-1 overflow-hidden">
 				{/* Desktop Sidebar */}
 				<div className="hidden md:flex">
 					<Sidebar sections={currentSidebar} />
 				</div>
 
-				{/* Mobile Sidebar - Accessible via a button in the main content area for this layout */}
+				{/* Mobile Sidebar */}
 				<div className="md:hidden absolute top-[18px] left-4 z-50">
 					<Sheet open={open} onOpenChange={setOpen}>
 						<SheetTrigger asChild>
@@ -179,5 +170,3 @@ export default function DashboardLayout() {
 		</div>
 	);
 }
-
-

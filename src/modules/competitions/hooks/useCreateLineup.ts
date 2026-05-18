@@ -7,13 +7,8 @@ export function useCreateLineup(tournamentId: string, matchId: string, teamId: s
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      lineup,
-      userId,
-    }: {
-      lineup: CreateLineupRequest;
-      userId: string;
-    }) => createLineup(tournamentId, matchId, teamId, lineup, userId),
+    mutationFn: ({ lineup }: { lineup: CreateLineupRequest }) =>
+      createLineup(tournamentId, matchId, teamId, lineup),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: lineupQueryKey(tournamentId, matchId, teamId),

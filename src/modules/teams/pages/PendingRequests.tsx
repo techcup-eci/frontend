@@ -1,80 +1,86 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import axios from "axios";
+import { apiClient } from "../../../core/api/apiClient";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import { Bell, Users, ChevronRight, Loader2, XCircle } from "lucide-react";
-
-// TODO: obtener del contexto de autenticación, estos son casos de prueba
-const TEAM_ID = "1";
-const USER_ID = "10";
-
-const BASE_URL = "http://localhost:8082";
-
-function normalizeIds(data: unknown): string[] {
-  if (!Array.isArray(data)) return [];
-  return data.map((item) => {
-    if (typeof item === "string") return item;
-    if (typeof item === "number") return String(item);
-    if (item && typeof item === "object") {
-      const obj = item as Record<string, unknown>;
-      return String(obj.jugadorId ?? obj.playerId ?? obj.id ?? JSON.stringify(item));
-    }
-    return String(item);
-  });
-}
 
 export default function PendingRequests() {
   const navigate = useNavigate();
-  const [jugadorIds, setJugadorIds] = useState<string[]>([]);
+  const userId = useAuthStore((state) => state.user?.id);
+  const [jugadorIds, setJugadorIds] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
+  const [teamId, setTeamId] = useState<number | null>(null);
+
+  // Get the captain's team ID — for now we fetch all teams and find the one owned by this user
+  useEffect(() => {
+    async function findMyTeam() {
+      if (!userId) return;
+      try {
+        const { data: teams } = await apiClient.get<any[]>("/api/teams");
+        const myTeam = teams.find((t: any) => t.captainId === userId);
+        if (myTeam) {
+          setTeamId(myTeam.id);
+        }
+      } catch {
+        // Will show error state
+      }
+    }
+    findMyTeam();
+  }, [userId]);
 
   useEffect(() => {
-    fetchRequests();
-  }, []);
+    if (teamId) {
+      fetchRequests();
+    }
+  }, [teamId]);
 
   async function fetchRequests() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/teams/${TEAM_ID}/solicitudes`,
-        { headers: { "X-User-Id": USER_ID } }
-      );
-      setJugadorIds(normalizeIds(data));
+      const { data } = await apiClient.get<number[]>(`/api/teams/${teamId}/solicitudes`);
+      setJugadorIds(data ?? []);
     } catch (err: unknown) {
-      const msg =
-        axios.isAxiosError(err)
-          ? err.response?.data?.message ?? err.message
-          : "Error al cargar las solicitudes pendientes";
+      const msg = err instanceof Error ? err.message : "Error al cargar las solicitudes pendientes";
       setError(msg);
     } finally {
       setLoading(false);
     }
   }
 
-  async function handleReject(jugadorId: string) {
+  async function handleReject(jugadorId: number) {
     setRejectingId(jugadorId);
     setError(null);
     try {
-      await axios.post(
-        `${BASE_URL}/api/teams/${TEAM_ID}/solicitudes/${jugadorId}/reject`,
-        {},
-        { headers: { "X-User-Id": USER_ID } }
-      );
+      await apiClient.post(`/api/teams/${teamId}/solicitudes/${jugadorId}/reject`);
       setJugadorIds((prev) => prev.filter((id) => id !== jugadorId));
       setConfirmMessage(`Solicitud del jugador ${jugadorId} rechazada exitosamente`);
       setTimeout(() => setConfirmMessage(null), 3000);
     } catch (err: unknown) {
-      const msg =
-        axios.isAxiosError(err)
-          ? err.response?.data?.message ?? err.message
-          : "Error al rechazar la solicitud";
+      const msg = err instanceof Error ? err.message : "Error al rechazar la solicitud";
       setError(msg);
     } finally {
       setRejectingId(null);
     }
+  }
+
+  if (!teamId && !loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <main className="flex-1 bg-background p-8">
+          <div className="mx-auto max-w-7xl">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 text-center">
+              <Users className="mb-4 h-16 w-16 text-muted-foreground" />
+              <h3 className="mb-2 text-xl font-bold">No tienes un equipo</h3>
+              <p className="text-muted-foreground">Crea un equipo primero para ver solicitudes</p>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -82,7 +88,6 @@ export default function PendingRequests() {
       <div className="flex flex-1">
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
-            {/* Header */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h1 className="mb-2 text-3xl font-bold">Solicitudes pendientes</h1>
@@ -98,7 +103,6 @@ export default function PendingRequests() {
               </div>
             </div>
 
-            {/* Feedback messages */}
             {confirmMessage && (
               <div className="rounded-lg bg-[#4ADE80]/10 px-4 py-3 text-sm font-medium text-[#4ADE80]">
                 {confirmMessage}
@@ -111,7 +115,6 @@ export default function PendingRequests() {
               </div>
             )}
 
-            {/* Content */}
             {loading ? (
               <div className="flex items-center justify-center rounded-xl border border-border bg-card py-16">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />

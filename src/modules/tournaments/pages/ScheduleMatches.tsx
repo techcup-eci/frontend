@@ -1,19 +1,21 @@
 import { useState } from "react";
-import { Calendar, XCircle } from "lucide-react";
+import { Calendar, XCircle, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import Badge from "../../../shared/components/shared/Badge";
-import { useMatches } from "../../competitions/hooks/useMatches";
+import { useActiveMatches } from "../../competitions/hooks/useActiveMatches";
 import { useCreateMatch } from "../../competitions/hooks/useCreateMatch";
 import { useDeleteMatch } from "../../competitions/hooks/useDeleteMatch";
+import { useActiveTournament } from "../../tournaments/hooks/useActiveTournament";
 import type { CreateMatchRequest } from "../../competitions/types/competition";
 
 const ROUNDS = ["INITIAL", "QUARTERFINAL", "SEMIFINAL", "FINAL"] as const;
 
 export default function ScheduleMatches() {
-  // TODO: Replace this hardcoded tournament ID with context/URL param
-  const [tournamentId] = useState<string>("tournament-uuid-placeholder");
-  const [userId] = useState<string>("organizer-uuid-placeholder");
+  const { data: activeTournament, isLoading: isLoadingTournament } = useActiveTournament();
+  const { data: matches = [], isLoading, isError, error } = useActiveMatches();
 
-  const { data: matches = [], isLoading, isError, error } = useMatches(tournamentId);
+  const tournamentId = activeTournament?.id ?? "";
+
   const createMutation = useCreateMatch(tournamentId);
   const deleteMutation = useDeleteMatch(tournamentId);
 
@@ -35,8 +37,12 @@ export default function ScheduleMatches() {
 
   const handleAddMatch = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!tournamentId) {
+      toast.error("No hay un torneo activo");
+      return;
+    }
     if (newMatch.homeTeamId === newMatch.awayTeamId) {
-      alert("Un equipo no puede jugar contra sí mismo");
+      toast.error("Un equipo no puede jugar contra sí mismo");
       return;
     }
 
@@ -50,9 +56,10 @@ export default function ScheduleMatches() {
     };
 
     createMutation.mutate(
-      { match: payload, userId },
+      { match: payload },
       {
         onSuccess: () => {
+          toast.success("Partido creado exitosamente");
           setNewMatch({
             homeTeamId: "",
             awayTeamId: "",
@@ -68,7 +75,7 @@ export default function ScheduleMatches() {
               ?.data?.message ||
             (err as Error)?.message ||
             "No se pudo crear el partido";
-          alert(message);
+          toast.error(message);
         },
       },
     );
@@ -83,7 +90,7 @@ export default function ScheduleMatches() {
               ?.data?.message ||
             (err as Error)?.message ||
             "No se pudo eliminar el partido";
-          alert(message);
+          toast.error(message);
         },
       });
     }
@@ -104,13 +111,37 @@ export default function ScheduleMatches() {
     return d.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" });
   };
 
+  if (isLoadingTournament || isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!activeTournament) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <AlertCircle className="h-10 w-10 text-muted-foreground/60" />
+            <h2 className="text-xl font-bold">No hay torneo activo</h2>
+            <p className="text-muted-foreground">
+              No hay ningún torneo activo o en progreso en este momento.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-8">
       <div className="mx-auto max-w-7xl space-y-8">
         <div>
           <h1 className="mb-2 text-3xl font-bold">Programar partidos</h1>
           <p className="text-muted-foreground">
-            Crea y gestiona el calendario de partidos del torneo
+            {activeTournament.name} — Crea y gestiona el calendario de partidos
           </p>
         </div>
 
@@ -122,11 +153,7 @@ export default function ScheduleMatches() {
                 Partidos programados ({matches.length})
               </h2>
 
-              {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
-                </div>
-              ) : isError ? (
+              {isError ? (
                 <div className="flex flex-col items-center gap-3 py-8 text-center">
                   <XCircle className="h-10 w-10 text-destructive/60" />
                   <p className="text-muted-foreground">
@@ -271,7 +298,7 @@ export default function ScheduleMatches() {
 
                 <button
                   type="submit"
-                  disabled={createMutation.isPending}
+                  disabled={createMutation.isPending || !tournamentId}
                   className="w-full rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition hover:bg-primary/90 disabled:opacity-60"
                 >
                   {createMutation.isPending ? "Creando..." : "Agregar partido"}

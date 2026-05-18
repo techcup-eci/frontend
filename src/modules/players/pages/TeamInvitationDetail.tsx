@@ -1,15 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
-import axios from "axios";
+import { apiClient } from "../../../core/api/apiClient";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import { Users, CheckCircle, XCircle, ArrowLeft, Loader2 } from "lucide-react";
 
-// TODO: obtener del contexto de autenticación, estos son casos de prueba
-const PLAYER_ID = "1";
-
-const BASE_URL = "http://localhost:8080";
-
 interface TeamInfo {
-  id: string;
+  id: number;
   name: string;
   colors: string;
   currentPlayers: number;
@@ -20,6 +16,7 @@ interface TeamInfo {
 export default function TeamInvitationDetail() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
+  const userId = useAuthStore((state) => state.user?.id);
   const [team, setTeam] = useState<TeamInfo | null>(null);
   const [loadingTeam, setLoadingTeam] = useState(true);
   const [teamError, setTeamError] = useState<string | null>(null);
@@ -36,42 +33,45 @@ export default function TeamInvitationDetail() {
     setLoadingTeam(true);
     setTeamError(null);
     try {
-      const { data } = await axios.get<TeamInfo>(`${BASE_URL}/api/teams/${teamId}`);
-      setTeam({ ...data, id: String(data.id ?? teamId) });
+      const { data } = await apiClient.get<TeamInfo>(`/api/teams/${teamId}`);
+      setTeam(data);
     } catch (err: unknown) {
-      const msg = axios.isAxiosError(err)
-        ? (err.response?.data?.message ?? err.message)
-        : "Error al cargar la información del equipo";
+      const msg = err instanceof Error ? err.message : "Error al cargar la información del equipo";
       setTeamError(msg);
     } finally {
       setLoadingTeam(false);
     }
   }
 
-  async function handleAction(action: "accept" | "reject") {
+  async function handleSendRequest() {
     setLoading(true);
     setError(null);
     try {
-      await axios.post(
-        `${BASE_URL}/api/players/${PLAYER_ID}/solicitudes/${teamId}/${action}`,
-        {},
-        { headers: { "X-User-Id": PLAYER_ID } }
-      );
-      const msg =
-        action === "accept"
-          ? "¡Invitación aceptada! Ahora eres parte del equipo"
-          : "Invitación rechazada exitosamente";
-      setSuccessMessage(msg);
+      await apiClient.post(`/api/teams/${teamId}/solicitudes`);
+      setSuccessMessage("¡Solicitud enviada exitosamente!");
       setActionDone(true);
       setTimeout(() => navigate("/player/invitations"), 2500);
     } catch (err: unknown) {
-      const msg = axios.isAxiosError(err)
-        ? (err.response?.data?.message ?? err.message)
-        : `Error al ${action === "accept" ? "aceptar" : "rechazar"} la invitación`;
+      const msg = err instanceof Error ? err.message : "Error al enviar la solicitud";
       setError(msg);
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!userId) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <main className="flex-1 bg-background p-8">
+          <div className="mx-auto max-w-2xl">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 text-center">
+              <Users className="mb-4 h-16 w-16 text-muted-foreground" />
+              <h3 className="mb-2 text-xl font-bold">Debes iniciar sesión</h3>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
   }
 
   return (
@@ -79,7 +79,6 @@ export default function TeamInvitationDetail() {
       <div className="flex flex-1">
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-2xl space-y-8">
-            {/* Back */}
             <button
               onClick={() => navigate("/player/invitations")}
               className="flex items-center gap-2 text-sm text-muted-foreground transition hover:text-foreground"
@@ -88,7 +87,6 @@ export default function TeamInvitationDetail() {
               Volver a invitaciones
             </button>
 
-            {/* Team card */}
             {loadingTeam ? (
               <div className="flex items-center justify-center rounded-xl border border-border bg-card py-16">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -115,7 +113,7 @@ export default function TeamInvitationDetail() {
                   </div>
                   <h1 className="mb-1 text-2xl font-bold">{team.name}</h1>
                   <p className="mb-4 text-sm text-muted-foreground">
-                    Este equipo te ha invitado a unirte
+                    Envía una solicitud para unirte a este equipo
                   </p>
                   <div className="mb-2 grid w-full max-w-xs grid-cols-2 gap-4">
                     <div className="rounded-lg bg-accent/10 px-4 py-3 text-center">
@@ -135,7 +133,6 @@ export default function TeamInvitationDetail() {
               </div>
             ) : null}
 
-            {/* Feedback messages */}
             {successMessage && (
               <div className="flex items-center gap-3 rounded-lg bg-[#4ADE80]/10 px-4 py-3 text-sm font-medium text-[#4ADE80]">
                 <CheckCircle className="h-5 w-5 flex-shrink-0" />
@@ -150,38 +147,21 @@ export default function TeamInvitationDetail() {
               </div>
             )}
 
-            {/* Action buttons */}
             {!actionDone && !loadingTeam && !teamError && (
-              <div className="grid gap-4 sm:grid-cols-2">
-                <button
-                  onClick={() => handleAction("reject")}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-destructive bg-destructive/10 px-6 py-4 text-base font-medium text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
-                >
-                  {loading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      <XCircle className="h-5 w-5" />
-                      Rechazar invitación
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => handleAction("accept")}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
-                >
-                  {loading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <>
-                      <CheckCircle className="h-5 w-5" />
-                      Aceptar invitación
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                onClick={handleSendRequest}
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+              >
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                ) : (
+                  <>
+                    <CheckCircle className="h-5 w-5" />
+                    Enviar solicitud al equipo
+                  </>
+                )}
+              </button>
             )}
           </div>
         </main>

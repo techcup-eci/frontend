@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import TeamCard from "../../../shared/components/shared/TeamCard";
+import { apiClient } from "../../../core/api/apiClient";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +10,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../../shared/components/ui/dialog";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Search, Hash } from "lucide-react";
-
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+import { Users, Search, Hash } from "lucide-react";
 
 export default function SearchTeams() {
   const navigate = useNavigate();
@@ -23,15 +22,18 @@ export default function SearchTeams() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`${API_URL}/teams`)
-      .then((res) => res.json())
-      .then((data) => { setTeams(data); setLoading(false); })
-      .catch((err) => { console.error("Error cargando equipos:", err); setLoading(false); });
+    apiClient.get("/api/teams")
+      .then((res) => { setTeams(res.data); setLoading(false); })
+      .catch((err) => {
+        console.error("Error cargando equipos:", err);
+        setTeams([]);
+        setLoading(false);
+      });
   }, []);
 
   const filteredTeams = teams.filter((team) => {
     const matchesSearch = team.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || team.state === statusFilter;
+    const matchesStatus = !statusFilter || team.tournamentStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -110,9 +112,9 @@ export default function SearchTeams() {
             ) : filteredTeams.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredTeams.map((team) => (
-                  <TeamCard key={team.id} name={team.name} captain={team.idCaptain}
-                    players={team.currentPlayers} maxPlayers={12}
-                    status={team.state === "ACTIVE" ? "approved" : "review"}
+                  <TeamCard key={team.id} name={team.name} captain={team.captainId}
+                    players={team.currentPlayers} maxPlayers={team.maxPlayers || 12}
+                    status={team.tournamentStatus === "ACTIVE" ? "approved" : "review"}
                     positions={[]}
                     onView={() => navigate(`/player/teams/${team.id}`)}
                     onJoin={() => alert(`Solicitud enviada a ${team.name}`)} />

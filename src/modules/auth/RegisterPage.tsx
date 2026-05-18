@@ -1,1 +1,1 @@
-export function RegisterPage() {}
+export { RegisterPage } from "./pages/Register";

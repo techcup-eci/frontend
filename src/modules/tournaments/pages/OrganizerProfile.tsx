@@ -69,7 +69,7 @@ export default function OrganizerProfile() {
   };
 
   const roleLabel = "Organizador";
-  const displayName = authUser?.fullName ?? "Sebastian Torres";
+  const displayName = authUser?.name ?? "Sebastian Torres";
   const displayEmail = profile?.email ?? authUser?.email ?? "sebastian.torres@escuelaing.edu.co";
 
   return (

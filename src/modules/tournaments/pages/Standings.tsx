@@ -1,15 +1,37 @@
-import { useState } from "react";
-import { Trophy, XCircle } from "lucide-react";
-import { useStandings } from "../../competitions/hooks/useStandings";
+import { Trophy, XCircle, AlertCircle } from "lucide-react";
+import { useActiveStandings } from "../../competitions/hooks/useActiveStandings";
+import { useActiveTournament } from "../../tournaments/hooks/useActiveTournament";
 
 export default function Standings() {
-  // TODO: Replace this hardcoded tournament ID with context/URL param
-  const [tournamentId] = useState<string>("tournament-uuid-placeholder");
-
-  const { data: standings = [], isLoading, isError, error } = useStandings(tournamentId);
+  const { data: activeTournament, isLoading: isLoadingTournament } = useActiveTournament();
+  const { data: standings = [], isLoading, isError, error } = useActiveStandings();
 
   // Sort by points descending, then goalDiff descending
   const sorted = [...standings].sort((a, b) => b.points - a.points || b.goalDiff - a.goalDiff);
+
+  if (isLoadingTournament || isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (!activeTournament) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <AlertCircle className="h-10 w-10 text-muted-foreground/60" />
+            <h2 className="text-xl font-bold">No hay torneo activo</h2>
+            <p className="text-muted-foreground">
+              No hay ningún torneo activo o en progreso en este momento.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8">
@@ -17,15 +39,11 @@ export default function Standings() {
         <div>
           <h1 className="mb-2 text-3xl font-bold">Tabla de posiciones</h1>
           <p className="text-muted-foreground">
-            Actualizada automáticamente
+            {activeTournament.name} — Actualizada automáticamente
           </p>
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-8 w-8 border-4 border-primary border-t-transparent" />
-          </div>
-        ) : isError ? (
+        {isError ? (
           <div className="flex flex-col items-center gap-3 py-12 text-center">
             <XCircle className="h-10 w-10 text-destructive/60" />
             <p className="text-muted-foreground">

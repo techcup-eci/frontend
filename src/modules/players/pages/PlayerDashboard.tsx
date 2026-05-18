@@ -1,41 +1,53 @@
-import { Link, useSearchParams } from "react-router";
-import { BarChart3, Bell, Calendar, Shield, Trophy, UserPlus, Users } from "lucide-react";
+import { Link } from "react-router";
+import { Shield, Trophy, UserPlus, Users, Bell, AlertCircle } from "lucide-react";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import Badge from "../../../shared/components/shared/Badge";
 
+const roleLabels: Record<string, string> = {
+  player: "Jugador",
+  captain: "Capitán",
+  organizer: "Organizador",
+  referee: "Árbitro",
+  admin: "Administrador",
+  invited: "Invitado",
+};
+
 export default function PlayerDashboard() {
-  const [searchParams] = useSearchParams();
-  const roleParam = searchParams.get("role");
-  const roleLabel = roleParam
-    ? roleParam.charAt(0).toUpperCase() + roleParam.slice(1)
-    : "Jugador";
+  const user = useAuthStore((state) => state.user);
+  const roleLabel = user?.role ? roleLabels[user.role] ?? user.role : "Jugador";
+  const userName = user?.name ?? "Jugador";
 
   return (
     <div className="flex min-h-screen flex-col">
-      
       <div className="flex flex-1">
-        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             {/* Bienvenida */}
             <div className="rounded-xl border border-border bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="mb-2 text-3xl font-bold">Bienvenido, Sebastián</h1>
-                  <p className="text-primary-foreground/80">¡Listo para el próximo partido!</p>
+                  <h1 className="mb-2 text-3xl font-bold">Bienvenido, {userName}</h1>
+                  <p className="text-primary-foreground/80">
+                    {user?.role === "player" || user?.role === "captain"
+                      ? "¡Listo para el próximo partido!"
+                      : "Gestiona tu participación en el torneo."}
+                  </p>
                 </div>
                 <Badge variant="info" size="lg">
                   {roleLabel}
                 </Badge>
               </div>
-              <div className="mt-6">
-                <Link
-                  to="/captain/create-team"
-                  className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/20"
-                >
-                  <UserPlus className="h-5 w-5" />
-                  Crear equipo
-                </Link>
-              </div>
+              {(user?.role === "captain" || user?.role === "player") && (
+                <div className="mt-6">
+                  <Link
+                    to="/captain/create-team"
+                    className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/20"
+                  >
+                    <UserPlus className="h-5 w-5" />
+                    Crear equipo
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Cards principales */}
@@ -48,9 +60,11 @@ export default function PlayerDashboard() {
                   </div>
                   <h2 className="text-xl font-bold">Mi equipo</h2>
                 </div>
-                <h3 className="mb-2 text-2xl font-bold">Los Algoritmos FC</h3>
-                <p className="mb-4 text-sm text-muted-foreground">Posición en tabla: 1º</p>
-                <Badge variant="success">Inscripción aprobada</Badge>
+                <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
+                  <AlertCircle className="mb-2 h-8 w-8 opacity-40" />
+                  <p className="text-sm">Aún no tienes equipo asignado</p>
+                  <p className="mt-1 text-xs">Crea o únete a un equipo para verlo aquí</p>
+                </div>
               </div>
 
               {/* Próximo partido */}
@@ -61,12 +75,14 @@ export default function PlayerDashboard() {
                   </div>
                   <h2 className="text-xl font-bold">Próximo partido</h2>
                 </div>
-                <h3 className="mb-2 text-xl font-bold">vs Byte Brothers</h3>
-                <p className="text-sm text-muted-foreground">12/04/2025 - 14:00</p>
-                <p className="mt-2 text-sm font-medium">Cancha Principal ECI</p>
+                <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
+                  <Trophy className="mb-2 h-8 w-8 opacity-40" />
+                  <p className="text-sm">No hay partidos programados</p>
+                  <p className="mt-1 text-xs">Los partidos aparecerán cuando el torneo esté activo</p>
+                </div>
               </div>
 
-              {/* Estado de inscripción */}
+              {/* Estado del equipo */}
               <div className="rounded-xl border border-border bg-card p-6">
                 <div className="mb-4 flex items-center gap-3">
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#4ADE80]/10">
@@ -74,9 +90,11 @@ export default function PlayerDashboard() {
                   </div>
                   <h2 className="text-xl font-bold">Estado del equipo</h2>
                 </div>
-                <p className="mb-2 text-sm text-muted-foreground">Jugadores en el equipo</p>
-                <p className="mb-4 text-3xl font-bold">9 / 12</p>
-                <Badge variant="approved">Pago aprobado</Badge>
+                <div className="flex flex-col items-center justify-center py-6 text-center text-muted-foreground">
+                  <Users className="mb-2 h-8 w-8 opacity-40" />
+                  <p className="text-sm">Sin información disponible</p>
+                  <p className="mt-1 text-xs">Inscribe un equipo al torneo para ver su estado</p>
+                </div>
               </div>
             </div>
 
@@ -86,34 +104,10 @@ export default function PlayerDashboard() {
                 <Bell className="h-6 w-6 text-primary" />
                 <h2 className="text-xl font-bold">Notificaciones recientes</h2>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-start gap-4 rounded-lg border border-border bg-background p-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4ADE80]/10">
-                    <Shield className="h-5 w-5 text-[#4ADE80]" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Tu equipo fue aprobado para el torneo</p>
-                    <p className="text-sm text-muted-foreground">Hace 2 días</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4 rounded-lg border border-border bg-background p-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
-                    <Calendar className="h-5 w-5 text-blue-500" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">Nuevo partido programado</p>
-                    <p className="text-sm text-muted-foreground">Hace 3 días</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4 rounded-lg border border-border bg-background p-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-                    <Trophy className="h-5 w-5 text-accent" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium">¡Victoria 4-1 contra Code Runners!</p>
-                    <p className="text-sm text-muted-foreground">Hace 5 días</p>
-                  </div>
-                </div>
+              <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                <Bell className="mb-2 h-10 w-10 opacity-40" />
+                <p className="text-sm">No hay notificaciones</p>
+                <p className="mt-1 text-xs">Las actualizaciones del torneo aparecerán aquí</p>
               </div>
             </div>
           </div>
@@ -122,5 +116,3 @@ export default function PlayerDashboard() {
     </div>
   );
 }
-
-

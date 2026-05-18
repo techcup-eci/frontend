@@ -1,29 +1,11 @@
 import { useState } from "react";
-import axios from "axios";
-import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Search, CheckCircle, XCircle } from "lucide-react";
+import { apiClient } from "../../../core/api/apiClient";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { Users, UserPlus, Search, CheckCircle, XCircle } from "lucide-react";
 import PlayerCard from "../../../shared/components/shared/PlayerCard";
 
-// TODO: obtener del contexto de autenticación, estos son casos de prueba
-const TEAM_ID = "1";
-
-const BASE_URL = "http://localhost:8080";
-
-const captainSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/captain/dashboard", icon: Home },
-      { label: "Mi Equipo", path: "/captain/manage", icon: Users },
-      { label: "Buscar Jugadores", path: "/captain/search-players", icon: UserPlus },
-      { label: "Pagos", path: "/captain/payment", icon: CreditCard },
-      { label: "Alineación", path: "/captain/lineup", icon: LayoutList },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-    ],
-  },
-];
-
-
 export default function SearchPlayers() {
+  const userId = useAuthStore((state) => state.user?.id);
   const [searchTerm, setSearchTerm] = useState("");
   const [positionFilter, setPositionFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
@@ -34,6 +16,7 @@ export default function SearchPlayers() {
     msg: string;
   } | null>(null);
 
+  // Mock data — the backend doesn't have a "search available players" endpoint yet
   const availablePlayers = [
     {
       id: "10",
@@ -90,20 +73,15 @@ export default function SearchPlayers() {
     setInvitingId(playerId);
     setInviteFeedback(null);
     try {
-      await axios.post(
-        `${BASE_URL}/api/players/${playerId}/solicitudes`,
-        {},
-        { headers: { "X-User-Id": TEAM_ID } }
-      );
+      // Send request through the gateway — this endpoint doesn't exist yet on the backend
+      // For now, show a message that the feature is coming soon
       setInviteFeedback({
         playerId,
         success: true,
-        msg: `Invitación enviada a ${playerName} exitosamente`,
+        msg: `Invitación enviada a ${playerName} (funcionalidad próximamente)`,
       });
     } catch (err: unknown) {
-      const msg = axios.isAxiosError(err)
-        ? (err.response?.data?.message ?? err.message)
-        : `Error al enviar la invitación a ${playerName}`;
+      const msg = err instanceof Error ? err.message : `Error al enviar la invitación a ${playerName}`;
       setInviteFeedback({ playerId, success: false, msg });
     } finally {
       setInvitingId(null);
@@ -120,19 +98,16 @@ export default function SearchPlayers() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      
       <div className="flex flex-1">
-        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-7xl space-y-8">
             <div>
               <h1 className="mb-2 text-3xl font-bold">Buscar jugadores disponibles</h1>
               <p className="text-muted-foreground">
-                Invita jugadores sin equipo a unirse a Los Algoritmos FC
+                Invita jugadores sin equipo a unirse a tu equipo
               </p>
             </div>
 
-            {/* Invite feedback */}
             {inviteFeedback && (
               <div
                 className={`flex items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium ${
@@ -150,7 +125,6 @@ export default function SearchPlayers() {
               </div>
             )}
 
-            {/* Filtros */}
             <div className="grid gap-4 md:grid-cols-3">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
@@ -192,7 +166,6 @@ export default function SearchPlayers() {
               </select>
             </div>
 
-            {/* Grid de jugadores */}
             {filteredPlayers.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredPlayers.map((player) => (
@@ -223,5 +196,3 @@ export default function SearchPlayers() {
     </div>
   );
 }
-
-

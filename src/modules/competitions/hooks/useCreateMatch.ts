@@ -6,8 +6,8 @@ export function useCreateMatch(tournamentId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ match, userId }: { match: CreateMatchRequest; userId: string }) =>
-      createMatch(tournamentId, match, userId),
+    mutationFn: ({ match }: { match: CreateMatchRequest }) =>
+      createMatch(tournamentId, match),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["matches"] });
     },

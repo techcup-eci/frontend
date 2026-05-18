@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Routes, Route, Navigate } from "react-router";
 import AdminDashboard from "../../modules/admin/pages/AdminDashboard";
 import AuditLog from "../../modules/admin/pages/AuditLog";
 import ManageUsers from "../../modules/admin/pages/ManageUsers";
@@ -48,82 +48,102 @@ import AuthLayout from "../../shared/layouts/AuthLayout";
 import DashboardLayout from "../../shared/layouts/DashboardLayout";
 import ManageRegistrations from "../../modules/registrations/pages/ManageRegistrations";
 import BecomePlayer from "../../modules/players/pages/BecomePlayer";
+import { ProtectedRoute } from "../../shared/components/ProtectedRoute";
+import { useAuthStore } from "../../modules/auth/hooks/useAuthStore";
+
+function RoleBasedHome() {
+	const user = useAuthStore((state) => state.user);
+	const roleDashboards: Record<string, string> = {
+		admin: "/admin/dashboard",
+		organizer: "/organizer/dashboard",
+		captain: "/captain/dashboard",
+		referee: "/referee/dashboard",
+		player: "/player/dashboard",
+		invited: "/user/dashboard",
+	};
+	const dest = roleDashboards[user?.role ?? "invited"] ?? "/user/dashboard";
+	return <Navigate to={dest} replace />;
+}
 
 export function AppRoutes() {
-  return (
-    <Routes>
-      {/* Public Routes with Navbar */}
-      <Route element={<RootLayout />}>
-        <Route path="/" element={<LandingPage />} />
-        {/* tournamentId viene en la URL: /tournaments/:tournamentId/stats */}
-        <Route path="/tournaments/:tournamentId/stats" element={<TournamentStats />} />
-        <Route path="/tournament-info" element={<TournamentInfo />} />
-        <Route path="/players/:id" element={<PlayerPublicProfile />} />
-      </Route>
+	return (
+		<Routes>
+			{/* Public Routes with Navbar */}
+			<Route element={<RootLayout />}>
+				<Route path="/" element={<LandingPage />} />
+				<Route path="/tournament-stats" element={<TournamentStats />} />
+				<Route path="/tournament-info" element={<TournamentInfo />} />
+				<Route path="/players/:id" element={<PlayerPublicProfile />} />
+			</Route>
 
-      {/* Auth Routes without Navbar/Sidebar */}
-      <Route element={<AuthLayout />}>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-      </Route>
+			{/* Auth Routes without Navbar/Sidebar */}
+			<Route element={<AuthLayout />}>
+				<Route path="/login" element={<Login />} />
+				<Route path="/register" element={<Register />} />
+			</Route>
 
-      {/* Protected/Dashboard Routes with Navbar & Sidebar */}
-      <Route element={<DashboardLayout />}>
-        {/* User */}
-        <Route path="/user/dashboard" element={<UserDashboard />} />
-        <Route path="/user/profile" element={<UserProfile />} />
-        <Route path="/user/teams" element={<UserTeams />} />
-        <Route path="/user/teams/:id" element={<TeamDetail />} />
+			{/* Protected/Dashboard Routes with Navbar & Sidebar */}
+			<Route element={<ProtectedRoute />}>
+				<Route element={<DashboardLayout />}>
+					{/* User */}
+					<Route path="/user/dashboard" element={<UserDashboard />} />
+					<Route path="/user/profile" element={<UserProfile />} />
+					<Route path="/user/teams" element={<UserTeams />} />
+					<Route path="/user/teams/:id" element={<TeamDetail />} />
 
-        {/* Player */}
-        <Route path="/player/dashboard" element={<PlayerDashboard />} />
-        <Route path="/player/profile/create" element={<CreateProfile />} />
-        <Route path="/player/profile/becomePlayer" element={<BecomePlayer />} />
-        <Route path="/player/profile/edit" element={<EditProfile />} />
-        <Route path="/player/profile" element={<ViewProfile />} />
-        <Route path="/player/availability" element={<MarkAvailability />} />
-        <Route path="/player/teams" element={<SearchTeams />} />
-        <Route path="/player/teams/:id" element={<TeamDetail />} />
-        <Route path="/player/invitations" element={<PlayerInvitations />} />
-        <Route path="/player/invitations/:teamId" element={<TeamInvitationDetail />} />
-        <Route path="/player/lineup" element={<ViewLineup />} />
-        <Route path="/player/lineup/rival/:id" element={<ViewRivalLineup />} />
+					{/* Player */}
+					<Route path="/player/dashboard" element={<PlayerDashboard />} />
+					<Route path="/player/profile/create" element={<CreateProfile />} />
+					<Route path="/player/profile/becomePlayer" element={<BecomePlayer />} />
+					<Route path="/player/profile/edit" element={<EditProfile />} />
+					<Route path="/player/profile" element={<ViewProfile />} />
+					<Route path="/player/availability" element={<MarkAvailability />} />
+					<Route path="/player/teams" element={<SearchTeams />} />
+					<Route path="/player/teams/:id" element={<TeamDetail />} />
+					<Route path="/player/invitations" element={<PlayerInvitations />} />
+					<Route path="/player/invitations/:teamId" element={<TeamInvitationDetail />} />
+					<Route path="/player/lineup" element={<ViewLineup />} />
+					<Route path="/player/lineup/rival/:id" element={<ViewRivalLineup />} />
 
-        {/* Captain */}
-        <Route path="/captain/create-team" element={<CreateTeam />} />
-        <Route path="/captain/dashboard" element={<CaptainDashboard />} />
-        <Route path="/captain/manage-team" element={<ManageTeam />} />
-        <Route path="/captain/search-players" element={<SearchPlayers />} />
-        <Route path="/captain/payment" element={<UploadPayment />} />
-        <Route path="/captain/lineup" element={<ConfigureLineup />} />
-        <Route path="/captain/requests" element={<PendingRequests />} />
-        <Route path="/captain/requests/:jugadorId" element={<PlayerRequestDetail />} />
+					{/* Captain */}
+					<Route path="/captain/create-team" element={<CreateTeam />} />
+					<Route path="/captain/dashboard" element={<CaptainDashboard />} />
+					<Route path="/captain/manage-team" element={<ManageTeam />} />
+					<Route path="/captain/search-players" element={<SearchPlayers />} />
+					<Route path="/captain/payment" element={<UploadPayment />} />
+					<Route path="/captain/lineup" element={<ConfigureLineup />} />
+					<Route path="/captain/requests" element={<PendingRequests />} />
+					<Route path="/captain/requests/:jugadorId" element={<PlayerRequestDetail />} />
 
-        {/* Organizer */}
-        <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
-        <Route path="/organizer/profile" element={<OrganizerProfile />} />
-        <Route path="/organizer/create-tournament" element={<CreateTournament />} />
-        <Route path="/organizer/tournament/configure" element={<ConfigureTournament />} />
-        <Route path="/organizer/teams" element={<ManageTeams />} />
-        <Route path="/organizer/payments" element={<ManageRegistrations />} />
-        <Route path="/organizer/schedule" element={<ScheduleMatches />} />
-        <Route path="/organizer/result/:id" element={<RegisterResult />} />
-        <Route path="/organizer/calendar" element={<MatchCalendar />} />
-        <Route path="/organizer/standings" element={<Standings />} />
-        <Route path="/organizer/bracket" element={<Bracket />} />
+					{/* Organizer */}
+					<Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
+					<Route path="/organizer/profile" element={<OrganizerProfile />} />
+					<Route path="/organizer/create-tournament" element={<CreateTournament />} />
+					<Route path="/organizer/tournament/configure" element={<ConfigureTournament />} />
+					<Route path="/organizer/teams" element={<ManageTeams />} />
+					<Route path="/organizer/payments" element={<ManageRegistrations />} />
+					<Route path="/organizer/schedule" element={<ScheduleMatches />} />
+					<Route path="/organizer/result/:id" element={<RegisterResult />} />
+					<Route path="/organizer/calendar" element={<MatchCalendar />} />
+					<Route path="/organizer/standings" element={<Standings />} />
+					<Route path="/organizer/bracket" element={<Bracket />} />
 
-        {/* Referee */}
-        <Route path="/referee/dashboard" element={<RefereeDashboard />} />
-        <Route path="/referee/match/:id" element={<RefereeMatchDetail />} />
+					{/* Referee */}
+					<Route path="/referee/dashboard" element={<RefereeDashboard />} />
+					<Route path="/referee/match/:id" element={<RefereeMatchDetail />} />
 
-        {/* Admin */}
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/admin/players" element={<ManageUsers />} />
-        <Route path="/admin/audit" element={<AuditLog />} />
-      </Route>
+					{/* Admin */}
+					<Route path="/admin/dashboard" element={<AdminDashboard />} />
+					<Route path="/admin/players" element={<ManageUsers />} />
+					<Route path="/admin/audit" element={<AuditLog />} />
 
-      {/* Catch-all */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
+					{/* Home — redirects to role-based dashboard */}
+					<Route path="/home" element={<RoleBasedHome />} />
+				</Route>
+			</Route>
+
+			{/* Catch-all */}
+			<Route path="*" element={<NotFound />} />
+		</Routes>
+	);
 }

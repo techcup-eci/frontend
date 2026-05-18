@@ -1,14 +1,14 @@
 export type AuthRole =
-	| "participant"
+	| "player"
 	| "captain"
 	| "organizer"
 	| "referee"
-	| "administrator"
+	| "admin"
 	| "invited";
 
 export interface AuthUser {
+	id: number;
 	email: string;
 	role: AuthRole;
-	token: string;
-	expiresAt: number;
+	name: string;
 }

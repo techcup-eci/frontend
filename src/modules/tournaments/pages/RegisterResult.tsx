@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router";
 import { Target, AlertCircle, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useMatchDetail } from "../../competitions/hooks/useMatchDetail";
 import { useReportResult } from "../../competitions/hooks/useReportResult";
+import { useActiveTournament } from "../../tournaments/hooks/useActiveTournament";
 import type { MatchResultRequest } from "../../competitions/types/competition";
 
 type PlayerGoal = {
@@ -22,12 +24,14 @@ type PlayerCard = {
 };
 
 export default function RegisterResult() {
-  // TODO: Replace these hardcoded values with route params/context
-  const [tournamentId] = useState<string>("tournament-uuid-placeholder");
-  const [matchId] = useState<string>("match-uuid-placeholder");
+  const { id: matchId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { data: activeTournament, isLoading: isLoadingTournament } = useActiveTournament();
 
-  const { data: match, isLoading, isError, error } = useMatchDetail(tournamentId, matchId);
-  const reportMutation = useReportResult(tournamentId, matchId);
+  const tournamentId = activeTournament?.id ?? "";
+
+  const { data: match, isLoading, isError, error } = useMatchDetail(tournamentId, matchId ?? "");
+  const reportMutation = useReportResult(tournamentId, matchId ?? "");
 
   const [homeScore, setHomeScore] = useState<number>(0);
   const [awayScore, setAwayScore] = useState<number>(0);
@@ -165,12 +169,34 @@ export default function RegisterResult() {
     });
   };
 
-  if (isLoading) {
+  if (isLoadingTournament || isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
           <p className="text-muted-foreground">Cargando información del partido...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeTournament) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <AlertCircle className="h-10 w-10 text-muted-foreground/60" />
+            <h2 className="text-xl font-bold">No hay torneo activo</h2>
+            <p className="text-muted-foreground">
+              No hay ningún torneo activo o en progreso en este momento.
+            </p>
+            <button
+              onClick={() => navigate("/organizer/dashboard")}
+              className="mt-4 rounded-lg bg-primary px-6 py-2 font-semibold text-primary-foreground"
+            >
+              Volver al panel
+            </button>
+          </div>
         </div>
       </div>
     );

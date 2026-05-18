@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { Upload, User } from "lucide-react";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import { useCreateAthleticProfile } from "../hooks/useAthleticProfile";
+import { updateRole } from "../../auth/services/authService";
 
 export default function BecomePlayer() {
     const navigate = useNavigate();
@@ -68,9 +69,18 @@ export default function BecomePlayer() {
               stature: formData.stature,
               state: formData.state,
             });
+
+            // Update role to PLAYER after creating athletic profile
+            const userId = authUser?.id;
+            if (userId) {
+              await updateRole(userId, "PLAYER");
+              // Refresh token to get updated role
+              await useAuthStore.getState().refreshAuth();
+            }
           } catch (error) {
             const message = error instanceof Error ? error.message : "No fue posible guardar el perfil.";
             setSubmitError(message);
+            return; // Don't navigate on error
           }
 
           sessionStorage.setItem(storageKey("playerProfileForm"), JSON.stringify(formData));

@@ -5,7 +5,7 @@ import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 export default function UserProfile() {
   const authUser = useAuthStore((state) => state.user);
-  const displayName = authUser?.fullName ?? "Sebastian Torres";
+  const displayName = authUser?.name ?? "Sebastian Torres";
   const displayEmail = authUser?.email ?? "sebastian.torres@escuelaing.edu.co";
 
   useEffect(() => {
