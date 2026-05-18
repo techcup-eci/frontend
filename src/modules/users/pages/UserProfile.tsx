@@ -7,7 +7,7 @@ import { getFullName } from "../../auth/types/AuthUser";
 export default function UserProfile() {
   const authUser = useAuthStore((state) => state.user);
   const displayName = getFullName(authUser);
-  const displayEmail = authUser?.email ?? "sebastian.torres@escuelaing.edu.co";
+  const displayEmail = authUser?.email ?? "No disponible";
 
   useEffect(() => {
     if (authUser?.email) {
