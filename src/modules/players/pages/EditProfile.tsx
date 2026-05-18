@@ -24,20 +24,12 @@ export default function EditProfile() {
       return JSON.parse(stored) as {
         position: string;
         number: string;
-        semester: string;
-        relationship: string;
-        studentLevel: string;
-        professorType: string;
       };
     }
 
     return {
       position: "Mediocampista Central",
       number: "8",
-      semester: "6",
-      relationship: "estudiante",
-      studentLevel: "pregrado",
-      professorType: "planta",
     };
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -167,68 +159,6 @@ export default function EditProfile() {
                 </div>
 
                 <div>
-                  <label className="mb-2 block font-medium">Vinculo con la universidad</label>
-                  <select
-                    required
-                    value={formData.relationship}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        relationship: e.target.value,
-                      })
-                    }
-                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                  >
-                    <option value="estudiante">Estudiante</option>
-                    <option value="profesor">Profesor</option>
-                    <option value="invitado">Invitado</option>
-                    <option value="graduado">Graduado</option>
-                  </select>
-                </div>
-
-                {formData.relationship === "estudiante" && (
-                  <div>
-                    <label className="mb-2 block font-medium">Nivel academico</label>
-                    <select
-                      required
-                      value={formData.studentLevel}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          studentLevel: e.target.value,
-                        })
-                      }
-                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                    >
-                      <option value="pregrado">Pregrado</option>
-                      <option value="posgrado">Posgrado</option>
-                      <option value="maestria">Maestria</option>
-                      <option value="doctorado">Doctorado</option>
-                    </select>
-                  </div>
-                )}
-
-                {formData.relationship === "profesor" && (
-                  <div>
-                    <label className="mb-2 block font-medium">Tipo de profesor</label>
-                    <select
-                      required
-                      value={formData.professorType}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          professorType: e.target.value,
-                        })
-                      }
-                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                    >
-                      <option value="planta">Planta</option>
-                      <option value="catedra">Catedra</option>
-                    </select>
-                  </div>
-                )}
-
-                <div>
                   <label className="mb-2 block font-medium">Posición</label>
                   <select
                     required
@@ -269,26 +199,6 @@ export default function EditProfile() {
                   {errors.number && <p className="mt-1 text-sm text-[#EF4444]">{errors.number}</p>}
                 </div>
 
-                {formData.relationship === "estudiante" &&
-                  formData.studentLevel === "pregrado" && (
-                  <div>
-                    <label className="mb-2 block font-medium">Semestre actual</label>
-                    <select
-                      required
-                      value={formData.semester}
-                      onChange={(e) =>
-                        setFormData({ ...formData, semester: e.target.value })
-                      }
-                      className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                    >
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((sem) => (
-                        <option key={sem} value={sem}>
-                          Semestre {sem}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
                 {submitError && (
                   <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
                     {submitError}
