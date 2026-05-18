@@ -43,7 +43,7 @@ export default function BecomePlayer() {
 		}
 	};
 
-	function handleFieldChange(field: keyof AthleticProfileFormData, value: string | number) {
+	function handleFieldChange(field: keyof AthleticProfileErrors, value: string | number) {
 		setValues((currentValues) => ({
 			...currentValues,
 			[field]: value,
