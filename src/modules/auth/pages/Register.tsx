@@ -17,8 +17,9 @@ export default function Register() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const validDomains = ["@escuelaing.edu.co", "@mail.escuelaing.edu.co", "@gmail.com"];
+
   const validateEmail = (email: string) => {
-    const validDomains = ["@escuelaing.edu.co", "@gmail.com"];
     return validDomains.some((domain) => email.endsWith(domain));
   };
 
@@ -27,7 +28,7 @@ export default function Register() {
     const newErrors: Record<string, string> = {};
 
     if (!validateEmail(formData.email)) {
-      newErrors.email = "Solo se aceptan correos @escuelaing.edu.co o @gmail.com";
+      newErrors.email = `Solo se aceptan correos ${validDomains.join(", ")}`;
     }
 
     if (formData.password.length < 8) {
@@ -48,6 +49,7 @@ export default function Register() {
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
         role: "USER",
+        fullName: formData.fullName.trim(),
       });
       sessionStorage.setItem("playerEmail", formData.email.trim().toLowerCase());
       navigate("/user/dashboard");
@@ -123,7 +125,7 @@ export default function Register() {
               />
               {errors.email && <p className="mt-1 text-sm text-destructive">{errors.email}</p>}
               <p className="mt-1 text-sm text-muted-foreground">
-                Solo se aceptan correos @escuelaing.edu.co o @gmail.com
+                Dominios permitidos: {validDomains.join(", ")}
               </p>
             </div>
 

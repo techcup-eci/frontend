@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router";
 import Badge from "./Badge";
 import ThemeToggle from "./ThemeToggle";
 import { useAuthStore } from "../../../modules/auth/hooks/useAuthStore";
+import { getFullName } from "../../../modules/auth/types/AuthUser";
 
 interface NavbarProps {
   userName?: string;
@@ -24,8 +25,8 @@ export default function Navbar({ userName, role, hideActions }: NavbarProps) {
 
   const resolvedRoleKey = role ?? authUser?.role;
   const resolvedRole = resolvedRoleKey ? (roleLabels[resolvedRoleKey] ?? resolvedRoleKey) : undefined;
-  const resolvedUserName = userName ?? authUser?.fullName;
-  const isAuthenticated = !!resolvedUserName && !!resolvedRoleKey;
+  const resolvedUserName = userName ?? getFullName(authUser);
+  const isAuthenticated = !!authUser && !!resolvedRoleKey;
   const isStatsPage = location.pathname === "/stats";
   const isTournamentInfoPage = location.pathname === "/tournament-info";
   const statsAllowedRoles = new Set(["participant", "captain"]);

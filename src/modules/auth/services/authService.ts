@@ -86,6 +86,8 @@ export async function login(credentials: LoginRequest): Promise<AuthUser> {
 
 export async function register(credentials: RegisterRequest): Promise<AuthUser> {
 	const parsedCredentials = registerRequestSchema.parse(credentials);
+	const [firstName, ...lastNameParts] = parsedCredentials.fullName.split(" ");
+	const lastName = lastNameParts.join(" ");
 	const response = await fetch(`${BASE_URL}/api/identity/register`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -93,6 +95,8 @@ export async function register(credentials: RegisterRequest): Promise<AuthUser> 
 			email: parsedCredentials.email,
 			password: parsedCredentials.password,
 			role: parsedCredentials.role,
+			firstName: firstName,
+			lastName: lastName,
 		}),
 	});
 

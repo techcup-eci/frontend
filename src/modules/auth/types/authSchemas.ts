@@ -45,6 +45,11 @@ export const registerRequestSchema = z.object({
 		.trim()
 		.default("USER")
 		.transform((value) => value.toUpperCase()),
+	fullName: z
+		.string()
+		.trim()
+		.min(1, "El nombre completo es requerido.")
+		.regex(/^[a-záéíóúñA-ZÁÉÍÓÚÑ\s'-]+$/, "El nombre solo puede contener letras, espacios, guiones y apóstrofes."),
 });
 
 export const loginResponseSchema = z
@@ -54,6 +59,8 @@ export const loginResponseSchema = z
 		email: z.string().trim().email(),
 		role: authRoleSchema,
 		expiresIn: z.number(),
+		firstName: z.string().optional(),
+		lastName: z.string().optional(),
 	})
 	.transform((data) => ({
 		token: data.token,
@@ -61,6 +68,8 @@ export const loginResponseSchema = z
 		email: data.email,
 		role: data.role,
 		expiresAt: Date.now() + data.expiresIn,
+		firstName: data.firstName,
+		lastName: data.lastName,
 	}));
 
 export const meResponseSchema = z.object({
