@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Upload, Shield } from "lucide-react";
+import { apiClient } from "../../../core/api/apiClient";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 const captainSidebar = [
@@ -59,20 +60,9 @@ export default function CreateTeam() {
     };
 
     try {
-      const response = await fetch("https://teams-ms-app.orangemeadow-ea12992b.eastus2.azurecontainerapps.io/api/teams", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(equipoData),
-      });
-
-      if (!response.ok) {
-        const errorMsg = await response.text();
-        console.error("Error al crear el equipo:", errorMsg);
-      }
+      await apiClient.post("/equipos", equipoData);
     } catch (error) {
-      console.error("Error de conexion:", error);
+      console.error("Error al crear el equipo:", error);
     }
 
     if (currentUser) {

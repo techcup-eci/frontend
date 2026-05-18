@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Trophy } from "lucide-react";
+import { useRegister } from "../hooks/useRegister";
 
 export default function Register() {
   const navigate = useNavigate();
+  const { register, isPending, errorMessage, resetState } = useRegister();
   const [formData, setFormData] = useState({
     fullName: "",
     identification: "",
@@ -20,7 +22,7 @@ export default function Register() {
     return validDomains.some((domain) => email.endsWith(domain));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: Record<string, string> = {};
 
@@ -41,9 +43,17 @@ export default function Register() {
       return;
     }
 
-    // Si registro exitoso, redirigir al dashboard de usuario.
-    sessionStorage.setItem("playerEmail", formData.email.trim().toLowerCase());
-    navigate("/user/dashboard");
+    try {
+      await register({
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        role: "USER",
+      });
+      sessionStorage.setItem("playerEmail", formData.email.trim().toLowerCase());
+      navigate("/user/dashboard");
+    } catch {
+      // El error se maneja en errorMessage.
+    }
   };
 
   return (
@@ -158,6 +168,12 @@ export default function Register() {
                 <p className="mt-1 text-sm text-destructive">{errors.confirmPassword}</p>
               )}
             </div>
+
+            {errorMessage ? (
+              <div className="rounded-lg border border-destructive bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {errorMessage}
+              </div>
+            ) : null}
 
             <div className="grid gap-4 md:grid-cols-2">
               <div>

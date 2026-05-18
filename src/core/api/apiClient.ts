@@ -9,9 +9,10 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config) => {
-	const token = useAuthStore.getState().user?.token;
-	if (token && config.headers) {
-		config.headers.Authorization = `Bearer ${token}`;
+	const authUser = useAuthStore.getState().user;
+	if (authUser?.token && config.headers) {
+		const tokenType = authUser.type ?? "Bearer";
+		config.headers.Authorization = `${tokenType} ${authUser.token}`;
 	}
 	return config;
 });
