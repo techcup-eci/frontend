@@ -11,7 +11,7 @@ import {
 } from "../../../shared/components/ui/dialog";
 import { Home, User, Users, Trophy, BarChart3, Calendar, Search, Hash } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8082/api";
+const API_URL = import.meta.env.VITE_API_URL || "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io/api";
 
 export default function SearchTeams() {
   const navigate = useNavigate();

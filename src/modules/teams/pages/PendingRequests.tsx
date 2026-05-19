@@ -7,7 +7,7 @@ import { Bell, Users, ChevronRight, Loader2, XCircle } from "lucide-react";
 const TEAM_ID = "1";
 const USER_ID = "10";
 
-const BASE_URL = "http://localhost:8082";
+const BASE_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
 
 function normalizeIds(data: unknown): string[] {
   if (!Array.isArray(data)) return [];

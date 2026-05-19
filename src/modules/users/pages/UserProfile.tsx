@@ -2,11 +2,12 @@ import { useEffect } from "react";
 import { User, UserPlus } from "lucide-react";
 import { Link } from "react-router";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { getFullName } from "../../auth/types/AuthUser";
 
 export default function UserProfile() {
   const authUser = useAuthStore((state) => state.user);
-  const displayName = authUser?.fullName ?? "Sebastian Torres";
-  const displayEmail = authUser?.email ?? "sebastian.torres@escuelaing.edu.co";
+  const displayName = getFullName(authUser);
+  const displayEmail = authUser?.email ?? "No disponible";
 
   useEffect(() => {
     if (authUser?.email) {

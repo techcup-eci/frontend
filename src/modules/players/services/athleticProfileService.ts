@@ -7,7 +7,7 @@ type ApiEnvelope<T> = {
   status?: string;
 };
 
-const DEFAULT_API_URL = "http://localhost:8080";
+const DEFAULT_API_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
 
 function getAthleticProfileBaseUrl() {
   const configuredUrl =

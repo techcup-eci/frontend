@@ -7,7 +7,7 @@ import { User, CheckCircle, XCircle, ArrowLeft, Loader2 } from "lucide-react";
 const TEAM_ID = "1";
 const USER_ID = "10";
 
-const BASE_URL = "http://localhost:8082";
+const BASE_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
 
 export default function PlayerRequestDetail() {
   const { jugadorId } = useParams<{ jugadorId: string }>();
