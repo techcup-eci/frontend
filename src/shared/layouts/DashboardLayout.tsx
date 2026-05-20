@@ -11,6 +11,7 @@ import {
 	Mail,
 	Menu,
 	Settings,
+	Shield,
 	Table,
 	Trophy,
 	User,
@@ -50,6 +51,7 @@ const playerSidebar = [
 		items: [
 			{ label: "Inicio", path: "/player/dashboard", icon: Home },
 			{ label: "Mi Perfil", path: "/player/profile", icon: User },
+			{ label: "Mi Equipo", path: "/player/team-info", icon: Shield },
 			{ label: "Buscar Equipos", path: "/player/teams", icon: Users },
 			{ label: "Invitaciones", path: "/player/invitations", icon: Mail },
 			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
@@ -75,7 +77,7 @@ const captainSidebar = [
 	{
 		items: [
 			{ label: "Inicio", path: "/captain/dashboard", icon: Home },
-			{ label: "Mi Equipo", path: "/captain/manage", icon: Users },
+			{ label: "Mi Equipo", path: "/captain/team-info", icon: Shield },
 			{
 				label: "Buscar Jugadores",
 				path: "/captain/search-players",

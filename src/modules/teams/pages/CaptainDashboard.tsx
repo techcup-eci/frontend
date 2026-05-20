@@ -1,4 +1,4 @@
-import { Bell, AlertTriangle } from "lucide-react";
+import { Bell, AlertTriangle, Users, CreditCard, Trophy, UserPlus, LayoutList } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
 import { Link } from "react-router";
 

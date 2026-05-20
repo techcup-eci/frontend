@@ -13,6 +13,7 @@ import EditProfile from "../../modules/players/pages/EditProfile";
 import MarkAvailability from "../../modules/players/pages/MarkAvailability";
 import PlayerDashboard from "../../modules/players/pages/PlayerDashboard";
 import PlayerInvitations from "../../modules/players/pages/PlayerInvitations";
+import PlayerTeamInfo from "../../modules/players/pages/PlayerTeamInfo";
 import SearchTeams from "../../modules/players/pages/SearchTeams";
 import TeamDetail from "../../modules/players/pages/TeamDetail";
 import TeamInvitationDetail from "../../modules/players/pages/TeamInvitationDetail";
@@ -22,7 +23,9 @@ import ViewRivalLineup from "../../modules/players/pages/ViewRivalLineup";
 import CaptainDashboard from "../../modules/teams/pages/CaptainDashboard";
 import ConfigureLineup from "../../modules/teams/pages/ConfigureLineup";
 import CreateTeam from "../../modules/teams/pages/CreateTeam";
+import EditTeam from "../../modules/teams/pages/EditTeam";
 import ManageTeam from "../../modules/teams/pages/ManageTeam";
+import TeamInfo from "../../modules/teams/pages/TeamInfo";
 import PendingRequests from "../../modules/teams/pages/PendingRequests";
 import PlayerRequestDetail from "../../modules/teams/pages/PlayerRequestDetail";
 import SearchPlayers from "../../modules/teams/pages/SearchPlayers";
@@ -86,6 +89,7 @@ export function AppRoutes() {
         <Route path="/player/teams/:id" element={<TeamDetail />} />
         <Route path="/player/invitations" element={<PlayerInvitations />} />
         <Route path="/player/invitations/:teamId" element={<TeamInvitationDetail />} />
+        <Route path="/player/team-info" element={<PlayerTeamInfo />} />
         <Route path="/player/lineup" element={<ViewLineup />} />
         <Route path="/player/lineup/rival/:id" element={<ViewRivalLineup />} />
 
@@ -98,6 +102,8 @@ export function AppRoutes() {
         <Route path="/captain/lineup" element={<ConfigureLineup />} />
         <Route path="/captain/requests" element={<PendingRequests />} />
         <Route path="/captain/requests/:jugadorId" element={<PlayerRequestDetail />} />
+        <Route path="/captain/team-info" element={<TeamInfo />} />
+        <Route path="/captain/edit-team" element={<EditTeam />} />
 
         {/* Organizer */}
         <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
