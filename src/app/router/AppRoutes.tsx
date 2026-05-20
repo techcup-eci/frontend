@@ -90,7 +90,7 @@ export function AppRoutes() {
         <Route path="/player/lineup/rival/:id" element={<ViewRivalLineup />} />
 
         {/* Captain */}
-        <Route path="/captain/create-team" element={<CreateTeam />} />
+        <Route path="/player/create-team" element={<CreateTeam />} />
         <Route path="/captain/dashboard" element={<CaptainDashboard />} />
         <Route path="/captain/manage-team" element={<ManageTeam />} />
         <Route path="/captain/search-players" element={<SearchPlayers />} />
