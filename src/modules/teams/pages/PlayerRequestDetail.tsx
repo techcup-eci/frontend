@@ -2,12 +2,12 @@ import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import axios from "axios";
 import { User, CheckCircle, XCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { apiClient } from "../../../core/api/apiClient";
 
 // TODO: obtener del contexto de autenticación, estos son casos de prueba
 const TEAM_ID = "1";
 const USER_ID = "10";
 
-const BASE_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
 
 export default function PlayerRequestDetail() {
   const { jugadorId } = useParams<{ jugadorId: string }>();
@@ -21,8 +21,8 @@ export default function PlayerRequestDetail() {
     setLoading(true);
     setError(null);
     try {
-      await axios.post(
-        `${BASE_URL}/api/teams/${TEAM_ID}/solicitudes/${jugadorId}/${action}`,
+      await apiClient.post(
+        `/api/teams/${TEAM_ID}/solicitudes/${jugadorId}/${action}`,
         {},
         { headers: { "X-User-Id": USER_ID } }
       );

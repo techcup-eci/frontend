@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
 import { Bell, Users, ChevronRight, Loader2, XCircle, CheckCircle } from "lucide-react";
+import { apiClient } from "../../../core/api/apiClient";
 
 // TODO: obtener del contexto de autenticación
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8082";
 const TEAM_ID = import.meta.env.VITE_TEAM_ID ?? "1";
 const USER_ID = import.meta.env.VITE_USER_ID ?? "10";
 
@@ -37,8 +37,8 @@ export default function PendingRequests() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/teams/${TEAM_ID}/solicitudes`,
+      const { data } = await apiClient.get(
+        `/api/teams/${TEAM_ID}/solicitudes`,
         { headers: { "X-User-Id": USER_ID } }
       );
       setJugadorIds(normalizeIds(data));
@@ -57,8 +57,8 @@ export default function PendingRequests() {
     setAcceptingId(jugadorId);
     setError(null);
     try {
-      await axios.post(
-        `${BASE_URL}/api/teams/${TEAM_ID}/solicitudes/${jugadorId}/accept`,
+      await apiClient.post(
+        `/api/teams/${TEAM_ID}/solicitudes/${jugadorId}/accept`,
         {},
         { headers: { "X-User-Id": USER_ID } }
       );
