@@ -262,7 +262,7 @@ export default function TeamInfo() {
                           <span className="font-medium">Jugador #{id}</span>
                           <div className="flex items-center gap-3">
                             <button
-                              onClick={() => navigate(`/players/${id}`)}
+                              onClick={() => navigate(`/users/${id}/profile`)}
                               className="text-sm text-primary transition hover:underline"
                             >
                               Ver perfil

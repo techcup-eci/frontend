@@ -42,6 +42,7 @@ import ScheduleMatches from "../../modules/tournaments/pages/ScheduleMatches";
 import Standings from "../../modules/tournaments/pages/Standings";
 import UserDashboard from "../../modules/users/pages/UserDashboard";
 import UserProfile from "../../modules/users/pages/UserProfile";
+import UserPublicProfile from "../../modules/users/pages/UserPublicProfile";
 import UserTeams from "../../modules/users/pages/UserTeams";
 import PlayerPublicProfile from "../../shared/components/common/PlayerPublicProfile";
 import TournamentInfo from "../../shared/components/common/TournamentInfo";
@@ -76,6 +77,7 @@ export function AppRoutes() {
         <Route path="/user/dashboard" element={<UserDashboard />} />
         <Route path="/user/profile" element={<UserProfile />} />
         <Route path="/user/teams" element={<UserTeams />} />
+        <Route path="/users/:userId/profile" element={<UserPublicProfile />} />
         <Route path="/user/teams/:id" element={<TeamDetail />} />
 
         {/* Player */}

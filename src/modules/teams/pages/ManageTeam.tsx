@@ -202,7 +202,7 @@ export default function ManageTeam() {
                               <td className="px-4 py-4">
                                 <div className="flex justify-center gap-2">
                                   <button
-                                    onClick={() => navigate(`/players/${playerId}`)}
+                                    onClick={() => navigate(`/users/${playerId}/profile`)}
                                     className="rounded-lg border border-border bg-background px-3 py-1.5 text-sm font-medium transition hover:bg-accent"
                                     title="Ver perfil"
                                   >
