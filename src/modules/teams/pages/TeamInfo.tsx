@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Shield, Users, Loader2, XCircle, Pencil, Settings } from "lucide-react";
+import { Shield, Users, Loader2, XCircle, Pencil, Settings, Trash2 } from "lucide-react";
 import { apiClient } from "../../../core/api/apiClient";
 
 // TODO: obtener del contexto de autenticación
@@ -25,6 +25,11 @@ export default function TeamInfo() {
   const [team, setTeam] = useState<TeamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{ open: boolean; playerId: number | null }>({
+    open: false,
+    playerId: null,
+  });
+  const [deletingPlayerId, setDeletingPlayerId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchTeam();
@@ -45,10 +50,81 @@ export default function TeamInfo() {
     }
   }
 
+  function openConfirmModal(playerId: number) {
+    setError(null);
+    setConfirmModal({ open: true, playerId });
+  }
+
+  function closeModal() {
+    setConfirmModal({ open: false, playerId: null });
+  }
+
+  async function handleConfirmDelete() {
+    const playerId = confirmModal.playerId;
+    if (playerId === null) return;
+
+    setDeletingPlayerId(playerId);
+    setError(null);
+    try {
+      await apiClient.delete(`/api/teams/${TEAM_ID}/players/${playerId}`, {
+        headers: { "X-User-Id": USER_ID },
+      });
+      setTeam((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          players: prev.players.filter((id) => id !== playerId),
+          idPlayers: prev.idPlayers.filter((id) => id !== playerId),
+          currentPlayers: prev.currentPlayers - 1,
+        };
+      });
+      closeModal();
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      const msg = axiosError?.response?.data?.message;
+      setError(msg ?? "No se pudo eliminar al jugador. Es posible que haya un torneo activo.");
+      closeModal();
+    } finally {
+      setDeletingPlayerId(null);
+    }
+  }
+
   const playerIds: number[] = (team?.players?.length ? team.players : team?.idPlayers) ?? [];
 
   return (
     <div className="flex min-h-screen flex-col">
+      {confirmModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="mx-4 w-full max-w-sm rounded-xl border border-border bg-card p-6 shadow-lg">
+            <h3 className="mb-2 text-lg font-bold">Eliminar jugador</h3>
+            <p className="mb-6 text-sm text-muted-foreground">
+              ¿Estás seguro de que deseas eliminar a este jugador del equipo? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={closeModal}
+                disabled={deletingPlayerId !== null}
+                className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent disabled:opacity-50"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={deletingPlayerId !== null}
+                className="flex items-center gap-2 rounded-lg bg-destructive px-4 py-2 text-sm font-semibold text-destructive-foreground transition hover:bg-destructive/90 disabled:opacity-50"
+              >
+                {deletingPlayerId !== null ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-1">
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-3xl space-y-8">
@@ -184,12 +260,26 @@ export default function TeamInfo() {
                           className="flex items-center justify-between rounded-lg border border-border bg-background px-4 py-3"
                         >
                           <span className="font-medium">Jugador #{id}</span>
-                          <button
-                            onClick={() => navigate(`/players/${id}`)}
-                            className="text-sm text-primary transition hover:underline"
-                          >
-                            Ver perfil
-                          </button>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => navigate(`/players/${id}`)}
+                              className="text-sm text-primary transition hover:underline"
+                            >
+                              Ver perfil
+                            </button>
+                            <button
+                              onClick={() => openConfirmModal(id)}
+                              disabled={deletingPlayerId !== null}
+                              className="flex items-center justify-center rounded-lg border border-destructive bg-destructive/10 px-2 py-1 text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
+                              title="Eliminar del equipo"
+                            >
+                              {deletingPlayerId === id ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
