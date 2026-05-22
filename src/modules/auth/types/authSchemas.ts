@@ -76,7 +76,9 @@ const refineEmailAndRelation = (data: {
 				path: ["academicLevel"],
 			});
 		}
+	}
 
+	if (data.schoolRelation) {
 		if (!data.academicProgram || !data.academicProgram.trim()) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,

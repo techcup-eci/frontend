@@ -83,7 +83,7 @@ export default function Register() {
       schoolRelation: formData.schoolRelation,
       academicLevel: formData.schoolRelation !== "PROFESSOR" ? (formData.academicLevel || undefined) : null,
       professorType: formData.schoolRelation === "PROFESSOR" ? (formData.professorType || undefined) : null,
-      academicProgram: formData.schoolRelation !== "PROFESSOR" ? (formData.academicProgram || undefined) : null,
+      academicProgram: formData.schoolRelation ? (formData.academicProgram || undefined) : null,
       semester: formData.schoolRelation === "STUDENT"
         ? (formData.semester ? Number(formData.semester) : undefined)
         : null,
@@ -288,89 +288,143 @@ export default function Register() {
                 {errors.schoolRelation && <p className="mt-1 text-xs text-destructive">{errors.schoolRelation}</p>}
               </div>
 
-              {formData.schoolRelation && formData.schoolRelation !== "PROFESSOR" && (
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Nivel académico</label>
-                    <select
-                      required
-                      value={formData.academicLevel}
-                      onChange={(e) => {
-                        const level = e.target.value;
-                        setFormData((prev) => ({
-                          ...prev,
-                          academicLevel: level,
-                        }));
-                        if (errors.academicLevel) setErrors((prev) => ({ ...prev, academicLevel: "" }));
-                      }}
-                      className={inputClass("academicLevel")}
-                    >
-                      <option value="">Selecciona</option>
-                      <option value="UNDERGRADUATE">Pregrado</option>
-                      <option value="POSTGRADUATE">Posgrado</option>
-                      <option value="MASTER">Maestría</option>
-                    </select>
-                    {errors.academicLevel && <p className="mt-1 text-xs text-destructive">{errors.academicLevel}</p>}
-                  </div>
+              {/* Campos dinámicos según Relación Institucional */}
+              {formData.schoolRelation && (
+                <div className="space-y-4">
+                  {formData.schoolRelation === "STUDENT" && (
+                    <>
+                      <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                          <label className="mb-1 block text-sm font-medium">Nivel académico</label>
+                          <select
+                            required
+                            value={formData.academicLevel}
+                            onChange={(e) => {
+                              setFormData((prev) => ({ ...prev, academicLevel: e.target.value }));
+                              if (errors.academicLevel) setErrors((prev) => ({ ...prev, academicLevel: "" }));
+                            }}
+                            className={inputClass("academicLevel")}
+                          >
+                            <option value="">Selecciona</option>
+                            <option value="UNDERGRADUATE">Pregrado</option>
+                            <option value="POSTGRADUATE">Posgrado</option>
+                            <option value="MASTER">Maestría</option>
+                          </select>
+                          {errors.academicLevel && <p className="mt-1 text-xs text-destructive">{errors.academicLevel}</p>}
+                        </div>
+                        <div>
+                          <label className="mb-1 block text-sm font-medium">Programa académico</label>
+                          <input
+                            type="text"
+                            required
+                            value={formData.academicProgram}
+                            onChange={(e) => {
+                              setFormData((prev) => ({ ...prev, academicProgram: e.target.value }));
+                              if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
+                            }}
+                            className={inputClass("academicProgram")}
+                            placeholder="Ej. Ingeniería de Sistemas"
+                          />
+                          {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Semestre</label>
+                        <select
+                          required
+                          value={formData.semester}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, semester: e.target.value }));
+                            if (errors.semester) setErrors((prev) => ({ ...prev, semester: "" }));
+                          }}
+                          className={inputClass("semester")}
+                        >
+                          <option value="">Selecciona</option>
+                          {Array.from({ length: 10 }, (_, i) => i + 1).map((sem) => (
+                            <option key={sem} value={sem.toString()}>
+                              {sem}
+                            </option>
+                          ))}
+                        </select>
+                        {errors.semester && <p className="mt-1 text-xs text-destructive">{errors.semester}</p>}
+                      </div>
+                    </>
+                  )}
 
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Programa académico</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.academicProgram}
-                      onChange={(e) => {
-                        setFormData((prev) => ({ ...prev, academicProgram: e.target.value }));
-                        if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
-                      }}
-                      className={inputClass("academicProgram")}
-                      placeholder="Ej. Ingeniería de Sistemas"
-                    />
-                    {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
-                  </div>
-                </div>
-              )}
+                  {formData.schoolRelation === "PROFESSOR" && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Tipo de profesor</label>
+                        <select
+                          required
+                          value={formData.professorType}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, professorType: e.target.value }));
+                            if (errors.professorType) setErrors((prev) => ({ ...prev, professorType: "" }));
+                          }}
+                          className={inputClass("professorType")}
+                        >
+                          <option value="">Selecciona</option>
+                          <option value="FULL_TIME">Tiempo Completo</option>
+                          <option value="CHAIR">Cátedra</option>
+                        </select>
+                        {errors.professorType && <p className="mt-1 text-xs text-destructive">{errors.professorType}</p>}
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Programa académico</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.academicProgram}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, academicProgram: e.target.value }));
+                            if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
+                          }}
+                          className={inputClass("academicProgram")}
+                          placeholder="Ej. Ingeniería de Sistemas"
+                        />
+                        {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
+                      </div>
+                    </div>
+                  )}
 
-              {formData.schoolRelation === "STUDENT" && (
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Semestre</label>
-                  <select
-                    required
-                    value={formData.semester}
-                    onChange={(e) => {
-                      setFormData((prev) => ({ ...prev, semester: e.target.value }));
-                      if (errors.semester) setErrors((prev) => ({ ...prev, semester: "" }));
-                    }}
-                    className={inputClass("semester")}
-                  >
-                    <option value="">Selecciona</option>
-                    {Array.from({ length: 10 }, (_, i) => i + 1).map((sem) => (
-                      <option key={sem} value={sem.toString()}>
-                        {sem}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.semester && <p className="mt-1 text-xs text-destructive">{errors.semester}</p>}
-                </div>
-              )}
-
-              {formData.schoolRelation === "PROFESSOR" && (
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Tipo de profesor</label>
-                  <select
-                    required
-                    value={formData.professorType}
-                    onChange={(e) => {
-                      setFormData((prev) => ({ ...prev, professorType: e.target.value }));
-                      if (errors.professorType) setErrors((prev) => ({ ...prev, professorType: "" }));
-                    }}
-                    className={inputClass("professorType")}
-                  >
-                    <option value="">Selecciona</option>
-                    <option value="FULL_TIME">Tiempo Completo</option>
-                    <option value="CHAIR">Cátedra</option>
-                  </select>
-                  {errors.professorType && <p className="mt-1 text-xs text-destructive">{errors.professorType}</p>}
+                  {formData.schoolRelation === "GRADUATE" && (
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Nivel académico</label>
+                        <select
+                          required
+                          value={formData.academicLevel}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, academicLevel: e.target.value }));
+                            if (errors.academicLevel) setErrors((prev) => ({ ...prev, academicLevel: "" }));
+                          }}
+                          className={inputClass("academicLevel")}
+                        >
+                          <option value="">Selecciona</option>
+                          <option value="UNDERGRADUATE">Pregrado</option>
+                          <option value="POSTGRADUATE">Posgrado</option>
+                          <option value="MASTER">Maestría</option>
+                        </select>
+                        {errors.academicLevel && <p className="mt-1 text-xs text-destructive">{errors.academicLevel}</p>}
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-medium">Programa académico</label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.academicProgram}
+                          onChange={(e) => {
+                            setFormData((prev) => ({ ...prev, academicProgram: e.target.value }));
+                            if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
+                          }}
+                          className={inputClass("academicProgram")}
+                          placeholder="Ej. Ingeniería de Sistemas"
+                        />
+                        {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
