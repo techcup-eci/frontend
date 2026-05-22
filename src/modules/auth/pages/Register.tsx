@@ -36,6 +36,16 @@ export default function Register() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  const getBirthDateLimits = () => {
+    const now = new Date();
+    const maxDateStr = now.toISOString().split("T")[0];
+    const minDate = new Date();
+    minDate.setFullYear(now.getFullYear() - 130);
+    const minDateStr = minDate.toISOString().split("T")[0];
+    return { min: minDateStr, max: maxDateStr };
+  };
+  const { min: minBirthDate, max: maxBirthDate } = getBirthDateLimits();
+
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (/^[^0-9]*$/.test(val)) {
@@ -48,7 +58,7 @@ export default function Register() {
 
   const handleDigitsOnlyChange = (field: "phone" | "identificationNumber") => (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (/^\d*$/.test(val)) {
+    if (/^\d*$/.test(val) && val.length <= 10) {
       setFormData((prev) => ({ ...prev, [field]: val }));
       if (errors[field]) {
         setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -164,6 +174,8 @@ export default function Register() {
                   <input
                     type="date"
                     required
+                    min={minBirthDate}
+                    max={maxBirthDate}
                     value={formData.birthDate}
                     onChange={(e) => {
                       setFormData({ ...formData, birthDate: e.target.value });
@@ -380,7 +392,13 @@ export default function Register() {
                 />
                 {errors.email && <p className="mt-1 text-xs text-destructive">{errors.email}</p>}
                 <p className="mt-1 text-[11px] text-muted-foreground">
-                  Dominios permitidos: @mail.escuelaing.edu.co, @escuelaing.edu.co, @gmail.com
+                  {formData.schoolRelation === "STUDENT"
+                    ? "Para estudiantes: @mail.escuelaing.edu.co o @gmail.com"
+                    : formData.schoolRelation === "PROFESSOR"
+                    ? "Para profesores: @escuelaing.edu.co o @gmail.com"
+                    : formData.schoolRelation === "GRADUATE"
+                    ? "Para invitados: únicamente @gmail.com"
+                    : "Dominios permitidos según tu relación institucional."}
                 </p>
               </div>
 

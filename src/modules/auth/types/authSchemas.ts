@@ -40,21 +40,23 @@ export const registerRequestSchema = z.object({
 		.string()
 		.trim()
 		.min(1, "Ingresa tu correo.")
-		.email("Escribe un correo válido.")
-		.refine((val) => {
-			const emailLower = val.toLowerCase();
-			return (
-				emailLower.endsWith("@mail.escuelaing.edu.co") ||
-				emailLower.endsWith("@escuelaing.edu.co") ||
-				emailLower.endsWith("@gmail.com")
-			);
-		}, "El correo debe tener uno de los siguientes dominios: @mail.escuelaing.edu.co, @escuelaing.edu.co, @gmail.com"),
+		.email("Escribe un correo válido."),
 	password: z
 		.string()
 		.min(1, "Ingresa tu contraseña.")
 		.min(8, "La contraseña debe tener al menos 8 caracteres."),
 	confirmPassword: z.string().min(1, "Confirma tu contraseña."),
-	birthDate: z.string().min(1, "La fecha de nacimiento es requerida."),
+	birthDate: z
+		.string()
+		.min(1, "La fecha de nacimiento es requerida.")
+		.refine((val) => {
+			const date = new Date(val);
+			if (isNaN(date.getTime())) return false;
+			const now = new Date();
+			const minDate = new Date();
+			minDate.setFullYear(now.getFullYear() - 130);
+			return date <= now && date >= minDate;
+		}, "La fecha de nacimiento no es válida (máximo 130 años de edad y no puede ser en el futuro)."),
 	schoolRelation: z.enum(["STUDENT", "PROFESSOR", "GRADUATE"], {
 		errorMap: () => ({ message: "Selecciona una relación con la escuela válida." }),
 	}),
@@ -68,10 +70,14 @@ export const registerRequestSchema = z.object({
 	identificationNumber: z.number({
 		required_error: "El número de identificación es requerido.",
 		invalid_type_error: "El número de identificación debe ser un valor numérico.",
+	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
+		message: "El documento debe tener exactamente 10 dígitos.",
 	}),
 	phone: z.number({
 		required_error: "El teléfono es requerido.",
 		invalid_type_error: "El teléfono debe ser un valor numérico.",
+	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
+		message: "El teléfono debe tener exactamente 10 dígitos.",
 	}),
 }).superRefine((data, ctx) => {
 	if (data.password !== data.confirmPassword) {
@@ -80,6 +86,36 @@ export const registerRequestSchema = z.object({
 			message: "Las contraseñas no coinciden.",
 			path: ["confirmPassword"],
 		});
+	}
+
+	const emailLower = data.email.toLowerCase();
+	if (data.schoolRelation === "PROFESSOR") {
+		const isValid = emailLower.endsWith("@escuelaing.edu.co") || emailLower.endsWith("@gmail.com");
+		if (!isValid) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Para profesores, el correo debe terminar en @escuelaing.edu.co o @gmail.com",
+				path: ["email"],
+			});
+		}
+	} else if (data.schoolRelation === "STUDENT") {
+		const isValid = emailLower.endsWith("@mail.escuelaing.edu.co") || emailLower.endsWith("@gmail.com");
+		if (!isValid) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Para estudiantes, el correo debe terminar en @mail.escuelaing.edu.co o @gmail.com",
+				path: ["email"],
+			});
+		}
+	} else if (data.schoolRelation === "GRADUATE") {
+		const isValid = emailLower.endsWith("@gmail.com");
+		if (!isValid) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "Para invitados, el correo debe terminar en @gmail.com",
+				path: ["email"],
+			});
+		}
 	}
 
 	if (data.schoolRelation === "STUDENT") {
