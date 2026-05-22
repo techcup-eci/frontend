@@ -16,6 +16,17 @@ function zodErrorsToMap(issues: ZodIssue[]): Record<string, string> {
   return map;
 }
 
+const ACADEMIC_PROGRAMS = [
+  "Ingeniería de Sistemas",
+  "Ingeniería de Inteligencia Artificial",
+  "Ingeniería de Ciberseguridad",
+  "Ingeniería Estadística",
+  "Ingeniería Industrial",
+  "Matemáticas",
+  "Especialización en Software",
+  "Maestría en Inteligencia Artificial",
+];
+
 export default function Register() {
   const navigate = useNavigate();
   const { register, isPending, errorMessage, resetState } = useRegister();
@@ -314,8 +325,7 @@ export default function Register() {
                         </div>
                         <div>
                           <label className="mb-1 block text-sm font-medium">Programa académico</label>
-                          <input
-                            type="text"
+                          <select
                             required
                             value={formData.academicProgram}
                             onChange={(e) => {
@@ -323,8 +333,14 @@ export default function Register() {
                               if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
                             }}
                             className={inputClass("academicProgram")}
-                            placeholder="Ej. Ingeniería de Sistemas"
-                          />
+                          >
+                            <option value="">Selecciona</option>
+                            {ACADEMIC_PROGRAMS.map((prog) => (
+                              <option key={prog} value={prog}>
+                                {prog}
+                              </option>
+                            ))}
+                          </select>
                           {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
                         </div>
                       </div>
@@ -372,8 +388,7 @@ export default function Register() {
                       </div>
                       <div>
                         <label className="mb-1 block text-sm font-medium">Programa académico</label>
-                        <input
-                          type="text"
+                        <select
                           required
                           value={formData.academicProgram}
                           onChange={(e) => {
@@ -381,8 +396,14 @@ export default function Register() {
                             if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
                           }}
                           className={inputClass("academicProgram")}
-                          placeholder="Ej. Ingeniería de Sistemas"
-                        />
+                        >
+                          <option value="">Selecciona</option>
+                          {ACADEMIC_PROGRAMS.map((prog) => (
+                            <option key={prog} value={prog}>
+                              {prog}
+                            </option>
+                          ))}
+                        </select>
                         {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
                       </div>
                     </div>
@@ -410,8 +431,7 @@ export default function Register() {
                       </div>
                       <div>
                         <label className="mb-1 block text-sm font-medium">Programa académico</label>
-                        <input
-                          type="text"
+                        <select
                           required
                           value={formData.academicProgram}
                           onChange={(e) => {
@@ -419,8 +439,14 @@ export default function Register() {
                             if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
                           }}
                           className={inputClass("academicProgram")}
-                          placeholder="Ej. Ingeniería de Sistemas"
-                        />
+                        >
+                          <option value="">Selecciona</option>
+                          {ACADEMIC_PROGRAMS.map((prog) => (
+                            <option key={prog} value={prog}>
+                              {prog}
+                            </option>
+                          ))}
+                        </select>
                         {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
                       </div>
                     </div>
