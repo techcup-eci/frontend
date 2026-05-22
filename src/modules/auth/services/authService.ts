@@ -85,19 +85,33 @@ export async function login(credentials: LoginRequest): Promise<AuthUser> {
 }
 
 export async function register(credentials: RegisterRequest): Promise<AuthUser> {
-	const parsedCredentials = registerRequestSchema.parse(credentials);
-	const [firstName, ...lastNameParts] = parsedCredentials.fullName.split(" ");
-	const lastName = lastNameParts.join(" ");
+	const parsed = registerRequestSchema.parse(credentials);
+	
+	const requestBody: Record<string, unknown> = {
+		name: parsed.name,
+		email: parsed.email,
+		password: parsed.password,
+		birthDate: parsed.birthDate,
+		schoolRelation: parsed.schoolRelation,
+		identificationType: parsed.identificationType,
+		identificationNumber: parsed.identificationNumber,
+		phone: parsed.phone,
+	};
+
+	if (parsed.schoolRelation === "STUDENT") {
+		requestBody.academicLevel = parsed.academicLevel;
+		if (parsed.academicLevel === "UNDERGRADUATE") {
+			requestBody.academicProgram = parsed.academicProgram;
+			requestBody.semester = parsed.semester;
+		}
+	} else if (parsed.schoolRelation === "PROFESSOR") {
+		requestBody.professorType = parsed.professorType;
+	}
+
 	const response = await fetch(`${BASE_URL}/api/identity/register`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			email: parsedCredentials.email,
-			password: parsedCredentials.password,
-			role: parsedCredentials.role,
-			firstName: firstName,
-			lastName: lastName,
-		}),
+		body: JSON.stringify(requestBody),
 	});
 
 	if (!response.ok) {

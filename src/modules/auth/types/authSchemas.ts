@@ -31,25 +31,89 @@ export const loginRequestSchema = z.object({
 });
 
 export const registerRequestSchema = z.object({
+	name: z
+		.string()
+		.trim()
+		.min(1, "El nombre completo es requerido.")
+		.regex(/^[^0-9]+$/, "El nombre no puede contener números."),
 	email: z
 		.string()
 		.trim()
-		.min(1, "Ingresa tu correo institucional o registrado.")
-		.email("Escribe un correo válido."),
+		.min(1, "Ingresa tu correo.")
+		.email("Escribe un correo válido.")
+		.refine((val) => {
+			const emailLower = val.toLowerCase();
+			return (
+				emailLower.endsWith("@mail.escuelaing.edu.co") ||
+				emailLower.endsWith("@escuelaing.edu.co") ||
+				emailLower.endsWith("@gmail.com")
+			);
+		}, "El correo debe tener uno de los siguientes dominios: @mail.escuelaing.edu.co, @escuelaing.edu.co, @gmail.com"),
 	password: z
 		.string()
 		.min(1, "Ingresa tu contraseña.")
 		.min(8, "La contraseña debe tener al menos 8 caracteres."),
-	role: z
-		.string()
-		.trim()
-		.default("USER")
-		.transform((value) => value.toUpperCase()),
-	fullName: z
-		.string()
-		.trim()
-		.min(1, "El nombre completo es requerido.")
-		.regex(/^[a-záéíóúñA-ZÁÉÍÓÚÑ\s'-]+$/, "El nombre solo puede contener letras, espacios, guiones y apóstrofes."),
+	confirmPassword: z.string().min(1, "Confirma tu contraseña."),
+	birthDate: z.string().min(1, "La fecha de nacimiento es requerida."),
+	schoolRelation: z.enum(["STUDENT", "PROFESSOR", "GRADUATE"], {
+		errorMap: () => ({ message: "Selecciona una relación con la escuela válida." }),
+	}),
+	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).optional(),
+	professorType: z.enum(["FULL_TIME", "CHAIR"]).optional(),
+	academicProgram: z.string().optional(),
+	semester: z.number().optional(),
+	identificationType: z.enum(["CC", "TI", "PP", "CE", "OTRO"], {
+		errorMap: () => ({ message: "Selecciona un tipo de identificación válido." }),
+	}),
+	identificationNumber: z.number({
+		required_error: "El número de identificación es requerido.",
+		invalid_type_error: "El número de identificación debe ser un valor numérico.",
+	}),
+	phone: z.number({
+		required_error: "El teléfono es requerido.",
+		invalid_type_error: "El teléfono debe ser un valor numérico.",
+	}),
+}).superRefine((data, ctx) => {
+	if (data.password !== data.confirmPassword) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Las contraseñas no coinciden.",
+			path: ["confirmPassword"],
+		});
+	}
+
+	if (data.schoolRelation === "STUDENT") {
+		if (!data.academicLevel) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "El nivel académico es requerido para estudiantes.",
+				path: ["academicLevel"],
+			});
+		} else if (data.academicLevel === "UNDERGRADUATE") {
+			if (!data.academicProgram) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "El programa académico es requerido para estudiantes de pregrado.",
+					path: ["academicProgram"],
+				});
+			}
+			if (data.semester === undefined || data.semester < 1 || data.semester > 10) {
+				ctx.addIssue({
+					code: z.ZodIssueCode.custom,
+					message: "El semestre debe estar entre 1 y 10.",
+					path: ["semester"],
+				});
+			}
+		}
+	} else if (data.schoolRelation === "PROFESSOR") {
+		if (!data.professorType) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "El tipo de profesor es requerido para profesores.",
+				path: ["professorType"],
+			});
+		}
+	}
 });
 
 export const loginResponseSchema = z
