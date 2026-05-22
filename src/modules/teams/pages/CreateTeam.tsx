@@ -1,22 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Upload, Shield } from "lucide-react";
+import { Shield, Upload } from "lucide-react";
 import { apiClient } from "../../../core/api/apiClient";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
-
-const captainSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/captain/dashboard", icon: Home },
-      { label: "Mi Equipo", path: "/captain/manage", icon: Users },
-      { label: "Buscar Jugadores", path: "/captain/search-players", icon: UserPlus },
-      { label: "Pagos", path: "/captain/payment", icon: CreditCard },
-      { label: "Alineación", path: "/captain/lineup", icon: LayoutList },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-    ],
-  },
-];
+import type { AuthUser } from "../../auth/types/AuthUser";
 
 export default function CreateTeam() {
   const navigate = useNavigate();
@@ -26,10 +13,8 @@ export default function CreateTeam() {
     name: "",
     color: "#1B5E35",
     description: "",
-    captainId: "",
-    playersInput: "",
   });
-  
+
   const [shieldPreview, setShieldPreview] = useState<string>("");
 
   const handleShieldChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,21 +31,22 @@ export default function CreateTeam() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const playersArray = formData.playersInput
-      .split(',')
-      .map(id => parseInt(id.trim()))
-      .filter(id => !isNaN(id));
+    // TODO: El jugador que crea el equipo se convierte automáticamente en capitán
+    // Requiere coordinación con el microservicio de identidad para cambiar el rol del usuario a CAPTAIN
+    // Ver endpoint disponible en users-and-players-ms para actualización de rol
+    const captainId = (currentUser as (AuthUser & { id?: number }))?.id;
 
     const equipoData = {
       name: formData.name,
       colors: formData.color,
-      captainId: parseInt(formData.captainId),
-      photo: shieldPreview || "", 
-      players: playersArray
+      captainId,
+      photo: shieldPreview || "",
     };
 
     try {
-      await apiClient.post("/equipos", equipoData);
+      await apiClient.post("/api/teams", equipoData, {
+        headers: { "X-User-Id": String(captainId ?? "") },
+      });
     } catch (error) {
       console.error("Error al crear el equipo:", error);
     }
@@ -74,9 +60,7 @@ export default function CreateTeam() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      
       <div className="flex flex-1">
-        
         <main className="flex-1 bg-background p-8">
           <div className="mx-auto max-w-3xl space-y-8">
             <div>
@@ -88,7 +72,7 @@ export default function CreateTeam() {
 
             <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-8">
               <div className="space-y-6">
-                
+
                 {/* Nombre del equipo */}
                 <div>
                   <label className="mb-2 block font-medium">Nombre del equipo</label>
@@ -100,33 +84,6 @@ export default function CreateTeam() {
                     className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
                     placeholder="Los Algoritmos FC"
                   />
-                </div>
-
-                {/* ID del Capitán */}
-                <div>
-                  <label className="mb-2 block font-medium">ID del Capitán</label>
-                  <input
-                    type="number"
-                    required
-                    value={formData.captainId}
-                    onChange={(e) => setFormData({ ...formData, captainId: e.target.value })}
-                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                    placeholder="Ej: 100123"
-                  />
-                </div>
-
-                {/* IDs de los Jugadores*/}
-                <div>
-                  <label className="mb-2 block font-medium">IDs de los Jugadores</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.playersInput}
-                    onChange={(e) => setFormData({ ...formData, playersInput: e.target.value })}
-                    className="w-full rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
-                    placeholder="Ej: 5, 12, 18, 21 (Separados por coma)"
-                  />
-                  <p className="mt-1 text-sm text-muted-foreground">Recuerda: Mínimo 7, máximo 12 jugadores.</p>
                 </div>
 
                 {/* Escudo */}
@@ -201,8 +158,7 @@ export default function CreateTeam() {
                       </div>
                       <div>
                         <h3 className="text-lg font-bold">{formData.name}</h3>
-                        {/* Actualicé el nombre para que muestre el ID real que se está escribiendo */}
-                        <p className="text-sm text-muted-foreground">Capitán: ID {formData.captainId || "Por definir"}</p>
+                        <p className="text-sm text-muted-foreground">{formData.description || "Sin descripción"}</p>
                       </div>
                     </div>
                   </div>

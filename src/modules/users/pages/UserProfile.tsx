@@ -8,7 +8,7 @@ export default function UserProfile() {
   const authUser = useAuthStore((state) => state.user);
   const displayName = getFullName(authUser);
   const displayEmail = authUser?.email ?? "No disponible";
-
+ 
   useEffect(() => {
     if (authUser?.email) {
       sessionStorage.setItem("playerEmail", authUser.email.trim().toLowerCase());

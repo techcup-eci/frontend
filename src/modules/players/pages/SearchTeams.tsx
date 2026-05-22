@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import TeamCard from "../../../shared/components/shared/TeamCard";
+import { apiClient } from "../../../core/api/apiClient";
 import {
   Dialog,
   DialogContent,
@@ -9,9 +9,24 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../../shared/components/ui/dialog";
-import { Home, User, Users, Trophy, BarChart3, Calendar, Search, Hash } from "lucide-react";
+import { Shield, Users, User, Search, Hash, Loader2, CheckCircle, XCircle } from "lucide-react";
 
-const API_URL = import.meta.env.VITE_API_URL || "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io/api";
+// TODO: obtener del contexto de autenticación
+const USER_ID = import.meta.env.VITE_USER_ID ?? "10";
+
+interface TeamDTO {
+  id: number;
+  name: string;
+  colors: string;
+  photo: string;
+  idCaptain: number;
+  currentPlayers: number;
+  maxPlayers: number;
+  tournamentStatus: string;
+  code?: string;
+}
+
+type RequestStatus = "idle" | "loading" | "sent" | "error";
 
 export default function SearchTeams() {
   const navigate = useNavigate();
@@ -19,19 +34,53 @@ export default function SearchTeams() {
   const [statusFilter, setStatusFilter] = useState("");
   const [joinCodeOpen, setJoinCodeOpen] = useState(false);
   const [teamCode, setTeamCode] = useState("");
-  const [teams, setTeams] = useState<any[]>([]);
+  const [teams, setTeams] = useState<TeamDTO[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [requestStatus, setRequestStatus] = useState<Record<number, RequestStatus>>({});
+  const [requestErrors, setRequestErrors] = useState<Record<number, string>>({});
 
   useEffect(() => {
-    fetch(`${API_URL}/teams`)
-      .then((res) => res.json())
-      .then((data) => { setTeams(data); setLoading(false); })
-      .catch((err) => { console.error("Error cargando equipos:", err); setLoading(false); });
+    fetchTeams();
   }, []);
+
+  async function fetchTeams() {
+    setLoading(true);
+    setFetchError(null);
+    try {
+      const { data } = await apiClient.get<TeamDTO[]>("/api/teams");
+      setTeams(data);
+    } catch {
+      setFetchError("Error al cargar los equipos. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSendRequest(teamId: number) {
+    setRequestStatus((prev) => ({ ...prev, [teamId]: "loading" }));
+    setRequestErrors((prev) => {
+      const next = { ...prev };
+      delete next[teamId];
+      return next;
+    });
+    try {
+      await apiClient.post(
+        `/api/teams/${teamId}/solicitudes`,
+        {},
+        { headers: { "X-User-Id": USER_ID } }
+      );
+      setRequestStatus((prev) => ({ ...prev, [teamId]: "sent" }));
+    } catch (err: any) {
+      setRequestStatus((prev) => ({ ...prev, [teamId]: "error" }));
+      const msg = err?.response?.data?.message ?? "Error al enviar la solicitud.";
+      setRequestErrors((prev) => ({ ...prev, [teamId]: msg }));
+    }
+  }
 
   const filteredTeams = teams.filter((team) => {
     const matchesSearch = team.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || team.state === statusFilter;
+    const matchesStatus = !statusFilter || team.tournamentStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -74,13 +123,17 @@ export default function SearchTeams() {
                   />
                 </div>
                 <DialogFooter>
-                  <button onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
-                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent">
+                  <button
+                    onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
+                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent"
+                  >
                     Cancelar
                   </button>
-                  <button disabled={teamCode.trim().length === 0}
+                  <button
+                    disabled={teamCode.trim().length === 0}
                     onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                  >
                     Confirmar
                   </button>
                 </DialogFooter>
@@ -90,12 +143,19 @@ export default function SearchTeams() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <input type="text" placeholder="Buscar por nombre..."
-                  value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:border-primary focus:outline-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:border-primary focus:outline-none"
+                />
               </div>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+              >
                 <option value="">Todos los estados</option>
                 <option value="ACTIVE">Aprobados</option>
                 <option value="DRAFT">En revisión</option>
@@ -103,26 +163,142 @@ export default function SearchTeams() {
               </select>
             </div>
 
+            {fetchError && (
+              <div className="flex items-center gap-3 rounded-lg bg-[#EF4444]/10 px-4 py-3 text-sm font-medium text-[#EF4444]">
+                <XCircle className="h-5 w-5 flex-shrink-0" />
+                {fetchError}
+              </div>
+            )}
+
             {loading ? (
-              <div className="flex justify-center py-16">
-                <p className="text-muted-foreground">Cargando equipos...</p>
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-3 text-muted-foreground">Cargando equipos...</span>
               </div>
             ) : filteredTeams.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {filteredTeams.map((team) => (
-                  <TeamCard key={team.id} name={team.name} captain={team.idCaptain}
-                    players={team.currentPlayers} maxPlayers={12}
-                    status={team.state === "ACTIVE" ? "approved" : "review"}
-                    positions={[]}
-                    onView={() => navigate(`/player/teams/${team.id}`)}
-                    onJoin={() => alert(`Solicitud enviada a ${team.name}`)} />
-                ))}
+                {filteredTeams.map((team) => {
+                  const status = requestStatus[team.id] ?? "idle";
+                  const errMsg = requestErrors[team.id];
+                  const availableSlots = (team.maxPlayers ?? 12) - (team.currentPlayers ?? 0);
+
+                  return (
+                    <div key={team.id} className="overflow-hidden rounded-xl border border-border bg-card transition hover:shadow-lg">
+                      <div className="border-b border-border bg-gradient-to-r from-primary/5 to-accent/5 p-4">
+                        <div className="flex items-center gap-4">
+                          {team.photo ? (
+                            <img
+                              src={team.photo}
+                              alt={team.name}
+                              className="h-16 w-16 rounded-full border-2 border-border"
+                            />
+                          ) : (
+                            <div
+                              className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-border"
+                              style={{ backgroundColor: (team.colors ?? "#1B5E35") + "20" }}
+                            >
+                              <Shield
+                                className="h-8 w-8"
+                                style={{ color: team.colors ?? "#1B5E35" }}
+                              />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <h3 className="mb-1 text-lg font-bold">{team.name}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <User className="h-4 w-4" />
+                              <span>Capitán ID: {team.idCaptain}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-4 p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="font-semibold">
+                              {team.currentPlayers ?? 0} / {team.maxPlayers ?? 12} jugadores
+                            </span>
+                          </div>
+                          {team.colors && (
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className="h-3 w-3 rounded-full border border-border"
+                                style={{ backgroundColor: team.colors }}
+                              />
+                              <span className="font-mono text-xs text-muted-foreground">
+                                {team.colors}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {team.code && (
+                          <p className="text-xs text-muted-foreground">
+                            Código:{" "}
+                            <span className="font-mono font-semibold">{team.code}</span>
+                          </p>
+                        )}
+
+                        {availableSlots > 0 && (
+                          <div className="rounded-lg bg-accent/10 p-3">
+                            <p className="text-xs font-semibold text-muted-foreground">
+                              {availableSlots}{" "}
+                              {availableSlots === 1 ? "cupo libre" : "cupos libres"}
+                            </p>
+                          </div>
+                        )}
+
+                        {status === "sent" && (
+                          <div className="flex items-center gap-2 rounded-lg bg-[#4ADE80]/10 px-3 py-2 text-sm font-medium text-[#4ADE80]">
+                            <CheckCircle className="h-4 w-4 flex-shrink-0" />
+                            Solicitud enviada correctamente
+                          </div>
+                        )}
+                        {status === "error" && errMsg && (
+                          <div className="flex items-center gap-2 rounded-lg bg-[#EF4444]/10 px-3 py-2 text-sm font-medium text-[#EF4444]">
+                            <XCircle className="h-4 w-4 flex-shrink-0" />
+                            {errMsg}
+                          </div>
+                        )}
+
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => navigate(`/player/teams/${team.id}`)}
+                            className="flex-1 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent"
+                          >
+                            Ver equipo
+                          </button>
+                          <button
+                            onClick={() => handleSendRequest(team.id)}
+                            disabled={status === "loading" || status === "sent"}
+                            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {status === "loading" ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Enviando...
+                              </>
+                            ) : status === "sent" ? (
+                              "Solicitud enviada"
+                            ) : (
+                              "Solicitar unirme"
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 text-center">
                 <Users className="mb-4 h-16 w-16 text-muted-foreground" />
                 <h3 className="mb-2 text-xl font-bold">No hay equipos disponibles</h3>
-                <p className="text-muted-foreground">No se encontraron equipos con los filtros seleccionados</p>
+                <p className="text-muted-foreground">
+                  No se encontraron equipos con los filtros seleccionados
+                </p>
               </div>
             )}
           </div>

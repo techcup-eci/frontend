@@ -1,13 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
-import { Bell, Users, ChevronRight, Loader2, XCircle } from "lucide-react";
+import { Bell, Users, ChevronRight, Loader2, XCircle, CheckCircle } from "lucide-react";
+import { apiClient } from "../../../core/api/apiClient";
 
-// TODO: obtener del contexto de autenticación, estos son casos de prueba
-const TEAM_ID = "1";
-const USER_ID = "10";
-
-const BASE_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
+// TODO: obtener del contexto de autenticación
+const TEAM_ID = import.meta.env.VITE_TEAM_ID ?? "1";
+const USER_ID = import.meta.env.VITE_USER_ID ?? "10";
 
 function normalizeIds(data: unknown): string[] {
   if (!Array.isArray(data)) return [];
@@ -27,7 +26,7 @@ export default function PendingRequests() {
   const [jugadorIds, setJugadorIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [rejectingId, setRejectingId] = useState<string | null>(null);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [confirmMessage, setConfirmMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -38,8 +37,8 @@ export default function PendingRequests() {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await axios.get(
-        `${BASE_URL}/api/teams/${TEAM_ID}/solicitudes`,
+      const { data } = await apiClient.get(
+        `/api/teams/${TEAM_ID}/solicitudes`,
         { headers: { "X-User-Id": USER_ID } }
       );
       setJugadorIds(normalizeIds(data));
@@ -54,26 +53,26 @@ export default function PendingRequests() {
     }
   }
 
-  async function handleReject(jugadorId: string) {
-    setRejectingId(jugadorId);
+  async function handleAccept(jugadorId: string) {
+    setAcceptingId(jugadorId);
     setError(null);
     try {
-      await axios.post(
-        `${BASE_URL}/api/teams/${TEAM_ID}/solicitudes/${jugadorId}/reject`,
+      await apiClient.post(
+        `/api/teams/${TEAM_ID}/solicitudes/${jugadorId}/accept`,
         {},
         { headers: { "X-User-Id": USER_ID } }
       );
       setJugadorIds((prev) => prev.filter((id) => id !== jugadorId));
-      setConfirmMessage(`Solicitud del jugador ${jugadorId} rechazada exitosamente`);
+      setConfirmMessage(`Jugador ${jugadorId} aceptado en el equipo exitosamente`);
       setTimeout(() => setConfirmMessage(null), 3000);
     } catch (err: unknown) {
       const msg =
         axios.isAxiosError(err)
           ? err.response?.data?.message ?? err.message
-          : "Error al rechazar la solicitud";
+          : "Error al aceptar la solicitud";
       setError(msg);
     } finally {
-      setRejectingId(null);
+      setAcceptingId(null);
     }
   }
 
@@ -100,7 +99,8 @@ export default function PendingRequests() {
 
             {/* Feedback messages */}
             {confirmMessage && (
-              <div className="rounded-lg bg-[#4ADE80]/10 px-4 py-3 text-sm font-medium text-[#4ADE80]">
+              <div className="flex items-center gap-3 rounded-lg bg-[#4ADE80]/10 px-4 py-3 text-sm font-medium text-[#4ADE80]">
+                <CheckCircle className="h-5 w-5 flex-shrink-0" />
                 {confirmMessage}
               </div>
             )}
@@ -143,22 +143,27 @@ export default function PendingRequests() {
                     </div>
                     <div className="flex items-center gap-3">
                       <button
-                        onClick={() => handleReject(jugadorId)}
-                        disabled={rejectingId === jugadorId}
-                        className="flex items-center gap-2 rounded-lg border border-destructive bg-destructive/10 px-4 py-2 text-sm font-medium text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
+                        onClick={() =>
+                          navigate(
+                            `/users/${jugadorId}/profile?from=requests&teamId=${TEAM_ID}`
+                          )
+                        }
+                        className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent"
                       >
-                        {rejectingId === jugadorId ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          "Rechazar"
-                        )}
+                        Ver perfil
+                        <ChevronRight className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => navigate(`/captain/requests/${jugadorId}`)}
-                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                        onClick={() => handleAccept(jugadorId)}
+                        disabled={acceptingId !== null}
+                        className="flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
                       >
-                        Ver / Aceptar
-                        <ChevronRight className="h-4 w-4" />
+                        {acceptingId === jugadorId ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <CheckCircle className="h-4 w-4" />
+                        )}
+                        Aceptar
                       </button>
                     </div>
                   </div>

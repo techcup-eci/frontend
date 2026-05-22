@@ -1,12 +1,13 @@
 import { useState } from "react";
+import { useNavigate } from "react-router";
 import axios from "axios";
+import { apiClient } from "../../../core/api/apiClient";
 import { Home, Users, UserPlus, CreditCard, LayoutList, Trophy, BarChart3, Search, CheckCircle, XCircle } from "lucide-react";
 import PlayerCard from "../../../shared/components/shared/PlayerCard";
 
 // TODO: obtener del contexto de autenticación, estos son casos de prueba
 const TEAM_ID = "1";
 
-const BASE_URL = "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io";
 
 const captainSidebar = [
   {
@@ -24,6 +25,7 @@ const captainSidebar = [
 
 
 export default function SearchPlayers() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [positionFilter, setPositionFilter] = useState("");
   const [semesterFilter, setSemesterFilter] = useState("");
@@ -90,8 +92,8 @@ export default function SearchPlayers() {
     setInvitingId(playerId);
     setInviteFeedback(null);
     try {
-      await axios.post(
-        `${BASE_URL}/api/players/${playerId}/solicitudes`,
+      await apiClient.post(
+        `/api/players/${playerId}/solicitudes`,
         {},
         { headers: { "X-User-Id": TEAM_ID } }
       );
@@ -203,7 +205,7 @@ export default function SearchPlayers() {
                     number={player.number}
                     semester={player.semester}
                     available={player.available}
-                    onView={() => alert(`Ver perfil de ${player.name}`)}
+                    onView={() => navigate(`/users/${player.id}/profile`)}
                     onInvite={() => handleInvite(player.id, player.name)}
                   />
                 ))}

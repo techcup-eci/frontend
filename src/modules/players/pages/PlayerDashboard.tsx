@@ -29,7 +29,7 @@ export default function PlayerDashboard() {
               </div>
               <div className="mt-6">
                 <Link
-                  to="/captain/create-team"
+                  to="/player/create-team"
                   className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-6 py-3 text-base font-semibold text-white transition hover:bg-white/20"
                 >
                   <UserPlus className="h-5 w-5" />
