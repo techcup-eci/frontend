@@ -16,7 +16,7 @@ function normalizeIds(data: unknown): string[] {
     if (item && typeof item === "object") {
       const obj = item as Record<string, unknown>;
       return String(obj.jugadorId ?? obj.playerId ?? obj.id ?? JSON.stringify(item));
-    }
+    } 
     return String(item);
   });
 }
