@@ -51,7 +51,7 @@ export default function Register() {
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    if (/^[^0-9]*$/.test(val)) {
+    if (/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s]*$/.test(val)) {
       setFormData((prev) => ({ ...prev, name: val }));
       if (errors.name) {
         setErrors((prev) => ({ ...prev, name: "" }));

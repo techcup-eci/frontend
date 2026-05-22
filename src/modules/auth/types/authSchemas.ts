@@ -129,7 +129,7 @@ export const registerRequestSchema = z.object({
 		.string()
 		.trim()
 		.min(1, "El nombre completo es requerido.")
-		.regex(/^[^0-9]+$/, "El nombre no puede contener números."),
+		.regex(/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s]+$/, "El nombre solo puede contener letras y espacios."),
 	email: z
 		.string()
 		.trim()
@@ -173,7 +173,7 @@ export const registerFormSchema = z.object({
 		.string()
 		.trim()
 		.min(1, "El nombre completo es requerido.")
-		.regex(/^[^0-9]+$/, "El nombre no puede contener números."),
+		.regex(/^[a-zA-ZáéíóúüñÁÉÍÓÚÜÑ\s]+$/, "El nombre solo puede contener letras y espacios."),
 	email: z
 		.string()
 		.trim()
