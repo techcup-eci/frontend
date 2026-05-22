@@ -13,7 +13,7 @@ import {
 import { apiClient } from "../../../core/api/apiClient";
 
 // TODO: obtener del contexto de autenticación
-const BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8082";
+const BASE_URL = (import.meta.env.VITE_API_URL ?? "https://gateway-techcup.nicedesert-e7db8277.eastus.azurecontainerapps.io").replace(/\/$/, "");
 const TEAM_ID = import.meta.env.VITE_TEAM_ID ?? "1";
 const USER_ID = import.meta.env.VITE_USER_ID ?? "10";
 

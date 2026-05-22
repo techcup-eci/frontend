@@ -54,22 +54,23 @@ export const registerRequestSchema = z.object({
 
 export const loginResponseSchema = z
 	.object({
-		token: z.string(),
-		type: z.string().optional(),
-		email: z.string().trim().email(),
-		role: authRoleSchema,
+		accessToken: z.string(),
 		expiresIn: z.number(),
-		firstName: z.string().optional(),
-		lastName: z.string().optional(),
+		user: z.object({
+			id: z.number(),
+			email: z.string().trim().email(),
+			role: authRoleSchema,
+			name: z.string(),
+		}),
 	})
 	.transform((data) => ({
-		token: data.token,
-		type: data.type ?? "Bearer",
-		email: data.email,
-		role: data.role,
+		token: data.accessToken,
+		type: "Bearer",
+		email: data.user.email,
+		role: data.user.role,
+		id: data.user.id,
+		name: data.user.name,
 		expiresAt: Date.now() + data.expiresIn,
-		firstName: data.firstName,
-		lastName: data.lastName,
 	}));
 
 export const meResponseSchema = z.object({
