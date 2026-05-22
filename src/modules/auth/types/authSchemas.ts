@@ -33,10 +33,10 @@ export const loginRequestSchema = z.object({
 const refineEmailAndRelation = (data: {
 	email: string;
 	schoolRelation: "STUDENT" | "PROFESSOR" | "GRADUATE";
-	academicLevel?: "UNDERGRADUATE" | "POSTGRADUATE" | "MASTER";
-	professorType?: "FULL_TIME" | "CHAIR";
-	academicProgram?: string;
-	semester?: number;
+	academicLevel?: "UNDERGRADUATE" | "POSTGRADUATE" | "MASTER" | null;
+	professorType?: "FULL_TIME" | "CHAIR" | null;
+	academicProgram?: string | null;
+	semester?: number | null;
 }, ctx: z.RefinementCtx) => {
 	const emailLower = data.email.toLowerCase();
 	if (data.schoolRelation === "PROFESSOR") {
@@ -58,44 +58,49 @@ const refineEmailAndRelation = (data: {
 			});
 		}
 	} else if (data.schoolRelation === "GRADUATE") {
-		const isValid = emailLower.endsWith("@gmail.com");
+		const isValid = emailLower.endsWith("@gmail.com") || emailLower.endsWith("@mail.escuelaing.edu.co");
 		if (!isValid) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: "Para invitados, el correo debe terminar en @gmail.com",
+				message: "Para egresados/invitados, el correo debe terminar en @gmail.com o @mail.escuelaing.edu.co",
 				path: ["email"],
 			});
 		}
 	}
 
-	if (data.schoolRelation === "STUDENT") {
+	if (data.schoolRelation !== "PROFESSOR") {
 		if (!data.academicLevel) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: "El nivel académico es requerido para estudiantes.",
+				message: "El nivel académico es requerido.",
 				path: ["academicLevel"],
 			});
-		} else if (data.academicLevel === "UNDERGRADUATE") {
-			if (!data.academicProgram) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "El programa académico es requerido para estudiantes de pregrado.",
-					path: ["academicProgram"],
-				});
-			}
-			if (data.semester === undefined || data.semester < 1 || data.semester > 10) {
-				ctx.addIssue({
-					code: z.ZodIssueCode.custom,
-					message: "El semestre debe estar entre 1 y 10.",
-					path: ["semester"],
-				});
-			}
 		}
-	} else if (data.schoolRelation === "PROFESSOR") {
+
+		if (!data.academicProgram || !data.academicProgram.trim()) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "El programa académico es requerido.",
+				path: ["academicProgram"],
+			});
+		}
+	}
+
+	if (data.schoolRelation === "STUDENT") {
+		if (data.semester === undefined || data.semester < 1 || data.semester > 10) {
+			ctx.addIssue({
+				code: z.ZodIssueCode.custom,
+				message: "El semestre debe estar entre 1 y 10.",
+				path: ["semester"],
+			});
+		}
+	}
+
+	if (data.schoolRelation === "PROFESSOR") {
 		if (!data.professorType) {
 			ctx.addIssue({
 				code: z.ZodIssueCode.custom,
-				message: "El tipo de profesor es requerido para profesores.",
+				message: "El tipo de profesor es requerido.",
 				path: ["professorType"],
 			});
 		}
@@ -147,10 +152,10 @@ export const registerRequestSchema = z.object({
 	schoolRelation: z.enum(["STUDENT", "PROFESSOR", "GRADUATE"], {
 		errorMap: () => ({ message: "Selecciona una relación con la escuela válida." }),
 	}),
-	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).optional(),
-	professorType: z.enum(["FULL_TIME", "CHAIR"]).optional(),
-	academicProgram: z.string().optional(),
-	semester: z.number().optional(),
+	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).nullable().optional(),
+	professorType: z.enum(["FULL_TIME", "CHAIR"]).nullable().optional(),
+	academicProgram: z.string().nullable().optional(),
+	semester: z.number().nullable().optional(),
 	identificationType: z.enum(["CC", "TI", "PP", "CE", "OTRO"], {
 		errorMap: () => ({ message: "Selecciona un tipo de identificación válido." }),
 	}),
@@ -192,10 +197,10 @@ export const registerFormSchema = z.object({
 	schoolRelation: z.enum(["STUDENT", "PROFESSOR", "GRADUATE"], {
 		errorMap: () => ({ message: "Selecciona una relación con la escuela válida." }),
 	}),
-	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).optional(),
-	professorType: z.enum(["FULL_TIME", "CHAIR"]).optional(),
-	academicProgram: z.string().optional(),
-	semester: z.number().optional(),
+	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).nullable().optional(),
+	professorType: z.enum(["FULL_TIME", "CHAIR"]).nullable().optional(),
+	academicProgram: z.string().nullable().optional(),
+	semester: z.number().nullable().optional(),
 	identificationType: z.enum(["CC", "TI", "PP", "CE", "OTRO"], {
 		errorMap: () => ({ message: "Selecciona un tipo de identificación válido." }),
 	}),

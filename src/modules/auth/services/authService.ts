@@ -87,25 +87,49 @@ export async function login(credentials: LoginRequest): Promise<AuthUser> {
 export async function register(credentials: RegisterRequest): Promise<AuthUser> {
 	const parsed = registerRequestSchema.parse(credentials);
 	
-	const requestBody: Record<string, unknown> = {
-		name: parsed.name,
-		email: parsed.email,
-		password: parsed.password,
-		birthDate: parsed.birthDate,
-		schoolRelation: parsed.schoolRelation,
-		identificationType: parsed.identificationType,
-		identificationNumber: parsed.identificationNumber,
-		phone: parsed.phone,
-	};
+	let requestBody: Record<string, unknown>;
 
 	if (parsed.schoolRelation === "STUDENT") {
-		requestBody.academicLevel = parsed.academicLevel;
-		if (parsed.academicLevel === "UNDERGRADUATE") {
-			requestBody.academicProgram = parsed.academicProgram;
-			requestBody.semester = parsed.semester;
-		}
+		requestBody = {
+			name: parsed.name,
+			email: parsed.email,
+			password: parsed.password,
+			birthDate: parsed.birthDate,
+			schoolRelation: parsed.schoolRelation,
+			academicLevel: parsed.academicLevel,
+			academicProgram: parsed.academicProgram,
+			semester: parsed.semester,
+			identificationType: parsed.identificationType,
+			identificationNumber: parsed.identificationNumber,
+			phone: parsed.phone,
+		};
 	} else if (parsed.schoolRelation === "PROFESSOR") {
-		requestBody.professorType = parsed.professorType;
+		requestBody = {
+			name: parsed.name,
+			email: parsed.email,
+			password: parsed.password,
+			birthDate: parsed.birthDate,
+			schoolRelation: parsed.schoolRelation,
+			professorType: parsed.professorType,
+			academicLevel: parsed.academicLevel,
+			academicProgram: parsed.academicProgram,
+			identificationType: parsed.identificationType,
+			identificationNumber: parsed.identificationNumber,
+			phone: parsed.phone,
+		};
+	} else { // GRADUATE
+		requestBody = {
+			name: parsed.name,
+			email: parsed.email,
+			password: parsed.password,
+			birthDate: parsed.birthDate,
+			schoolRelation: parsed.schoolRelation,
+			academicLevel: parsed.academicLevel,
+			academicProgram: parsed.academicProgram,
+			identificationType: parsed.identificationType,
+			identificationNumber: parsed.identificationNumber,
+			phone: parsed.phone,
+		};
 	}
 
 	const response = await fetch(`${BASE_URL}/api/identity/register`, {

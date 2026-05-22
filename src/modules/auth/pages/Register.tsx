@@ -81,14 +81,12 @@ export default function Register() {
       confirmPassword: formData.confirmPassword,
       birthDate: formData.birthDate,
       schoolRelation: formData.schoolRelation,
-      academicLevel: formData.schoolRelation === "STUDENT" ? formData.academicLevel : undefined,
-      professorType: formData.schoolRelation === "PROFESSOR" ? formData.professorType : undefined,
-      academicProgram: (formData.schoolRelation === "STUDENT" && formData.academicLevel === "UNDERGRADUATE") 
-        ? formData.academicProgram 
-        : undefined,
-      semester: (formData.schoolRelation === "STUDENT" && formData.academicLevel === "UNDERGRADUATE")
+      academicLevel: formData.schoolRelation !== "PROFESSOR" ? (formData.academicLevel || undefined) : null,
+      professorType: formData.schoolRelation === "PROFESSOR" ? (formData.professorType || undefined) : null,
+      academicProgram: formData.schoolRelation !== "PROFESSOR" ? (formData.academicProgram || undefined) : null,
+      semester: formData.schoolRelation === "STUDENT"
         ? (formData.semester ? Number(formData.semester) : undefined)
-        : undefined,
+        : null,
       identificationType: formData.identificationType,
       identificationNumber: formData.identificationNumber ? Number(formData.identificationNumber) : undefined,
       phone: formData.phone ? Number(formData.phone) : undefined,
@@ -290,80 +288,69 @@ export default function Register() {
                 {errors.schoolRelation && <p className="mt-1 text-xs text-destructive">{errors.schoolRelation}</p>}
               </div>
 
-              {formData.schoolRelation === "STUDENT" && (
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Nivel académico</label>
-                  <select
-                    required
-                    value={formData.academicLevel}
-                    onChange={(e) => {
-                      const level = e.target.value;
-                      setFormData({
-                        ...formData,
-                        academicLevel: level,
-                        academicProgram: "",
-                        semester: "",
-                      });
-                      setErrors((prev) => ({
-                        ...prev,
-                        academicLevel: "",
-                        academicProgram: "",
-                        semester: "",
-                      }));
-                    }}
-                    className={inputClass("academicLevel")}
-                  >
-                    <option value="">Selecciona</option>
-                    <option value="UNDERGRADUATE">Pregrado</option>
-                    <option value="POSTGRADUATE">Posgrado</option>
-                    <option value="MASTER">Maestría</option>
-                  </select>
-                  {errors.academicLevel && <p className="mt-1 text-xs text-destructive">{errors.academicLevel}</p>}
-                </div>
-              )}
-
-              {formData.schoolRelation === "STUDENT" && formData.academicLevel === "UNDERGRADUATE" && (
+              {formData.schoolRelation && formData.schoolRelation !== "PROFESSOR" && (
                 <div className="grid gap-4 md:grid-cols-2">
                   <div>
-                    <label className="mb-1 block text-sm font-medium">Programa académico</label>
+                    <label className="mb-1 block text-sm font-medium">Nivel académico</label>
                     <select
+                      required
+                      value={formData.academicLevel}
+                      onChange={(e) => {
+                        const level = e.target.value;
+                        setFormData((prev) => ({
+                          ...prev,
+                          academicLevel: level,
+                        }));
+                        if (errors.academicLevel) setErrors((prev) => ({ ...prev, academicLevel: "" }));
+                      }}
+                      className={inputClass("academicLevel")}
+                    >
+                      <option value="">Selecciona</option>
+                      <option value="UNDERGRADUATE">Pregrado</option>
+                      <option value="POSTGRADUATE">Posgrado</option>
+                      <option value="MASTER">Maestría</option>
+                    </select>
+                    {errors.academicLevel && <p className="mt-1 text-xs text-destructive">{errors.academicLevel}</p>}
+                  </div>
+
+                  <div>
+                    <label className="mb-1 block text-sm font-medium">Programa académico</label>
+                    <input
+                      type="text"
                       required
                       value={formData.academicProgram}
                       onChange={(e) => {
-                        setFormData({ ...formData, academicProgram: e.target.value });
-                        if (errors.academicProgram) setErrors({ ...errors, academicProgram: "" });
+                        setFormData((prev) => ({ ...prev, academicProgram: e.target.value }));
+                        if (errors.academicProgram) setErrors((prev) => ({ ...prev, academicProgram: "" }));
                       }}
                       className={inputClass("academicProgram")}
-                    >
-                      <option value="">Selecciona</option>
-                      <option value="ESTADISTICA">Estadística</option>
-                      <option value="ING_SISTEMAS">Ingeniería de Sistemas</option>
-                      <option value="INTELIGENCIA_ARTIFICIAL">Inteligencia Artificial</option>
-                      <option value="CIBERSEGURIDAD">Ciberseguridad</option>
-                    </select>
+                      placeholder="Ej. Ingeniería de Sistemas"
+                    />
                     {errors.academicProgram && <p className="mt-1 text-xs text-destructive">{errors.academicProgram}</p>}
                   </div>
+                </div>
+              )}
 
-                  <div>
-                    <label className="mb-1 block text-sm font-medium">Semestre</label>
-                    <select
-                      required
-                      value={formData.semester}
-                      onChange={(e) => {
-                        setFormData({ ...formData, semester: e.target.value });
-                        if (errors.semester) setErrors({ ...errors, semester: "" });
-                      }}
-                      className={inputClass("semester")}
-                    >
-                      <option value="">Selecciona</option>
-                      {Array.from({ length: 10 }, (_, i) => i + 1).map((sem) => (
-                        <option key={sem} value={sem}>
-                          {sem}
-                        </option>
-                      ))}
-                    </select>
-                    {errors.semester && <p className="mt-1 text-xs text-destructive">{errors.semester}</p>}
-                  </div>
+              {formData.schoolRelation === "STUDENT" && (
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Semestre</label>
+                  <select
+                    required
+                    value={formData.semester}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, semester: e.target.value }));
+                      if (errors.semester) setErrors((prev) => ({ ...prev, semester: "" }));
+                    }}
+                    className={inputClass("semester")}
+                  >
+                    <option value="">Selecciona</option>
+                    {Array.from({ length: 10 }, (_, i) => i + 1).map((sem) => (
+                      <option key={sem} value={sem.toString()}>
+                        {sem}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.semester && <p className="mt-1 text-xs text-destructive">{errors.semester}</p>}
                 </div>
               )}
 
@@ -374,8 +361,8 @@ export default function Register() {
                     required
                     value={formData.professorType}
                     onChange={(e) => {
-                      setFormData({ ...formData, professorType: e.target.value });
-                      if (errors.professorType) setErrors({ ...errors, professorType: "" });
+                      setFormData((prev) => ({ ...prev, professorType: e.target.value }));
+                      if (errors.professorType) setErrors((prev) => ({ ...prev, professorType: "" }));
                     }}
                     className={inputClass("professorType")}
                   >
