@@ -1,7 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Shield, Upload, Loader2, XCircle, CheckCircle, ArrowLeft } from "lucide-react";
+import { Shield, Upload, Loader2, XCircle, CheckCircle, ArrowLeft, Trash2 } from "lucide-react";
 import { apiClient } from "../../../core/api/apiClient";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "../../../shared/components/ui/dialog";
 
 // TODO: obtener del contexto de autenticación
 const TEAM_ID = import.meta.env.VITE_TEAM_ID ?? "1";
@@ -29,6 +37,9 @@ export default function EditTeam() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchTeam();
@@ -63,6 +74,24 @@ export default function EditTeam() {
       setFormData((prev) => ({ ...prev, photo: result }));
     };
     reader.readAsDataURL(file);
+  }
+
+  async function handleDeleteTeam() {
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await apiClient.delete(`/api/teams/${TEAM_ID}`, {
+        headers: { "X-User-Id": USER_ID },
+      });
+      // TODO: llamar al microservicio de identidad/usuarios para cambiar el rol del usuario de CAPTAIN a PLAYER
+      // Endpoint pendiente de coordinación con el squad de identidad
+      navigate("/player/dashboard");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message ?? "Error al eliminar el equipo. Inténtalo de nuevo.";
+      setDeleteError(msg);
+    } finally {
+      setDeleting(false);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -250,8 +279,59 @@ export default function EditTeam() {
                     "Guardar cambios"
                   )}
                 </button>
+
+                {/* Botón eliminar equipo */}
+                <button
+                  type="button"
+                  onClick={() => setDeleteModalOpen(true)}
+                  disabled={saving || !!successMessage}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-[#EF4444] bg-[#EF4444]/10 px-6 py-3 font-semibold text-[#EF4444] transition hover:bg-[#EF4444]/20 disabled:opacity-60"
+                >
+                  <Trash2 className="h-5 w-5" />
+                  Eliminar equipo
+                </button>
               </div>
             </form>
+
+            <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Eliminar equipo</DialogTitle>
+                  <DialogDescription>
+                    ¿Estás seguro de que deseas eliminar el equipo? Esta acción no se puede deshacer.
+                  </DialogDescription>
+                </DialogHeader>
+                {deleteError && (
+                  <div className="flex items-center gap-3 rounded-lg bg-[#EF4444]/10 px-4 py-3 text-sm font-medium text-[#EF4444]">
+                    <XCircle className="h-5 w-5 flex-shrink-0" />
+                    {deleteError}
+                  </div>
+                )}
+                <DialogFooter>
+                  <button
+                    onClick={() => { setDeleteModalOpen(false); setDeleteError(null); }}
+                    disabled={deleting}
+                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent disabled:opacity-60"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleDeleteTeam}
+                    disabled={deleting}
+                    className="flex items-center gap-2 rounded-lg bg-[#EF4444] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#EF4444]/90 disabled:opacity-60"
+                  >
+                    {deleting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Eliminando...
+                      </>
+                    ) : (
+                      "Sí, eliminar"
+                    )}
+                  </button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
         </main>
       </div>
