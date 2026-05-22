@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router";
 import { Trophy } from "lucide-react";
 import type { ZodIssue } from "zod";
 import { useRegister } from "../hooks/useRegister";
-import { registerRequestSchema } from "../types/authSchemas";
+import { registerFormSchema } from "../types/authSchemas";
 
 function zodErrorsToMap(issues: ZodIssue[]): Record<string, string> {
   const map: Record<string, string> = {};
@@ -36,15 +36,18 @@ export default function Register() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const getBirthDateLimits = () => {
-    const now = new Date();
-    const maxDateStr = now.toISOString().split("T")[0];
-    const minDate = new Date();
-    minDate.setFullYear(now.getFullYear() - 130);
-    const minDateStr = minDate.toISOString().split("T")[0];
-    return { min: minDateStr, max: maxDateStr };
+  const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+    let formatted = digits;
+    if (digits.length > 4) {
+      formatted = `${digits.slice(0, 4)}/${digits.slice(4, 6)}`;
+      if (digits.length > 6) {
+        formatted = `${formatted}/${digits.slice(6, 8)}`;
+      }
+    }
+    setFormData((prev) => ({ ...prev, birthDate: formatted }));
+    if (errors.birthDate) setErrors((prev) => ({ ...prev, birthDate: "" }));
   };
-  const { min: minBirthDate, max: maxBirthDate } = getBirthDateLimits();
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -91,7 +94,7 @@ export default function Register() {
       phone: formData.phone ? Number(formData.phone) : undefined,
     };
 
-    const result = registerRequestSchema.safeParse(parsedData);
+    const result = registerFormSchema.safeParse(parsedData);
 
     if (!result.success) {
       setErrors(zodErrorsToMap(result.error.issues));
@@ -99,11 +102,12 @@ export default function Register() {
     }
 
     try {
+      const apiBirthDate = result.data.birthDate.replace(/\//g, "-");
       await register({
         name: result.data.name,
         email: result.data.email,
         password: result.data.password,
-        birthDate: result.data.birthDate,
+        birthDate: apiBirthDate,
         schoolRelation: result.data.schoolRelation,
         academicLevel: result.data.academicLevel,
         professorType: result.data.professorType,
@@ -160,6 +164,9 @@ export default function Register() {
                 <input
                   type="text"
                   required
+                  name="name"
+                  id="name"
+                  autoComplete="name"
                   value={formData.name}
                   onChange={handleNameChange}
                   className={inputClass("name")}
@@ -172,15 +179,14 @@ export default function Register() {
                 <div>
                   <label className="mb-1 block text-sm font-medium">Fecha de nacimiento</label>
                   <input
-                    type="date"
+                    type="text"
                     required
-                    min={minBirthDate}
-                    max={maxBirthDate}
+                    name="birthDate"
+                    id="birthDate"
+                    autoComplete="bday"
+                    placeholder="AAAA/MM/DD"
                     value={formData.birthDate}
-                    onChange={(e) => {
-                      setFormData({ ...formData, birthDate: e.target.value });
-                      if (errors.birthDate) setErrors({ ...errors, birthDate: "" });
-                    }}
+                    onChange={handleBirthDateChange}
                     className={inputClass("birthDate")}
                   />
                   {errors.birthDate && <p className="mt-1 text-xs text-destructive">{errors.birthDate}</p>}
@@ -191,6 +197,9 @@ export default function Register() {
                   <input
                     type="text"
                     required
+                    name="phone"
+                    id="phone"
+                    autoComplete="tel"
                     value={formData.phone}
                     onChange={handleDigitsOnlyChange("phone")}
                     className={inputClass("phone")}
@@ -205,6 +214,9 @@ export default function Register() {
                   <label className="mb-1 block text-sm font-medium">Tipo de identificación</label>
                   <select
                     required
+                    name="identificationType"
+                    id="identificationType"
+                    autoComplete="off"
                     value={formData.identificationType}
                     onChange={(e) => {
                       setFormData({ ...formData, identificationType: e.target.value });
@@ -223,10 +235,13 @@ export default function Register() {
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Número de identificación</label>
+                  <label className="mb-1 block text-sm font-medium">Documento de identidad</label>
                   <input
                     type="text"
                     required
+                    name="nationalId"
+                    id="nationalId"
+                    autoComplete="one-time-code"
                     value={formData.identificationNumber}
                     onChange={handleDigitsOnlyChange("identificationNumber")}
                     className={inputClass("identificationNumber")}
@@ -382,6 +397,9 @@ export default function Register() {
                 <input
                   type="email"
                   required
+                  name="email"
+                  id="email"
+                  autoComplete="email"
                   value={formData.email}
                   onChange={(e) => {
                     setFormData({ ...formData, email: e.target.value });
@@ -408,6 +426,9 @@ export default function Register() {
                   <input
                     type="password"
                     required
+                    name="password"
+                    id="password"
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={(e) => {
                       setFormData({ ...formData, password: e.target.value });
@@ -424,6 +445,9 @@ export default function Register() {
                   <input
                     type="password"
                     required
+                    name="confirmPassword"
+                    id="confirmPassword"
+                    autoComplete="new-password"
                     value={formData.confirmPassword}
                     onChange={(e) => {
                       setFormData({ ...formData, confirmPassword: e.target.value });

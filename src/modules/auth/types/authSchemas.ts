@@ -30,64 +30,14 @@ export const loginRequestSchema = z.object({
 	rememberMe: z.boolean().optional(),
 });
 
-export const registerRequestSchema = z.object({
-	name: z
-		.string()
-		.trim()
-		.min(1, "El nombre completo es requerido.")
-		.regex(/^[^0-9]+$/, "El nombre no puede contener números."),
-	email: z
-		.string()
-		.trim()
-		.min(1, "Ingresa tu correo.")
-		.email("Escribe un correo válido."),
-	password: z
-		.string()
-		.min(1, "Ingresa tu contraseña.")
-		.min(8, "La contraseña debe tener al menos 8 caracteres."),
-	confirmPassword: z.string().min(1, "Confirma tu contraseña."),
-	birthDate: z
-		.string()
-		.min(1, "La fecha de nacimiento es requerida.")
-		.refine((val) => {
-			const date = new Date(val);
-			if (isNaN(date.getTime())) return false;
-			const now = new Date();
-			const minDate = new Date();
-			minDate.setFullYear(now.getFullYear() - 130);
-			return date <= now && date >= minDate;
-		}, "La fecha de nacimiento no es válida (máximo 130 años de edad y no puede ser en el futuro)."),
-	schoolRelation: z.enum(["STUDENT", "PROFESSOR", "GRADUATE"], {
-		errorMap: () => ({ message: "Selecciona una relación con la escuela válida." }),
-	}),
-	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).optional(),
-	professorType: z.enum(["FULL_TIME", "CHAIR"]).optional(),
-	academicProgram: z.string().optional(),
-	semester: z.number().optional(),
-	identificationType: z.enum(["CC", "TI", "PP", "CE", "OTRO"], {
-		errorMap: () => ({ message: "Selecciona un tipo de identificación válido." }),
-	}),
-	identificationNumber: z.number({
-		required_error: "El número de identificación es requerido.",
-		invalid_type_error: "El número de identificación debe ser un valor numérico.",
-	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
-		message: "El documento debe tener exactamente 10 dígitos.",
-	}),
-	phone: z.number({
-		required_error: "El teléfono es requerido.",
-		invalid_type_error: "El teléfono debe ser un valor numérico.",
-	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
-		message: "El teléfono debe tener exactamente 10 dígitos.",
-	}),
-}).superRefine((data, ctx) => {
-	if (data.password !== data.confirmPassword) {
-		ctx.addIssue({
-			code: z.ZodIssueCode.custom,
-			message: "Las contraseñas no coinciden.",
-			path: ["confirmPassword"],
-		});
-	}
-
+const refineEmailAndRelation = (data: {
+	email: string;
+	schoolRelation: "STUDENT" | "PROFESSOR" | "GRADUATE";
+	academicLevel?: "UNDERGRADUATE" | "POSTGRADUATE" | "MASTER";
+	professorType?: "FULL_TIME" | "CHAIR";
+	academicProgram?: string;
+	semester?: number;
+}, ctx: z.RefinementCtx) => {
 	const emailLower = data.email.toLowerCase();
 	if (data.schoolRelation === "PROFESSOR") {
 		const isValid = emailLower.endsWith("@escuelaing.edu.co") || emailLower.endsWith("@gmail.com");
@@ -150,6 +100,126 @@ export const registerRequestSchema = z.object({
 			});
 		}
 	}
+};
+
+const birthDateRequestRefine = (val: string) => {
+	const date = new Date(val);
+	if (isNaN(date.getTime())) return false;
+	const now = new Date();
+	const minDate = new Date("1900-01-01");
+	return date <= now && date >= minDate;
+};
+
+const birthDateFormRefine = (val: string) => {
+	const parts = val.split("/");
+	if (parts.length !== 3) return false;
+	const [year, month, day] = parts.map(Number);
+	const date = new Date(year, month - 1, day);
+	if (isNaN(date.getTime())) return false;
+	if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
+		return false;
+	}
+	const now = new Date();
+	const minDate = new Date("1900-01-01");
+	return date <= now && date >= minDate;
+};
+
+export const registerRequestSchema = z.object({
+	name: z
+		.string()
+		.trim()
+		.min(1, "El nombre completo es requerido.")
+		.regex(/^[^0-9]+$/, "El nombre no puede contener números."),
+	email: z
+		.string()
+		.trim()
+		.min(1, "Ingresa tu correo.")
+		.email("Escribe un correo válido."),
+	password: z
+		.string()
+		.min(1, "Ingresa tu contraseña.")
+		.min(8, "La contraseña debe tener al menos 8 caracteres."),
+	birthDate: z
+		.string()
+		.min(1, "La fecha de nacimiento es requerida.")
+		.regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha debe estar en formato YYYY-MM-DD.")
+		.refine(birthDateRequestRefine, "La fecha de nacimiento no es válida (el año debe ser 1900 o posterior y no puede ser en el futuro)."),
+	schoolRelation: z.enum(["STUDENT", "PROFESSOR", "GRADUATE"], {
+		errorMap: () => ({ message: "Selecciona una relación con la escuela válida." }),
+	}),
+	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).optional(),
+	professorType: z.enum(["FULL_TIME", "CHAIR"]).optional(),
+	academicProgram: z.string().optional(),
+	semester: z.number().optional(),
+	identificationType: z.enum(["CC", "TI", "PP", "CE", "OTRO"], {
+		errorMap: () => ({ message: "Selecciona un tipo de identificación válido." }),
+	}),
+	identificationNumber: z.number({
+		required_error: "El número de identificación es requerido.",
+		invalid_type_error: "El número de identificación debe ser un valor numérico.",
+	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
+		message: "El documento debe tener exactamente 10 dígitos.",
+	}),
+	phone: z.number({
+		required_error: "El teléfono es requerido.",
+		invalid_type_error: "El teléfono debe ser un valor numérico.",
+	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
+		message: "El teléfono debe tener exactamente 10 dígitos.",
+	}),
+}).superRefine(refineEmailAndRelation);
+
+export const registerFormSchema = z.object({
+	name: z
+		.string()
+		.trim()
+		.min(1, "El nombre completo es requerido.")
+		.regex(/^[^0-9]+$/, "El nombre no puede contener números."),
+	email: z
+		.string()
+		.trim()
+		.min(1, "Ingresa tu correo.")
+		.email("Escribe un correo válido."),
+	password: z
+		.string()
+		.min(1, "Ingresa tu contraseña.")
+		.min(8, "La contraseña debe tener al menos 8 caracteres."),
+	confirmPassword: z.string().min(1, "Confirma tu contraseña."),
+	birthDate: z
+		.string()
+		.min(1, "La fecha de nacimiento es requerida.")
+		.regex(/^\d{4}\/(0[1-9]|1[0-2])\/(0[1-9]|[12][0-9]|3[01])$/, "La fecha debe estar en formato AAAA/MM/DD.")
+		.refine(birthDateFormRefine, "La fecha de nacimiento no es válida (el año debe ser 1900 o posterior y no puede ser en el futuro)."),
+	schoolRelation: z.enum(["STUDENT", "PROFESSOR", "GRADUATE"], {
+		errorMap: () => ({ message: "Selecciona una relación con la escuela válida." }),
+	}),
+	academicLevel: z.enum(["UNDERGRADUATE", "POSTGRADUATE", "MASTER"]).optional(),
+	professorType: z.enum(["FULL_TIME", "CHAIR"]).optional(),
+	academicProgram: z.string().optional(),
+	semester: z.number().optional(),
+	identificationType: z.enum(["CC", "TI", "PP", "CE", "OTRO"], {
+		errorMap: () => ({ message: "Selecciona un tipo de identificación válido." }),
+	}),
+	identificationNumber: z.number({
+		required_error: "El número de identificación es requerido.",
+		invalid_type_error: "El número de identificación debe ser un valor numérico.",
+	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
+		message: "El documento debe tener exactamente 10 dígitos.",
+	}),
+	phone: z.number({
+		required_error: "El teléfono es requerido.",
+		invalid_type_error: "El teléfono debe ser un valor numérico.",
+	}).refine((val) => val >= 1000000000 && val <= 9999999999, {
+		message: "El teléfono debe tener exactamente 10 dígitos.",
+	}),
+}).superRefine((data, ctx) => {
+	if (data.password !== data.confirmPassword) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Las contraseñas no coinciden.",
+			path: ["confirmPassword"],
+		});
+	}
+	refineEmailAndRelation(data, ctx);
 });
 
 export const loginResponseSchema = z
