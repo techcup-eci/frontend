@@ -1,13 +1,15 @@
-import { Routes, Route, Navigate } from "react-router";
+import { Navigate, Route, Routes } from "react-router";
 import AdminDashboard from "../../modules/admin/pages/AdminDashboard";
 import AuditLog from "../../modules/admin/pages/AuditLog";
 import ManageUsers from "../../modules/admin/pages/ManageUsers";
+import { useAuthStore } from "../../modules/auth/hooks/useAuthStore";
 import Login from "../../modules/auth/pages/Login";
 import Register from "../../modules/auth/pages/Register";
 import LandingPage from "../../modules/home/pages/LandingPage";
 import NotFound from "../../modules/home/pages/NotFound";
 import RefereeDashboard from "../../modules/matches/pages/RefereeDashboard";
 import RefereeMatchDetail from "../../modules/matches/pages/RefereeMatchDetail";
+import BecomePlayer from "../../modules/players/pages/BecomePlayer";
 import CreateProfile from "../../modules/players/pages/CreateProfile";
 import EditProfile from "../../modules/players/pages/EditProfile";
 import MarkAvailability from "../../modules/players/pages/MarkAvailability";
@@ -19,14 +21,15 @@ import TeamInvitationDetail from "../../modules/players/pages/TeamInvitationDeta
 import ViewLineup from "../../modules/players/pages/ViewLineup";
 import ViewProfile from "../../modules/players/pages/ViewProfile";
 import ViewRivalLineup from "../../modules/players/pages/ViewRivalLineup";
+import ManageRegistrations from "../../modules/registrations/pages/ManageRegistrations";
 import CaptainDashboard from "../../modules/teams/pages/CaptainDashboard";
-import ConfigureLineup from "../../modules/teams/pages/ConfigureLineup";
+//import ConfigureLineup from "../../modules/teams/pages/ConfigureLineup";
 import CreateTeam from "../../modules/teams/pages/CreateTeam";
 import ManageTeam from "../../modules/teams/pages/ManageTeam";
 import PendingRequests from "../../modules/teams/pages/PendingRequests";
 import PlayerRequestDetail from "../../modules/teams/pages/PlayerRequestDetail";
 import SearchPlayers from "../../modules/teams/pages/SearchPlayers";
-import UploadPayment from "../../modules/teams/pages/UploadPayment";
+//import UploadPayment from "../../modules/teams/pages/UploadPayment";
 import Bracket from "../../modules/tournaments/pages/Bracket";
 import ConfigureTournament from "../../modules/tournaments/pages/ConfigureTournament";
 import CreateTournament from "../../modules/tournaments/pages/CreateTournament";
@@ -43,13 +46,10 @@ import UserTeams from "../../modules/users/pages/UserTeams";
 import PlayerPublicProfile from "../../shared/components/common/PlayerPublicProfile";
 import TournamentInfo from "../../shared/components/common/TournamentInfo";
 import TournamentStats from "../../shared/components/common/TournamentStats";
-import RootLayout from "../../shared/layouts/RootLayout";
+import { ProtectedRoute } from "../../shared/components/ProtectedRoute";
 import AuthLayout from "../../shared/layouts/AuthLayout";
 import DashboardLayout from "../../shared/layouts/DashboardLayout";
-import ManageRegistrations from "../../modules/registrations/pages/ManageRegistrations";
-import BecomePlayer from "../../modules/players/pages/BecomePlayer";
-import { ProtectedRoute } from "../../shared/components/ProtectedRoute";
-import { useAuthStore } from "../../modules/auth/hooks/useAuthStore";
+import RootLayout from "../../shared/layouts/RootLayout";
 
 function RoleBasedHome() {
 	const user = useAuthStore((state) => state.user);
@@ -94,32 +94,49 @@ export function AppRoutes() {
 					{/* Player */}
 					<Route path="/player/dashboard" element={<PlayerDashboard />} />
 					<Route path="/player/profile/create" element={<CreateProfile />} />
-					<Route path="/player/profile/becomePlayer" element={<BecomePlayer />} />
+					<Route
+						path="/player/profile/becomePlayer"
+						element={<BecomePlayer />}
+					/>
 					<Route path="/player/profile/edit" element={<EditProfile />} />
 					<Route path="/player/profile" element={<ViewProfile />} />
 					<Route path="/player/availability" element={<MarkAvailability />} />
 					<Route path="/player/teams" element={<SearchTeams />} />
 					<Route path="/player/teams/:id" element={<TeamDetail />} />
 					<Route path="/player/invitations" element={<PlayerInvitations />} />
-					<Route path="/player/invitations/:teamId" element={<TeamInvitationDetail />} />
+					<Route
+						path="/player/invitations/:teamId"
+						element={<TeamInvitationDetail />}
+					/>
 					<Route path="/player/lineup" element={<ViewLineup />} />
-					<Route path="/player/lineup/rival/:id" element={<ViewRivalLineup />} />
+					<Route
+						path="/player/lineup/rival/:id"
+						element={<ViewRivalLineup />}
+					/>
 
 					{/* Captain */}
 					<Route path="/captain/create-team" element={<CreateTeam />} />
 					<Route path="/captain/dashboard" element={<CaptainDashboard />} />
 					<Route path="/captain/manage-team" element={<ManageTeam />} />
 					<Route path="/captain/search-players" element={<SearchPlayers />} />
-					<Route path="/captain/payment" element={<UploadPayment />} />
-					<Route path="/captain/lineup" element={<ConfigureLineup />} />
+
 					<Route path="/captain/requests" element={<PendingRequests />} />
-					<Route path="/captain/requests/:jugadorId" element={<PlayerRequestDetail />} />
+					<Route
+						path="/captain/requests/:jugadorId"
+						element={<PlayerRequestDetail />}
+					/>
 
 					{/* Organizer */}
 					<Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
 					<Route path="/organizer/profile" element={<OrganizerProfile />} />
-					<Route path="/organizer/create-tournament" element={<CreateTournament />} />
-					<Route path="/organizer/tournament/configure" element={<ConfigureTournament />} />
+					<Route
+						path="/organizer/create-tournament"
+						element={<CreateTournament />}
+					/>
+					<Route
+						path="/organizer/tournament/configure"
+						element={<ConfigureTournament />}
+					/>
 					<Route path="/organizer/teams" element={<ManageTeams />} />
 					<Route path="/organizer/payments" element={<ManageRegistrations />} />
 					<Route path="/organizer/schedule" element={<ScheduleMatches />} />
@@ -128,21 +145,17 @@ export function AppRoutes() {
 					<Route path="/organizer/standings" element={<Standings />} />
 					<Route path="/organizer/bracket" element={<Bracket />} />
 
-					{/* Referee */}
 					<Route path="/referee/dashboard" element={<RefereeDashboard />} />
 					<Route path="/referee/match/:id" element={<RefereeMatchDetail />} />
 
-					{/* Admin */}
 					<Route path="/admin/dashboard" element={<AdminDashboard />} />
 					<Route path="/admin/players" element={<ManageUsers />} />
 					<Route path="/admin/audit" element={<AuditLog />} />
 
-					{/* Home — redirects to role-based dashboard */}
 					<Route path="/home" element={<RoleBasedHome />} />
 				</Route>
 			</Route>
 
-			{/* Catch-all */}
 			<Route path="*" element={<NotFound />} />
 		</Routes>
 	);

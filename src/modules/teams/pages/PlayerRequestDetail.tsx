@@ -1,55 +1,42 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { apiClient } from "../../../core/api/apiClient";
-import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import { User, CheckCircle, XCircle, ArrowLeft, Loader2 } from "lucide-react";
+import { useAllTeams, useAcceptRequest, useRejectRequest } from "../hooks/useTeams";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 export default function PlayerRequestDetail() {
   const { jugadorId } = useParams<{ jugadorId: string }>();
   const navigate = useNavigate();
   const userId = useAuthStore((state) => state.user?.id);
-  const [teamId, setTeamId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [actionDone, setActionDone] = useState(false);
+  const { data: teams } = useAllTeams();
+  const myTeam = teams?.find((t) => t.captainId === userId);
+  const teamId = myTeam?.id ?? 0;
 
-  useEffect(() => {
-    async function findMyTeam() {
-      if (!userId) return;
-      try {
-        const { data: teams } = await apiClient.get<any[]>("/api/teams");
-        const myTeam = teams.find((t: any) => t.captainId === userId);
-        if (myTeam) setTeamId(myTeam.id);
-      } catch {
-        // Will show error
-      }
-    }
-    findMyTeam();
-  }, [userId]);
+  const accept = useAcceptRequest(teamId);
+  const reject = useRejectRequest(teamId);
+  const [actionDone, setActionDone] = useState(false);
 
   async function handleAction(action: "accept" | "reject") {
     if (!teamId || !jugadorId) return;
-    setLoading(true);
-    setError(null);
-    try {
-      await apiClient.post(`/api/teams/${teamId}/solicitudes/${jugadorId}/${action}`);
-      const msg =
-        action === "accept"
-          ? "Jugador aceptado en el equipo exitosamente"
-          : "Solicitud rechazada exitosamente";
-      setSuccessMessage(msg);
-      setActionDone(true);
-      setTimeout(() => navigate("/captain/requests"), 2500);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : `Error al ${action === "accept" ? "aceptar" : "rechazar"} la solicitud`;
-      setError(msg);
-    } finally {
-      setLoading(false);
+    const playerId = Number(jugadorId);
+    if (action === "accept") {
+      accept.mutate(playerId, {
+        onSuccess: () => {
+          setActionDone(true);
+          setTimeout(() => navigate("/captain/requests"), 2500);
+        },
+      });
+    } else {
+      reject.mutate(playerId, {
+        onSuccess: () => {
+          setActionDone(true);
+          setTimeout(() => navigate("/captain/requests"), 2500);
+        },
+      });
     }
   }
 
-  if (!teamId) {
+  if (!myTeam) {
     return (
       <div className="flex min-h-screen flex-col">
         <main className="flex-1 bg-background p-8">
@@ -63,6 +50,8 @@ export default function PlayerRequestDetail() {
       </div>
     );
   }
+
+  const isLoading = accept.isPending || reject.isPending;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -84,7 +73,7 @@ export default function PlayerRequestDetail() {
                 </div>
                 <h1 className="mb-1 text-2xl font-bold">Solicitud de jugador</h1>
                 <p className="mb-3 text-sm text-muted-foreground">
-                  Este jugador ha solicitado unirse a tu equipo
+                  Este jugador ha solicitado unirse a {myTeam.name}
                 </p>
                 <div className="rounded-lg bg-accent/10 px-6 py-3">
                   <p className="mb-1 text-xs text-muted-foreground">ID del jugador</p>
@@ -98,17 +87,30 @@ export default function PlayerRequestDetail() {
               </div>
             </div>
 
-            {successMessage && (
+            {accept.isSuccess && (
               <div className="flex items-center gap-3 rounded-lg bg-[#4ADE80]/10 px-4 py-3 text-sm font-medium text-[#4ADE80]">
                 <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                {successMessage}
+                Jugador aceptado en el equipo exitosamente
                 <span className="ml-auto text-xs opacity-70">Redirigiendo...</span>
               </div>
             )}
-            {error && (
+            {reject.isSuccess && (
+              <div className="flex items-center gap-3 rounded-lg bg-[#4ADE80]/10 px-4 py-3 text-sm font-medium text-[#4ADE80]">
+                <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                Solicitud rechazada exitosamente
+                <span className="ml-auto text-xs opacity-70">Redirigiendo...</span>
+              </div>
+            )}
+            {accept.error && (
               <div className="flex items-center gap-3 rounded-lg bg-[#EF4444]/10 px-4 py-3 text-sm font-medium text-[#EF4444]">
                 <XCircle className="h-5 w-5 flex-shrink-0" />
-                {error}
+                {extractErrorMessage(accept.error)}
+              </div>
+            )}
+            {reject.error && (
+              <div className="flex items-center gap-3 rounded-lg bg-[#EF4444]/10 px-4 py-3 text-sm font-medium text-[#EF4444]">
+                <XCircle className="h-5 w-5 flex-shrink-0" />
+                {extractErrorMessage(reject.error)}
               </div>
             )}
 
@@ -116,10 +118,10 @@ export default function PlayerRequestDetail() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <button
                   onClick={() => handleAction("reject")}
-                  disabled={loading}
+                  disabled={isLoading}
                   className="flex items-center justify-center gap-2 rounded-xl border border-destructive bg-destructive/10 px-6 py-4 text-base font-medium text-destructive transition hover:bg-destructive/20 disabled:opacity-50"
                 >
-                  {loading ? (
+                  {isLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
                     <>
@@ -130,10 +132,10 @@ export default function PlayerRequestDetail() {
                 </button>
                 <button
                   onClick={() => handleAction("accept")}
-                  disabled={loading}
+                  disabled={isLoading}
                   className="flex items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
                 >
-                  {loading ? (
+                  {isLoading ? (
                     <Loader2 className="h-5 w-5 animate-spin" />
                   ) : (
                     <>
@@ -149,4 +151,15 @@ export default function PlayerRequestDetail() {
       </div>
     </div>
   );
+}
+
+function extractErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    const axiosError = error as { response?: { data?: { error?: string; message?: string } } };
+    const data = axiosError.response?.data;
+    if (data?.error) return data.error;
+    if (data?.message) return data.message;
+    return error.message;
+  }
+  return "Ocurrió un error inesperado";
 }

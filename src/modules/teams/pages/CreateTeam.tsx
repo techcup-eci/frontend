@@ -67,7 +67,6 @@ export default function CreateTeam() {
 
     try {
       await create(result.data);
-      toast.success("¡Equipo creado exitosamente!");
 
       // Auto-upgrade: promote PLAYER to CAPTAIN
       if (currentUser && currentUser.role === "PLAYER") {
@@ -80,12 +79,8 @@ export default function CreateTeam() {
       }
 
       navigate("/captain/dashboard", { replace: true });
-    } catch (err: unknown) {
-      const message =
-        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        (err as Error)?.message ||
-        "Error al crear el equipo.";
-      toast.error(message);
+    } catch {
+      // Error already shown by useCreateTeam hook toast
     }
   };
 

@@ -6,11 +6,54 @@ import {
 	Trophy,
 	UserPlus,
 	Users,
+	Loader2,
 } from "lucide-react";
 import { Link } from "react-router";
 import Badge from "../../../shared/components/shared/Badge";
+import { useAllTeams } from "../hooks/useTeams";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 
 export default function CaptainDashboard() {
+	const userId = useAuthStore((state) => state.user?.id);
+	const { data: teams, isLoading } = useAllTeams();
+
+	const myTeam = teams?.find((t) => t.captainId === userId);
+
+	if (isLoading) {
+		return (
+			<div className="flex min-h-screen items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+			</div>
+		);
+	}
+
+	if (!myTeam) {
+		return (
+			<div className="flex min-h-screen flex-col">
+				<main className="flex-1 bg-background p-8">
+					<div className="mx-auto max-w-7xl">
+						<div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 text-center">
+							<Users className="mb-4 h-16 w-16 text-muted-foreground" />
+							<h3 className="mb-2 text-xl font-bold">No tienes un equipo</h3>
+							<p className="mb-4 text-muted-foreground">
+								Crea un equipo para comenzar a gestionar tu torneo
+							</p>
+							<Link
+								to="/captain/create-team"
+								className="rounded-lg bg-[var(--color-oxblood)] px-6 py-3 font-semibold text-white transition hover:bg-opacity-90"
+							>
+								Crear equipo
+							</Link>
+						</div>
+					</div>
+				</main>
+			</div>
+		);
+	}
+
+	const pendingCount = 0; // Will be populated when requests endpoint is called
+	const availableSlots = myTeam.maxPlayers - myTeam.currentPlayers;
+
 	return (
 		<div className="flex min-h-screen flex-col">
 			<div className="flex flex-1">
@@ -21,9 +64,7 @@ export default function CaptainDashboard() {
 							<div className="flex items-center justify-between">
 								<div>
 									<h1 className="mb-2 text-3xl font-bold">Panel del Capitán</h1>
-									<p className="text-primary-foreground/80">
-										Los Algoritmos FC
-									</p>
+									<p className="text-primary-foreground/80">{myTeam.name}</p>
 								</div>
 								<Badge variant="active" size="lg">
 									Capitán
@@ -54,15 +95,17 @@ export default function CaptainDashboard() {
 						</div>
 
 						{/* Cards de resumen */}
-						<div className="grid gap-6 md:grid-cols-4">
+						<div className="grid gap-6 md:grid-cols-3">
 							<div className="rounded-xl border border-border bg-card p-6">
 								<div className="mb-2 flex items-center gap-3">
 									<Users className="h-8 w-8 text-primary" />
 									<h2 className="font-bold">Jugadores</h2>
 								</div>
-								<p className="text-3xl font-bold">9 / 12</p>
+								<p className="text-3xl font-bold">
+									{myTeam.currentPlayers} / {myTeam.maxPlayers}
+								</p>
 								<p className="text-sm text-muted-foreground">
-									3 cupos disponibles
+									{availableSlots} cupos disponibles
 								</p>
 							</div>
 
@@ -71,7 +114,7 @@ export default function CaptainDashboard() {
 									<Bell className="h-8 w-8 text-accent" />
 									<h2 className="font-bold">Solicitudes</h2>
 								</div>
-								<p className="text-3xl font-bold">2</p>
+								<p className="text-3xl font-bold">{pendingCount}</p>
 								<p className="text-sm text-muted-foreground">
 									Pendientes de revisar
 								</p>
@@ -83,76 +126,13 @@ export default function CaptainDashboard() {
 									<h2 className="font-bold">Estado del pago</h2>
 								</div>
 								<Badge variant="review">En revisión</Badge>
-								<p className="mt-2 text-sm text-muted-foreground">
-									Subido hace 1 día
-								</p>
-							</div>
-
-							<div className="rounded-xl border border-border bg-card p-6">
-								<div className="mb-2 flex items-center gap-3">
-									<Trophy className="h-8 w-8 text-[#4ADE80]" />
-									<h2 className="font-bold">Próximo partido</h2>
-								</div>
-								<p className="font-bold">vs Byte Brothers</p>
-								<p className="text-sm text-muted-foreground">
-									12/04/2025 - 14:00
-								</p>
-							</div>
-						</div>
-
-						{/* Actividad reciente */}
-						<div className="rounded-xl border border-border bg-card p-6">
-							<div className="mb-6 flex items-center gap-3">
-								<Bell className="h-6 w-6 text-primary" />
-								<h2 className="text-xl font-bold">Actividad del equipo</h2>
-							</div>
-							<div className="space-y-3">
-								<div className="flex items-start gap-4 rounded-lg border border-border bg-background p-4">
-									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500/10">
-										<UserPlus className="h-5 w-5 text-blue-500" />
-									</div>
-									<div className="flex-1">
-										<p className="font-medium">Nueva solicitud de ingreso</p>
-										<p className="text-sm text-muted-foreground">
-											Camila Herrera quiere unirse al equipo - Hace 2 horas
-										</p>
-									</div>
-									<Link
-										to="/captain/manage"
-										className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-									>
-										Revisar
-									</Link>
-								</div>
-								<div className="flex items-start gap-4 rounded-lg border border-border bg-background p-4">
-									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#4ADE80]/10">
-										<Users className="h-5 w-5 text-[#4ADE80]" />
-									</div>
-									<div className="flex-1">
-										<p className="font-medium">
-											Andrés Morales aceptó la invitación
-										</p>
-										<p className="text-sm text-muted-foreground">Hace 1 día</p>
-									</div>
-								</div>
-								<div className="flex items-start gap-4 rounded-lg border border-border bg-background p-4">
-									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-										<Trophy className="h-5 w-5 text-accent" />
-									</div>
-									<div className="flex-1">
-										<p className="font-medium">Partido programado</p>
-										<p className="text-sm text-muted-foreground">
-											vs Byte Brothers - 12/04/2025 a las 14:00
-										</p>
-									</div>
-								</div>
 							</div>
 						</div>
 
 						{/* Accesos rápidos */}
 						<div className="grid gap-4 md:grid-cols-3">
 							<Link
-								to="/captain/manage"
+								to={`/captain/manage/${myTeam.id}`}
 								className="rounded-xl border border-border bg-card p-6 transition hover:shadow-lg"
 							>
 								<Users className="mb-3 h-10 w-10 text-primary" />

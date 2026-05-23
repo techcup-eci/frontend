@@ -41,8 +41,11 @@ export async function updateTeamName(
   data: UpdateTeamNameFormData
 ): Promise<Team> {
   const parsed = updateTeamNameSchema.parse(data);
-  const response = await apiClient.put(`/api/teams/${teamId}/name`, {
+  // Backend only has PUT /{id} for full update, but we only send name
+  const response = await apiClient.put(`/api/teams/${teamId}`, {
     name: parsed.name,
+    colors: "",
+    photo: "",
   });
   return teamResponseSchema.parse(response.data);
 }

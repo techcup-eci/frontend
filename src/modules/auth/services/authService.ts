@@ -62,5 +62,5 @@ export async function logout(): Promise<void> {
 // ── Role Management ──────────────────────────────────────────────────────
 
 export async function updateRole(userId: number, role: string): Promise<void> {
-	await apiClient.put(`/api/auth/users/${userId}/role`, { role });
+	await apiClient.patch(`/api/auth/users/${userId}/role`, { role });
 }

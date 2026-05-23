@@ -1,61 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router";
-import { apiClient } from "../../../core/api/apiClient";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { useTeam, useSendJoinRequest } from "../../teams/hooks/useTeams";
 import { Users, CheckCircle, XCircle, ArrowLeft, Loader2 } from "lucide-react";
-
-interface TeamInfo {
-  id: number;
-  name: string;
-  colors: string;
-  currentPlayers: number;
-  maxPlayers: number;
-  code: string;
-}
+import { toast } from "sonner";
 
 export default function TeamInvitationDetail() {
   const { teamId } = useParams<{ teamId: string }>();
   const navigate = useNavigate();
   const userId = useAuthStore((state) => state.user?.id);
-  const [team, setTeam] = useState<TeamInfo | null>(null);
-  const [loadingTeam, setLoadingTeam] = useState(true);
-  const [teamError, setTeamError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const teamIdNum = teamId ? parseInt(teamId, 10) : 0;
+  const { data: team, isLoading: loadingTeam, isError: teamError } = useTeam(teamIdNum);
+  const sendRequest = useSendJoinRequest();
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [actionDone, setActionDone] = useState(false);
-
-  useEffect(() => {
-    fetchTeam();
-  }, [teamId]);
-
-  async function fetchTeam() {
-    setLoadingTeam(true);
-    setTeamError(null);
-    try {
-      const { data } = await apiClient.get<TeamInfo>(`/api/teams/${teamId}`);
-      setTeam(data);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error al cargar la información del equipo";
-      setTeamError(msg);
-    } finally {
-      setLoadingTeam(false);
-    }
-  }
 
   async function handleSendRequest() {
-    setLoading(true);
-    setError(null);
     try {
-      await apiClient.post(`/api/teams/${teamId}/solicitudes`);
+      await sendRequest.mutateAsync(teamIdNum);
       setSuccessMessage("¡Solicitud enviada exitosamente!");
-      setActionDone(true);
       setTimeout(() => navigate("/player/invitations"), 2500);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Error al enviar la solicitud";
-      setError(msg);
-    } finally {
-      setLoading(false);
+    } catch {
+      // Error already shown by hook toast
     }
   }
 
@@ -97,7 +62,7 @@ export default function TeamInvitationDetail() {
             ) : teamError ? (
               <div className="flex items-center gap-3 rounded-lg bg-[#EF4444]/10 px-4 py-3 text-sm font-medium text-[#EF4444]">
                 <XCircle className="h-5 w-5 flex-shrink-0" />
-                {teamError}
+                Error al cargar la información del equipo
               </div>
             ) : team ? (
               <div className="rounded-xl border border-border bg-card p-8">
@@ -140,20 +105,14 @@ export default function TeamInvitationDetail() {
                 <span className="ml-auto text-xs opacity-70">Redirigiendo...</span>
               </div>
             )}
-            {error && (
-              <div className="flex items-center gap-3 rounded-lg bg-[#EF4444]/10 px-4 py-3 text-sm font-medium text-[#EF4444]">
-                <XCircle className="h-5 w-5 flex-shrink-0" />
-                {error}
-              </div>
-            )}
 
-            {!actionDone && !loadingTeam && !teamError && (
+            {!successMessage && !loadingTeam && !teamError && (
               <button
                 onClick={handleSendRequest}
-                disabled={loading}
+                disabled={sendRequest.isPending}
                 className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-6 py-4 text-base font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
               >
-                {loading ? (
+                {sendRequest.isPending ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
                 ) : (
                   <>

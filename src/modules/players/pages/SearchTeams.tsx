@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import TeamCard from "../../../shared/components/shared/TeamCard";
-import { apiClient } from "../../../core/api/apiClient";
 import {
   Dialog,
   DialogContent,
@@ -10,32 +9,56 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../../shared/components/ui/dialog";
-import { Users, Search, Hash } from "lucide-react";
+import { Users, Search, Hash, Loader2 } from "lucide-react";
+import { useAllTeams } from "../../teams/hooks/useTeams";
+import { useJoinByCode } from "../../teams/hooks/useTeams";
+import { toast } from "sonner";
+
+interface TeamInfo {
+  id: number;
+  name: string;
+  colors: string;
+  currentPlayers: number;
+  maxPlayers: number;
+  code: string;
+  captainId?: number;
+  tournamentStatus?: string;
+}
 
 export default function SearchTeams() {
   const navigate = useNavigate();
+  const { data: teams = [], isLoading, isError } = useAllTeams();
+  const joinByCode = useJoinByCode();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [joinCodeOpen, setJoinCodeOpen] = useState(false);
   const [teamCode, setTeamCode] = useState("");
-  const [teams, setTeams] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    apiClient.get("/api/teams")
-      .then((res) => { setTeams(res.data); setLoading(false); })
-      .catch((err) => {
-        console.error("Error cargando equipos:", err);
-        setTeams([]);
-        setLoading(false);
-      });
-  }, []);
-
-  const filteredTeams = teams.filter((team) => {
+  const filteredTeams = (teams as TeamInfo[]).filter((team) => {
     const matchesSearch = team.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || team.tournamentStatus === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handleJoinByCode = async () => {
+    if (teamCode.trim().length === 0) return;
+    try {
+      await joinByCode.mutateAsync(teamCode.trim());
+      setJoinCodeOpen(false);
+      setTeamCode("");
+    } catch {
+      // Error already shown by hook toast
+    }
+  };
+
+  const handleJoinTeam = async (teamId: number, teamName: string) => {
+    try {
+      await joinByCode.mutateAsync(String(teamId));
+      toast.success(`Solicitud enviada a ${teamName}`);
+    } catch {
+      // Error already shown by hook toast
+    }
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -76,14 +99,22 @@ export default function SearchTeams() {
                   />
                 </div>
                 <DialogFooter>
-                  <button onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
-                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent">
+                  <button
+                    onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
+                    className="rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium transition hover:bg-accent"
+                  >
                     Cancelar
                   </button>
-                  <button disabled={teamCode.trim().length === 0}
-                    onClick={() => { setJoinCodeOpen(false); setTeamCode(""); }}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50">
-                    Confirmar
+                  <button
+                    disabled={teamCode.trim().length === 0 || joinByCode.isPending}
+                    onClick={handleJoinByCode}
+                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {joinByCode.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Confirmar"
+                    )}
                   </button>
                 </DialogFooter>
               </DialogContent>
@@ -92,12 +123,19 @@ export default function SearchTeams() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
-                <input type="text" placeholder="Buscar por nombre..."
-                  value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:border-primary focus:outline-none" />
+                <input
+                  type="text"
+                  placeholder="Buscar por nombre..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-input-background py-3 pl-10 pr-4 focus:border-primary focus:outline-none"
+                />
               </div>
-              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none">
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-lg border border-border bg-input-background px-4 py-3 focus:border-primary focus:outline-none"
+              >
                 <option value="">Todos los estados</option>
                 <option value="ACTIVE">Aprobados</option>
                 <option value="DRAFT">En revisión</option>
@@ -105,19 +143,31 @@ export default function SearchTeams() {
               </select>
             </div>
 
-            {loading ? (
-              <div className="flex justify-center py-16">
-                <p className="text-muted-foreground">Cargando equipos...</p>
+            {isError && (
+              <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+                Error al cargar los equipos. Intenta nuevamente.
+              </div>
+            )}
+
+            {isLoading ? (
+              <div className="flex items-center justify-center rounded-xl border border-border bg-card py-16">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-3 text-muted-foreground">Cargando equipos...</span>
               </div>
             ) : filteredTeams.length > 0 ? (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {filteredTeams.map((team) => (
-                  <TeamCard key={team.id} name={team.name} captain={team.captainId}
-                    players={team.currentPlayers} maxPlayers={team.maxPlayers || 12}
+                  <TeamCard
+                    key={team.id}
+                    name={team.name}
+                    captain={team.captainId}
+                    players={team.currentPlayers}
+                    maxPlayers={team.maxPlayers || 12}
                     status={team.tournamentStatus === "ACTIVE" ? "approved" : "review"}
                     positions={[]}
                     onView={() => navigate(`/player/teams/${team.id}`)}
-                    onJoin={() => alert(`Solicitud enviada a ${team.name}`)} />
+                    onJoin={() => handleJoinTeam(team.id, team.name)}
+                  />
                 ))}
               </div>
             ) : (

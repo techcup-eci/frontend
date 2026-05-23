@@ -1,10 +1,19 @@
 import { Check, X, UserPlus, Loader2 } from "lucide-react";
 import { useTeam, usePendingRequests, useAcceptRequest, useRejectRequest } from "../hooks/useTeams";
-import { useParams } from "react-router";
+import { useParams, Link } from "react-router";
 
 export default function ManageTeam() {
   const { teamId } = useParams<{ teamId: string }>();
-  const id = Number(teamId) || 1;
+  const id = Number(teamId);
+
+  if (!id || isNaN(id)) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-muted-foreground">ID de equipo no válido.</p>
+      </div>
+    );
+  }
+
   const { data: team, isLoading, error } = useTeam(id);
   const { data: requests, isLoading: reqLoading } = usePendingRequests(id);
   const accept = useAcceptRequest(id);
@@ -117,12 +126,12 @@ export default function ManageTeam() {
               <p className="mb-4 text-sm text-muted-foreground">
                 Tienes {team.maxPlayers - team.currentPlayers} cupos disponibles
               </p>
-              <a
-                href="/captain/search-players"
+              <Link
+                to="/captain/search-players"
                 className="inline-block rounded-lg bg-[var(--color-oxblood)] px-6 py-3 font-semibold text-white transition hover:bg-opacity-90"
               >
                 Buscar jugadores
-              </a>
+              </Link>
             </div>
           </div>
         </main>
