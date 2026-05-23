@@ -64,6 +64,13 @@ export default function BecomePlayer() {
       return;
     }
 
+    // ── Auth check: redirect to login if session expired ──
+    const token = useAuthStore.getState().accessToken;
+    if (!token || !authUser) {
+      navigate(`/login?redirect=${encodeURIComponent("/player/profile/becomePlayer")}`, { replace: true });
+      return;
+    }
+
     setErrors({});
 
     try {
@@ -99,8 +106,9 @@ export default function BecomePlayer() {
       sessionStorage.setItem("playerEmail", userEmail);
 
       navigate("/player/profile");
-    } catch {
-      // Error already shown by useCreateAthleticProfile hook toast
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Error al crear el perfil. Intenta de nuevo.";
+      setErrors({ general: message });
     }
   };
 

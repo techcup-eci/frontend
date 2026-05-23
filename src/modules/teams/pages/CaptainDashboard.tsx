@@ -72,7 +72,7 @@ export default function CaptainDashboard() {
 						</div>
 
 						{/* Alerta de pago pendiente */}
-						{/* <div className="rounded-xl border border-[#FACC15] bg-[#FACC15]/10 p-6">
+						<div className="rounded-xl border border-[#FACC15] bg-[#FACC15]/10 p-6">
 							<div className="flex items-start gap-4">
 								<AlertTriangle className="h-6 w-6 flex-shrink-0 text-[#FACC15]" />
 								<div className="flex-1">
@@ -92,7 +92,7 @@ export default function CaptainDashboard() {
 								</div>
 							</div>
 						</div>
- */}
+
 						{/* Cards de resumen */}
 						<div className="grid gap-6 md:grid-cols-3">
 							<div className="rounded-xl border border-border bg-card p-6">

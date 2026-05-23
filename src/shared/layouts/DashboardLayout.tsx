@@ -77,7 +77,7 @@ const captainSidebar = [
 				path: "/captain/search-players",
 				icon: UserPlus,
 			},
-			{ label: "Pagos", path: "/captain/payment", icon: CreditCard },
+			{ label: "Pagos", path: "/captain/payments", icon: CreditCard },
 			{ label: "Torneo", path: "/tournament-info", icon: Trophy },
 			{ label: "Estadísticas", path: "/tournament-stats", icon: BarChart3 },
 		],
