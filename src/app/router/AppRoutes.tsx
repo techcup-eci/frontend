@@ -51,6 +51,23 @@ import AuthLayout from "../../shared/layouts/AuthLayout";
 import DashboardLayout from "../../shared/layouts/DashboardLayout";
 import RootLayout from "../../shared/layouts/RootLayout";
 
+// ── Role Guard ──────────────────────────────────────────────────────────────
+function RoleGuard({ allowed, children }: { allowed: string[]; children: React.ReactNode }) {
+	const role = useAuthStore((state) => state.user?.role ?? "invited");
+	const roleDashboards: Record<string, string> = {
+		admin: "/admin/dashboard",
+		organizer: "/organizer/dashboard",
+		captain: "/captain/dashboard",
+		referee: "/referee/dashboard",
+		player: "/player/dashboard",
+		invited: "/user/dashboard",
+	};
+	if (!allowed.includes(role)) {
+		return <Navigate to={roleDashboards[role] ?? "/user/dashboard"} replace />;
+	}
+	return <>{children}</>;
+}
+
 function RoleBasedHome() {
 	const user = useAuthStore((state) => state.user);
 	const roleDashboards: Record<string, string> = {
@@ -70,11 +87,13 @@ export function AppRoutes() {
 		<Routes>
 			{/* Public Routes with Navbar */}
 			<Route element={<RootLayout />}>
-				<Route path="/" element={<LandingPage />} />
 				<Route path="/tournament-stats" element={<TournamentStats />} />
 				<Route path="/tournament-info" element={<TournamentInfo />} />
 				<Route path="/players/:id" element={<PlayerPublicProfile />} />
 			</Route>
+
+			{/* Landing Page — standalone, no RootLayout Navbar */}
+			<Route path="/" element={<LandingPage />} />
 
 			{/* Auth Routes without Navbar/Sidebar */}
 			<Route element={<AuthLayout />}>
@@ -85,72 +104,72 @@ export function AppRoutes() {
 			{/* Protected/Dashboard Routes with Navbar & Sidebar */}
 			<Route element={<ProtectedRoute />}>
 				<Route element={<DashboardLayout />}>
-					{/* User */}
-					<Route path="/user/dashboard" element={<UserDashboard />} />
-					<Route path="/user/profile" element={<UserProfile />} />
-					<Route path="/user/teams" element={<UserTeams />} />
+					{/* User (invited) */}
+					<Route path="/user/dashboard" element={<RoleGuard allowed={["invited", "user"]}><UserDashboard /></RoleGuard>} />
+					<Route path="/user/profile" element={<RoleGuard allowed={["invited", "user"]}><UserProfile /></RoleGuard>} />
+					<Route path="/user/teams" element={<RoleGuard allowed={["invited", "user", "player", "captain"]}><UserTeams /></RoleGuard>} />
 					<Route path="/user/teams/:id" element={<TeamDetail />} />
 
 					{/* Player */}
-					<Route path="/player/dashboard" element={<PlayerDashboard />} />
-					<Route path="/player/profile/create" element={<CreateProfile />} />
+					<Route path="/player/dashboard" element={<RoleGuard allowed={["player", "captain"]}><PlayerDashboard /></RoleGuard>} />
+					<Route path="/player/profile/create" element={<RoleGuard allowed={["player", "captain"]}><CreateProfile /></RoleGuard>} />
 					<Route
 						path="/player/profile/becomePlayer"
-						element={<BecomePlayer />}
+						element={<RoleGuard allowed={["invited", "user"]}><BecomePlayer /></RoleGuard>}
 					/>
-					<Route path="/player/profile/edit" element={<EditProfile />} />
-					<Route path="/player/profile" element={<ViewProfile />} />
-					<Route path="/player/availability" element={<MarkAvailability />} />
-					<Route path="/player/teams" element={<SearchTeams />} />
+					<Route path="/player/profile/edit" element={<RoleGuard allowed={["player", "captain"]}><EditProfile /></RoleGuard>} />
+					<Route path="/player/profile" element={<RoleGuard allowed={["player", "captain"]}><ViewProfile /></RoleGuard>} />
+					<Route path="/player/availability" element={<RoleGuard allowed={["player", "captain"]}><MarkAvailability /></RoleGuard>} />
+					<Route path="/player/teams" element={<RoleGuard allowed={["player", "captain"]}><SearchTeams /></RoleGuard>} />
 					<Route path="/player/teams/:id" element={<TeamDetail />} />
-					<Route path="/player/invitations" element={<PlayerInvitations />} />
+					<Route path="/player/invitations" element={<RoleGuard allowed={["player", "captain"]}><PlayerInvitations /></RoleGuard>} />
 					<Route
 						path="/player/invitations/:teamId"
-						element={<TeamInvitationDetail />}
+						element={<RoleGuard allowed={["player", "captain"]}><TeamInvitationDetail /></RoleGuard>}
 					/>
-					<Route path="/player/lineup" element={<ViewLineup />} />
+					<Route path="/player/lineup" element={<RoleGuard allowed={["player", "captain"]}><ViewLineup /></RoleGuard>} />
 					<Route
 						path="/player/lineup/rival/:id"
-						element={<ViewRivalLineup />}
+						element={<RoleGuard allowed={["player", "captain"]}><ViewRivalLineup /></RoleGuard>}
 					/>
 
 					{/* Captain */}
-					<Route path="/captain/create-team" element={<CreateTeam />} />
-					<Route path="/captain/dashboard" element={<CaptainDashboard />} />
-					<Route path="/captain/manage-team" element={<ManageTeam />} />
-					<Route path="/captain/search-players" element={<SearchPlayers />} />
+					<Route path="/captain/create-team" element={<RoleGuard allowed={["player", "captain"]}><CreateTeam /></RoleGuard>} />
+					<Route path="/captain/dashboard" element={<RoleGuard allowed={["captain"]}><CaptainDashboard /></RoleGuard>} />
+					<Route path="/captain/manage-team" element={<RoleGuard allowed={["captain"]}><ManageTeam /></RoleGuard>} />
+					<Route path="/captain/search-players" element={<RoleGuard allowed={["captain"]}><SearchPlayers /></RoleGuard>} />
 
-					<Route path="/captain/requests" element={<PendingRequests />} />
+					<Route path="/captain/requests" element={<RoleGuard allowed={["captain"]}><PendingRequests /></RoleGuard>} />
 					<Route
 						path="/captain/requests/:jugadorId"
-						element={<PlayerRequestDetail />}
+						element={<RoleGuard allowed={["captain"]}><PlayerRequestDetail /></RoleGuard>}
 					/>
 
 					{/* Organizer */}
-					<Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
-					<Route path="/organizer/profile" element={<OrganizerProfile />} />
+					<Route path="/organizer/dashboard" element={<RoleGuard allowed={["organizer"]}><OrganizerDashboard /></RoleGuard>} />
+					<Route path="/organizer/profile" element={<RoleGuard allowed={["organizer"]}><OrganizerProfile /></RoleGuard>} />
 					<Route
 						path="/organizer/create-tournament"
-						element={<CreateTournament />}
+						element={<RoleGuard allowed={["organizer"]}><CreateTournament /></RoleGuard>}
 					/>
 					<Route
 						path="/organizer/tournament/configure"
-						element={<ConfigureTournament />}
+						element={<RoleGuard allowed={["organizer"]}><ConfigureTournament /></RoleGuard>}
 					/>
-					<Route path="/organizer/teams" element={<ManageTeams />} />
-					<Route path="/organizer/payments" element={<ManageRegistrations />} />
-					<Route path="/organizer/schedule" element={<ScheduleMatches />} />
-					<Route path="/organizer/result/:id" element={<RegisterResult />} />
-					<Route path="/organizer/calendar" element={<MatchCalendar />} />
-					<Route path="/organizer/standings" element={<Standings />} />
-					<Route path="/organizer/bracket" element={<Bracket />} />
+					<Route path="/organizer/teams" element={<RoleGuard allowed={["organizer", "admin"]}><ManageTeams /></RoleGuard>} />
+					<Route path="/organizer/payments" element={<RoleGuard allowed={["organizer", "admin"]}><ManageRegistrations /></RoleGuard>} />
+					<Route path="/organizer/schedule" element={<RoleGuard allowed={["organizer", "admin"]}><ScheduleMatches /></RoleGuard>} />
+					<Route path="/organizer/result/:id" element={<RoleGuard allowed={["organizer", "admin"]}><RegisterResult /></RoleGuard>} />
+					<Route path="/organizer/calendar" element={<RoleGuard allowed={["organizer", "admin"]}><MatchCalendar /></RoleGuard>} />
+					<Route path="/organizer/standings" element={<RoleGuard allowed={["organizer", "admin", "player", "captain", "referee", "invited", "user"]}><Standings /></RoleGuard>} />
+					<Route path="/organizer/bracket" element={<RoleGuard allowed={["organizer", "admin", "player", "captain", "referee", "invited", "user"]}><Bracket /></RoleGuard>} />
 
-					<Route path="/referee/dashboard" element={<RefereeDashboard />} />
-					<Route path="/referee/match/:id" element={<RefereeMatchDetail />} />
+					<Route path="/referee/dashboard" element={<RoleGuard allowed={["referee"]}><RefereeDashboard /></RoleGuard>} />
+					<Route path="/referee/match/:id" element={<RoleGuard allowed={["referee"]}><RefereeMatchDetail /></RoleGuard>} />
 
-					<Route path="/admin/dashboard" element={<AdminDashboard />} />
-					<Route path="/admin/players" element={<ManageUsers />} />
-					<Route path="/admin/audit" element={<AuditLog />} />
+					<Route path="/admin/dashboard" element={<RoleGuard allowed={["admin"]}><AdminDashboard /></RoleGuard>} />
+					<Route path="/admin/players" element={<RoleGuard allowed={["admin"]}><ManageUsers /></RoleGuard>} />
+					<Route path="/admin/audit" element={<RoleGuard allowed={["admin"]}><AuditLog /></RoleGuard>} />
 
 					<Route path="/home" element={<RoleBasedHome />} />
 				</Route>

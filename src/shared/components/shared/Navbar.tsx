@@ -106,26 +106,20 @@ export default function Navbar({ userName, role, hideActions }: NavbarProps) {
 								</button>
 							</>
 						) : (
-							<div className="flex items-center gap-1 md:gap-3">
-								<Link
-									to="/login"
-									className="rounded-lg px-2 py-2 text-xs md:text-sm font-medium text-white transition hover:bg-white/10 md:px-4"
-								>
-									Iniciar Sesión
-								</Link>
-								<Link
-									to="/register"
-									className="rounded-lg bg-[#F97316] px-2 py-2 text-xs md:text-sm font-medium text-white transition hover:bg-[#F97316]/90 md:px-4"
-								>
-									Regístrate
-								</Link>
-								<Link
-									to="/login?role=admin"
-									className="hidden sm:inline-flex rounded-lg bg-[var(--color-oxblood)] px-4 py-2 text-sm font-semibold text-[var(--color-white-pure)] transition hover:bg-[var(--color-oxblood)]/90"
-								>
-									Administrador
-								</Link>
-							</div>
+						<div className="flex items-center gap-1 md:gap-3">
+							<Link
+								to="/login"
+								className="rounded-lg px-2 py-2 text-xs md:text-sm font-medium text-white transition hover:bg-white/10 md:px-4"
+							>
+								Iniciar Sesión
+							</Link>
+							<Link
+								to="/register"
+								className="rounded-lg bg-[#F97316] px-2 py-2 text-xs md:text-sm font-medium text-white transition hover:bg-[#F97316]/90 md:px-4"
+							>
+								Regístrate
+							</Link>
+						</div>
 						)}
 					</div>
 				)}

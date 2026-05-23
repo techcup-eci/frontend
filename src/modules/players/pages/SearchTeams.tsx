@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import TeamCard from "../../../shared/components/shared/TeamCard";
 import {
@@ -9,9 +9,9 @@ import {
   DialogDescription,
   DialogFooter,
 } from "../../../shared/components/ui/dialog";
-import { Users, Search, Hash, Loader2 } from "lucide-react";
-import { useAllTeams } from "../../teams/hooks/useTeams";
-import { useJoinByCode } from "../../teams/hooks/useTeams";
+import { Users, Search, Hash, Loader2, Shield } from "lucide-react";
+import { useAllTeams, useSendJoinRequest, useJoinByCode } from "../../teams/hooks/useTeams";
+import { useAuthStore } from "../../auth/hooks/useAuthStore";
 import { toast } from "sonner";
 
 interface TeamInfo {
@@ -27,14 +27,27 @@ interface TeamInfo {
 
 export default function SearchTeams() {
   const navigate = useNavigate();
+  const userId = useAuthStore((state) => state.user?.id);
+  const userRole = useAuthStore((state) => state.user?.role);
   const { data: teams = [], isLoading, isError } = useAllTeams();
   const joinByCode = useJoinByCode();
+  const sendJoin = useSendJoinRequest();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [joinCodeOpen, setJoinCodeOpen] = useState(false);
   const [teamCode, setTeamCode] = useState("");
 
+  // Find the team the user already belongs to (as captain or player)
+  const myTeam = useMemo(() => {
+    if (!userId) return null;
+    return (teams as TeamInfo[]).find(
+      (t) => t.captainId === userId || t.players.includes(userId)
+    ) ?? null;
+  }, [teams, userId]);
+
   const filteredTeams = (teams as TeamInfo[]).filter((team) => {
+    // Don't show the user's own team in the list
+    if (myTeam && team.id === myTeam.id) return false;
     const matchesSearch = team.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = !statusFilter || team.tournamentStatus === statusFilter;
     return matchesSearch && matchesStatus;
@@ -42,22 +55,36 @@ export default function SearchTeams() {
 
   const handleJoinByCode = async () => {
     if (teamCode.trim().length === 0) return;
-    try {
-      await joinByCode.mutateAsync(teamCode.trim());
-      setJoinCodeOpen(false);
-      setTeamCode("");
-    } catch {
-      // Error already shown by hook toast
+    // Already in a team
+    if (myTeam) {
+      toast.error("Ya perteneces a un equipo", {
+        description: `Tu equipo actual es "${myTeam.name}". No puedes unirte a otro.`,
+      });
+      return;
     }
+    // Hook handles success/error toasts
+    await joinByCode.mutateAsync(teamCode.trim());
+    setJoinCodeOpen(false);
+    setTeamCode("");
   };
 
   const handleJoinTeam = async (teamId: number, teamName: string) => {
-    try {
-      await joinByCode.mutateAsync(String(teamId));
-      toast.success(`Solicitud enviada a ${teamName}`);
-    } catch {
-      // Error already shown by hook toast
+    // Already in a team - prevent joining another
+    if (myTeam) {
+      toast.error("Ya perteneces a un equipo", {
+        description: `Tu equipo actual es "${myTeam.name}". No puedes unirte a otro.`,
+      });
+      return;
     }
+    // Check role — backend requires PLAYER role for solicitudes endpoint
+    if (userRole !== "player" && userRole !== "captain") {
+      toast.error("Debes tener rol de jugador para solicitar unión a un equipo.", {
+        description: "Ve a tu perfil y solicita el rol de jugador primero.",
+      });
+      return;
+    }
+    // Hook handles success/error toasts
+    await sendJoin.mutateAsync(teamId);
   };
 
   return (
@@ -70,14 +97,46 @@ export default function SearchTeams() {
                 <h1 className="mb-2 text-3xl font-bold">Buscar equipos disponibles</h1>
                 <p className="text-muted-foreground">Encuentra un equipo para unirte al torneo</p>
               </div>
-              <button
-                onClick={() => setJoinCodeOpen(true)}
-                className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-              >
-                <Hash className="h-4 w-4" />
-                Unirme con código de equipo
-              </button>
+              {!myTeam && (
+                <button
+                  onClick={() => setJoinCodeOpen(true)}
+                  className="flex shrink-0 items-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                >
+                  <Hash className="h-4 w-4" />
+                  Unirme con código de equipo
+                </button>
+              )}
             </div>
+
+            {/* Already in a team banner */}
+            {myTeam && (
+              <div className="rounded-xl border border-green-500/30 bg-green-500/10 p-6">
+                <div className="flex items-start gap-4">
+                  <Shield className="h-6 w-6 flex-shrink-0 text-green-600" />
+                  <div className="flex-1">
+                    <p className="font-bold text-green-700">Ya perteneces a un equipo</p>
+                    <p className="text-sm text-green-600">
+                      Tu equipo actual es <span className="font-semibold">{myTeam.name}</span> ({myTeam.currentPlayers}/{myTeam.maxPlayers} jugadores).
+                      {myTeam.captainId === userId && " Eres el capitán."}
+                    </p>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        onClick={() => {
+                          if (myTeam.captainId === userId) {
+                            navigate("/captain/manage-team");
+                          } else {
+                            navigate(`/player/teams/${myTeam.id}`);
+                          }
+                        }}
+                        className="rounded-lg bg-green-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-green-700"
+                      >
+                        Ir a mi equipo
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <Dialog open={joinCodeOpen} onOpenChange={setJoinCodeOpen}>
               <DialogContent className="sm:max-w-md">
@@ -160,13 +219,13 @@ export default function SearchTeams() {
                   <TeamCard
                     key={team.id}
                     name={team.name}
-                    captain={team.captainId}
+                    captain={team.captainId ? `#${team.captainId}` : "N/A"}
                     players={team.currentPlayers}
                     maxPlayers={team.maxPlayers || 12}
                     status={team.tournamentStatus === "ACTIVE" ? "approved" : "review"}
                     positions={[]}
                     onView={() => navigate(`/player/teams/${team.id}`)}
-                    onJoin={() => handleJoinTeam(team.id, team.name)}
+                    onJoin={myTeam ? undefined : () => handleJoinTeam(team.id, team.name)}
                   />
                 ))}
               </div>

@@ -6,7 +6,7 @@ export const createTeamSchema = z.object({
     .trim()
     .min(3, "El nombre del equipo debe tener al menos 3 caracteres.")
     .max(50, "El nombre del equipo no puede exceder 50 caracteres."),
-  idTournament: z.number().optional().nullable(),
+  idTournament: z.string().optional().nullable(),
   colors: z
     .string()
     .min(1, "Selecciona un color para el equipo."),
@@ -29,7 +29,7 @@ export type UpdateTeamNameFormData = z.infer<typeof updateTeamNameSchema>;
 export const teamResponseSchema = z.object({
   id: z.number(),
   name: z.string(),
-  idTournament: z.number().nullable().optional(),
+  idTournament: z.string().nullable().optional(),
   captainId: z.number(),
   players: z.array(z.number()),
   currentPlayers: z.number(),
@@ -37,9 +37,9 @@ export const teamResponseSchema = z.object({
   minPlayers: z.number(),
   colors: z.string(),
   photo: z.string(),
-  code: z.string().optional(),
+  code: z.string().nullish(),
   tournamentStatus: z.enum(["NONE", "DRAFT", "ACTIVE", "IN_PROGRESS", "FINISHED"]),
-  warning: z.string().optional(),
+  warning: z.string().nullish(),
 }).transform((data) => ({
   ...data,
   idTournament: data.idTournament ?? null,

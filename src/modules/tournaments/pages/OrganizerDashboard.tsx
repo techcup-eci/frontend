@@ -13,6 +13,8 @@ import { Link } from "react-router";
 import { toast } from "sonner";
 import Badge from "../../../shared/components/shared/Badge";
 import { useTournaments } from "../hooks/useTournaments";
+import { useActiveTournament } from "../hooks/useActiveTournament";
+import { useRegistrations } from "../hooks/useRegistrations";
 import { useActivateTournament } from "../hooks/useActivateTournament";
 import { useFinishTournament } from "../hooks/useFinishTournament";
 import { useDeleteTournament } from "../hooks/useDeleteTournament";
@@ -40,44 +42,24 @@ export default function OrganizerDashboard() {
     isError,
     error,
   } = useTournaments();
+  const { data: activeTournament } = useActiveTournament();
+  const { data: registrations = [] } = useRegistrations(activeTournament?.id ?? "");
+
   const activateMutation = useActivateTournament();
+  const startMutation = useStartTournament();
   const finishMutation = useFinishTournament();
   const deleteMutation = useDeleteTournament();
 
   const handleActivate = (id: string) => {
-    activateMutation.mutate(id, {
-      onSuccess: () => toast.success("Torneo activado correctamente"),
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo activar el torneo";
-        toast.error(message);
-      },
-    });
+    activateMutation.mutate(id);
   };
 
   const handleStart = (id: string) => {
-    startMutation.mutate(id, {
-        onSuccess: () => toast.success("Torneo iniciado correctamente"),
-        onError: (err: any) => {
-            const message =
-                err?.response?.data?.message ||
-                err?.message ||
-                "No se pudo iniciar el torneo";
-            toast.error(message);
-        },
-    });
+    startMutation.mutate(id);
   };
 
   const handleFinish = (id: string) => {
-    finishMutation.mutate(id, {
-      onSuccess: () => toast.success("Torneo finalizado correctamente"),
-      onError: (err: any) => {
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          "No se pudo finalizar el torneo";
-        toast.error(message);
-      },
-    });
+    finishMutation.mutate(id);
   };
 
   const handleDelete = (id: string, name: string) => {
@@ -88,17 +70,18 @@ export default function OrganizerDashboard() {
 
     deleteMutation.mutate(id, {
       onSuccess: () => toast.success(`Torneo "${name}" eliminado correctamente`),
-      onError: (err: any) => {
-        const message =
-          err?.response?.data?.message ||
-          err?.message ||
-          "No se pudo eliminar el torneo";
-        toast.error(message);
-      },
     });
   };
 
-  const startMutation = useStartTournament();
+  // Count pending registrations
+  const pendingRegistrations = registrations.filter(
+    (r) => r.status === "UNDER_REVIEW"
+  ).length;
+
+  // Count active/in-progress tournaments
+  const activeCount = tournaments.filter(
+    (t) => t.status === "ACTIVE" || t.status === "IN_PROGRESS"
+  ).length;
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -110,7 +93,9 @@ export default function OrganizerDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="mb-2 text-3xl font-bold">Panel de Organización</h1>
-                  <p className="text-primary-foreground/80">TechCup Fútbol 2025-1</p>
+                  <p className="text-primary-foreground/80">
+                    {activeTournament ? activeTournament.name : "TechCup Fútbol"}
+                  </p>
                 </div>
                 <Badge variant="finished" size="lg">
                   <span className="text-white">Organizador</span>
@@ -125,8 +110,10 @@ export default function OrganizerDashboard() {
                   <Trophy className="h-8 w-8 text-primary" />
                   <h2 className="font-bold">Torneos activos</h2>
                 </div>
-                <p className="text-3xl font-bold">1</p>
-                <p className="text-sm text-muted-foreground">TechCup 2025-1</p>
+                <p className="text-3xl font-bold">{activeCount}</p>
+                <p className="text-sm text-muted-foreground">
+                  {activeCount === 1 ? "1 torneo activo" : `${activeCount} torneos`}
+                </p>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-6">
@@ -134,8 +121,12 @@ export default function OrganizerDashboard() {
                   <Users className="h-8 w-8 text-accent" />
                   <h2 className="font-bold">Equipos inscritos</h2>
                 </div>
-                <p className="text-3xl font-bold">10 / 12</p>
-                <p className="text-sm text-muted-foreground">2 cupos disponibles</p>
+                <p className="text-3xl font-bold">{registrations.length}</p>
+                <p className="text-sm text-muted-foreground">
+                  {activeTournament
+                    ? `${pendingRegistrations} pendiente${pendingRegistrations !== 1 ? "s" : ""} de revisión`
+                    : "Sin torneo activo"}
+                </p>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-6">
@@ -143,83 +134,100 @@ export default function OrganizerDashboard() {
                   <CreditCard className="h-8 w-8 text-[#FACC15]" />
                   <h2 className="font-bold">Pagos pendientes</h2>
                 </div>
-                <p className="text-3xl font-bold">3</p>
+                <p className="text-3xl font-bold">{pendingRegistrations}</p>
                 <p className="text-sm text-muted-foreground">Por revisar</p>
               </div>
 
               <div className="rounded-xl border border-border bg-card p-6">
                 <div className="mb-2 flex items-center gap-3">
                   <Calendar className="h-8 w-8 text-[#4ADE80]" />
-                  <h2 className="font-bold">Partidos esta semana</h2>
+                  <h2 className="font-bold">Total torneos</h2>
                 </div>
-                <p className="text-3xl font-bold">4</p>
-                <p className="text-sm text-muted-foreground">12-18 abril</p>
+                <p className="text-3xl font-bold">{tournaments.length}</p>
+                <p className="text-sm text-muted-foreground">
+                  {tournaments.length === 0 ? "Sin torneos creados" : "Creados"}
+                </p>
               </div>
             </div>
 
-            {/* Acción requerida */}
-            <div className="rounded-xl border border-border bg-card p-6">
-              <h2 className="mb-6 text-xl font-bold">Acción requerida</h2>
-              <div className="space-y-3">
-                {[
-                  { name: "Neural FC", ago: "2 horas" },
-                  { name: "Los Cibernéticos", ago: "1 día" },
-                  { name: "Stack Overflow FC", ago: "2 días" },
-                ].map((item) => (
-                  <div
-                    key={item.name}
-                    className="flex items-center justify-between rounded-lg border border-border bg-background p-4"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FACC15]/10">
-                        <CreditCard className="h-5 w-5 text-[#FACC15]" />
+            {/* Acción requerida - only show if there are pending registrations */}
+            {pendingRegistrations > 0 && (
+              <div className="rounded-xl border border-border bg-card p-6">
+                <h2 className="mb-6 text-xl font-bold">Acción requerida</h2>
+                <div className="space-y-3">
+                  {pendingRegistrations > 0 && (
+                    <div className="flex items-center justify-between rounded-lg border border-border bg-background p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#FACC15]/10">
+                          <CreditCard className="h-5 w-5 text-[#FACC15]" />
+                        </div>
+                        <div>
+                          <p className="font-medium">
+                            {pendingRegistrations} inscripcion{pendingRegistrations !== 1 ? "es" : ""} pendiente{pendingRegistrations !== 1 ? "s" : ""} de revisión
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Revisa los comprobantes de pago
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium">{item.name} - Comprobante de pago</p>
-                        <p className="text-sm text-muted-foreground">Subido hace {item.ago}</p>
-                      </div>
+                      <Link
+                        to="/organizer/teams"
+                        className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+                      >
+                        Revisar
+                      </Link>
                     </div>
-                    <Link
-                      to="/organizer/teams"
-                      className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
-                    >
-                      Revisar
-                    </Link>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Resumen del torneo */}
-            <div className="rounded-xl border border-border bg-card p-6">
-              <h2 className="mb-6 text-xl font-bold">Resumen del torneo activo</h2>
-              <div className="grid gap-6 md:grid-cols-3">
-                <div>
-                  <p className="mb-1 text-sm text-muted-foreground">Nombre</p>
-                  <p className="font-bold">TechCup 2025-1</p>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-muted-foreground">Fase actual</p>
-                  <Badge variant="progress">Fase de grupos</Badge>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-muted-foreground">Fecha de cierre de inscripciones</p>
-                  <p className="font-bold">28/02/2025</p>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-muted-foreground">Fecha de inicio</p>
-                  <p className="font-bold">15/03/2025</p>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-muted-foreground">Fecha de finalización</p>
-                  <p className="font-bold">30/05/2025</p>
-                </div>
-                <div>
-                  <p className="mb-1 text-sm text-muted-foreground">Próximo partido</p>
-                  <p className="font-bold">12/04/2025 - 14:00</p>
+            {/* Resumen del torneo activo */}
+            {activeTournament && (
+              <div className="rounded-xl border border-border bg-card p-6">
+                <h2 className="mb-6 text-xl font-bold">Resumen del torneo activo</h2>
+                <div className="grid gap-6 md:grid-cols-3">
+                  <div>
+                    <p className="mb-1 text-sm text-muted-foreground">Nombre</p>
+                    <p className="font-bold">{activeTournament.name}</p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-sm text-muted-foreground">Estado</p>
+                    <Badge
+                      variant={
+                        activeTournament.status === "IN_PROGRESS"
+                          ? "progress"
+                          : activeTournament.status === "ACTIVE"
+                          ? "success"
+                          : "default"
+                      }
+                    >
+                      {activeTournament.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-sm text-muted-foreground">Equipos inscritos</p>
+                    <p className="font-bold">{registrations.length}</p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-sm text-muted-foreground">Fecha de inicio</p>
+                    <p className="font-bold">
+                      {new Date(activeTournament.startDate).toLocaleDateString("es-CO")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-sm text-muted-foreground">Fecha de finalización</p>
+                    <p className="font-bold">
+                      {new Date(activeTournament.endDate).toLocaleDateString("es-CO")}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="mb-1 text-sm text-muted-foreground">Costo por equipo</p>
+                    <p className="font-bold">${activeTournament.cost.toLocaleString("es-CO")}</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Mis Torneos */}
             <div className="rounded-xl border border-border bg-card p-6">
@@ -270,7 +278,8 @@ export default function OrganizerDashboard() {
                         <div>
                           <p className="font-medium">{tournament.name}</p>
                           <p className="text-sm text-muted-foreground">
-                            {tournament.startDate} → {tournament.endDate}
+                            {new Date(tournament.startDate).toLocaleDateString("es-CO")} →{" "}
+                            {new Date(tournament.endDate).toLocaleDateString("es-CO")}
                           </p>
                         </div>
                       </div>
@@ -279,38 +288,41 @@ export default function OrganizerDashboard() {
                           className={`rounded-full px-3 py-1 text-xs font-medium ${
                             tournament.status === "DRAFT"
                               ? "bg-gray-200 text-gray-700"
-                              : "bg-green-200 text-green-800"
+                              : tournament.status === "ACTIVE"
+                              ? "bg-green-200 text-green-800"
+                              : tournament.status === "IN_PROGRESS"
+                              ? "bg-blue-200 text-blue-800"
+                              : "bg-purple-200 text-purple-800"
                           }`}
                         >
                           {tournament.status}
                         </span>
                         {tournament.status === "DRAFT" && (
-                          <button
-                            onClick={() => handleActivate(tournament.id)}
-                            disabled={activateMutation.isPending}
-                            className="rounded-lg bg-green-600 px-3 py-1 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60"
-                          >
-                            {activateMutation.isPending ? "Activando..." : "Activar"}
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleActivate(tournament.id)}
+                              disabled={activateMutation.isPending}
+                              className="rounded-lg bg-green-600 px-3 py-1 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-60"
+                            >
+                              {activateMutation.isPending ? "Activando..." : "Activar"}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(tournament.id, tournament.name)}
+                              disabled={deleteMutation.isPending}
+                              className="rounded-lg bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+                            >
+                              {deleteMutation.isPending ? "Eliminando..." : "Eliminar"}
+                            </button>
+                          </>
                         )}
 
                         {tournament.status === "ACTIVE" && (
-                        <button
+                          <button
                             onClick={() => handleStart(tournament.id)}
                             disabled={startMutation.isPending}
                             className="rounded-lg bg-blue-600 px-3 py-1 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
                           >
-                              {startMutation.isPending ? "Iniciando..." : "Iniciar"}
-                          </button>
-                          )}
-
-                        {tournament.status === "DRAFT" && (
-                          <button
-                            onClick={() => handleDelete(tournament.id, tournament.name)}
-                            disabled={deleteMutation.isPending}
-                            className="rounded-lg bg-red-600 px-3 py-1 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
-                          >
-                            {deleteMutation.isPending ? "Eliminando..." : "Eliminar"}
+                            {startMutation.isPending ? "Iniciando..." : "Iniciar"}
                           </button>
                         )}
 

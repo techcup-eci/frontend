@@ -22,8 +22,23 @@ export const getMatches = async (tournamentId: string): Promise<MatchResponse[]>
  */
 export const getActiveMatches = async (): Promise<MatchResponse[]> => {
   try {
-    const { data } = await apiClient.get("/api/tournaments/matches/active");
-    return data;
+    // Stats endpoint returns all matches for the active tournament
+    const { data } = await apiClient.get("/api/stats/matches");
+    // Map MatchHistoryResponse to MatchResponse shape for UI compatibility
+    return data.map((m: any) => ({
+      id: m.matchId,
+      homeTeamId: m.homeTeamId,
+      awayTeamId: m.awayTeamId,
+      homeScore: m.homeScore ?? 0,
+      awayScore: m.awayScore ?? 0,
+      round: m.round,
+      matchOrder: m.matchOrder,
+      scheduledAt: m.scheduledAt,
+      status: m.status,
+      tournamentId: "",
+      homeTeamName: m.homeTeamName,
+      awayTeamName: m.awayTeamName,
+    }));
   } catch (error: unknown) {
     const err = error as { response?: { status?: number } };
     if (err.response?.status === 204) return [];
@@ -163,6 +178,29 @@ export const getActiveTeamStats = async (teamId: string): Promise<TeamStatsRespo
   return data;
 };
 
+// ── Fields (canchas) ──
+
+export interface FieldResponse {
+  id: string;
+  tournamentId: string;
+  name: string;
+  description?: string;
+  imgUrl?: string;
+}
+
+export const getFields = async (tournamentId: string): Promise<FieldResponse[]> => {
+  const { data } = await apiClient.get(`/api/tournaments/${tournamentId}/fields`);
+  return data;
+};
+
+export const createField = async (
+  tournamentId: string,
+  field: { name: string; description?: string; imgUrl?: string },
+): Promise<FieldResponse> => {
+  const { data } = await apiClient.post(`/api/tournaments/${tournamentId}/fields`, field);
+  return data;
+};
+
 // ── Lineups ──
 
 export const getLineup = async (
@@ -187,4 +225,35 @@ export const createLineup = async (
     lineup,
   );
   return data;
+};
+
+// ── Bracket ──
+
+export interface BracketMatchResponse {
+  id: string;
+  homeTeamId: string;
+  homeTeamName?: string;
+  awayTeamId: string;
+  awayTeamName?: string;
+  homeScore: number | null;
+  awayScore: number | null;
+  round: string;
+  matchOrder: number;
+  status: string;
+}
+
+export const getBracket = async (tournamentId: string): Promise<BracketMatchResponse[]> => {
+  const { data } = await apiClient.get(`/api/tournaments/${tournamentId}/bracket`);
+  return data;
+};
+
+export const getActiveBracket = async (): Promise<BracketMatchResponse[]> => {
+  try {
+    const { data } = await apiClient.get("/api/tournaments/bracket/active");
+    return data;
+  } catch (error: unknown) {
+    const err = error as { response?: { status?: number } };
+    if (err.response?.status === 204) return [];
+    throw error;
+  }
 };

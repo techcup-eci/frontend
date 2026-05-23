@@ -15,7 +15,7 @@ export const updateUserRole = async (
   userId: number,
   role: string
 ): Promise<{ id: number; email: string; role: string }> => {
-  const response = await apiClient.put(`/api/auth/users/${userId}/role`, {
+  const response = await apiClient.patch(`/api/auth/users/${userId}/role`, {
     role,
   });
   return response.data;

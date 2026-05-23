@@ -2,16 +2,15 @@ import {
 	AlertTriangle,
 	Bell,
 	CreditCard,
-	LayoutList,
+	Loader2,
 	Trophy,
 	UserPlus,
 	Users,
-	Loader2,
 } from "lucide-react";
 import { Link } from "react-router";
 import Badge from "../../../shared/components/shared/Badge";
-import { useAllTeams } from "../hooks/useTeams";
 import { useAuthStore } from "../../auth/hooks/useAuthStore";
+import { useAllTeams } from "../hooks/useTeams";
 
 export default function CaptainDashboard() {
 	const userId = useAuthStore((state) => state.user?.id);
@@ -60,20 +59,20 @@ export default function CaptainDashboard() {
 				<main className="flex-1 bg-background p-8">
 					<div className="mx-auto max-w-7xl space-y-8">
 						{/* Bienvenida */}
-						<div className="rounded-xl border border-border bg-gradient-to-r from-primary to-primary/80 p-8 text-primary-foreground">
+						<div className="rounded-xl border border-border bg-gradient-to-r from-primary to-primary p-8 text-primary-foreground">
 							<div className="flex items-center justify-between">
 								<div>
 									<h1 className="mb-2 text-3xl font-bold">Panel del Capitán</h1>
 									<p className="text-primary-foreground/80">{myTeam.name}</p>
 								</div>
-								<Badge variant="active" size="lg">
+								<Badge variant="default" size="lg">
 									Capitán
 								</Badge>
 							</div>
 						</div>
 
 						{/* Alerta de pago pendiente */}
-						<div className="rounded-xl border border-[#FACC15] bg-[#FACC15]/10 p-6">
+						{/* <div className="rounded-xl border border-[#FACC15] bg-[#FACC15]/10 p-6">
 							<div className="flex items-start gap-4">
 								<AlertTriangle className="h-6 w-6 flex-shrink-0 text-[#FACC15]" />
 								<div className="flex-1">
@@ -93,7 +92,7 @@ export default function CaptainDashboard() {
 								</div>
 							</div>
 						</div>
-
+ */}
 						{/* Cards de resumen */}
 						<div className="grid gap-6 md:grid-cols-3">
 							<div className="rounded-xl border border-border bg-card p-6">
@@ -130,17 +129,7 @@ export default function CaptainDashboard() {
 						</div>
 
 						{/* Accesos rápidos */}
-						<div className="grid gap-4 md:grid-cols-3">
-							<Link
-								to={`/captain/manage/${myTeam.id}`}
-								className="rounded-xl border border-border bg-card p-6 transition hover:shadow-lg"
-							>
-								<Users className="mb-3 h-10 w-10 text-primary" />
-								<h3 className="mb-2 font-bold">Gestionar jugadores</h3>
-								<p className="text-sm text-muted-foreground">
-									Ver equipo y solicitudes
-								</p>
-							</Link>
+						<div className="grid gap-4 md:grid-cols-2">
 							<Link
 								to="/captain/search-players"
 								className="rounded-xl border border-border bg-card p-6 transition hover:shadow-lg"
@@ -152,13 +141,13 @@ export default function CaptainDashboard() {
 								</p>
 							</Link>
 							<Link
-								to="/captain/lineup"
+								to="/captain/manage-team"
 								className="rounded-xl border border-border bg-card p-6 transition hover:shadow-lg"
 							>
-								<LayoutList className="mb-3 h-10 w-10 text-[#4ADE80]" />
-								<h3 className="mb-2 font-bold">Configurar alineación</h3>
+								<Bell className="mb-3 h-10 w-10 text-primary" />
+								<h3 className="mb-2 font-bold">Solicitudes y equipo</h3>
 								<p className="text-sm text-muted-foreground">
-									Organizar tu formación
+									Gestionar tu equipo y solicitudes
 								</p>
 							</Link>
 						</div>

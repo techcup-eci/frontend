@@ -3,7 +3,6 @@ import { Search, RefreshCw, Shield } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
 import { useAdminUsers, useUpdateUserRole } from "../hooks/useAdminUsers";
 import { ROLE_LABELS, ASSIGNABLE_ROLES, type AdminRole } from "../types/admin";
-import { toast } from "sonner";
 
 const roleBadgeVariant = (role: string) => {
   switch (role) {
@@ -49,15 +48,7 @@ export default function ManageUsers() {
       { userId, role: newRole },
       {
         onSuccess: () => {
-          toast.success("Rol actualizado", {
-            description: `El usuario ahora es ${ROLE_LABELS[newRole] ?? newRole}`,
-          });
           setEditingUser(null);
-        },
-        onError: (error) => {
-          const message =
-            error instanceof Error ? error.message : "No se pudo actualizar el rol";
-          toast.error("Error al actualizar rol", { description: message });
         },
       }
     );

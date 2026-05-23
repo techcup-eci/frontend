@@ -10,6 +10,8 @@ import {
   rejectRequest,
   sendJoinRequest,
   joinByCode,
+  removePlayer,
+  leaveTeam,
 } from "../services/teamService";
 import type { CreateTeamFormData, UpdateTeamNameFormData } from "../types/teamSchemas";
 import { toast } from "sonner";
@@ -152,6 +154,39 @@ export function useJoinByCode() {
     },
     onError: (error) => {
       toast.error("Error al unirse por código", { description: extractErrorMessage(error) });
+    },
+  });
+}
+
+// ── Remove Player ─────────────────────────────────────────────────────────
+
+export function useRemovePlayer(teamId: number) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (playerId: number) => removePlayer(teamId, playerId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      queryClient.invalidateQueries({ queryKey: ["teams", teamId] });
+      toast.success("Jugador removido del equipo");
+    },
+    onError: (error) => {
+      toast.error("Error al remover jugador", { description: extractErrorMessage(error) });
+    },
+  });
+}
+
+// ── Leave Team ────────────────────────────────────────────────────────────
+
+export function useLeaveTeam() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (teamId: number) => leaveTeam(teamId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["teams"] });
+      toast.success("Te has salido del equipo");
+    },
+    onError: (error) => {
+      toast.error("Error al salir del equipo", { description: extractErrorMessage(error) });
     },
   });
 }

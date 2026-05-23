@@ -2,7 +2,7 @@
 export interface Team {
   id: number;
   name: string;
-  idTournament?: number | null;
+  idTournament?: string | null;
   captainId: number;
   players: number[];
   currentPlayers: number;
@@ -18,7 +18,7 @@ export interface Team {
 /** Matches TeamRequestDTO from teams-ms backend */
 export interface CreateTeamRequest {
   name: string;
-  idTournament?: number;
+  idTournament?: string;
   colors: string;
   photo: string;
 }

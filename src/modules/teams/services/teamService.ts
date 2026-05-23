@@ -87,3 +87,18 @@ export async function sendJoinRequest(teamId: number): Promise<void> {
 export async function joinByCode(code: string): Promise<void> {
   await apiClient.post(`/api/teams/join?code=${encodeURIComponent(code)}`);
 }
+
+// ── Remove Player ─────────────────────────────────────────────────────────
+
+export async function removePlayer(
+  teamId: number,
+  playerId: number
+): Promise<void> {
+  await apiClient.delete(`/api/teams/${teamId}/players/${playerId}`);
+}
+
+// ── Leave Team (player leaves own team) ───────────────────────────────────
+
+export async function leaveTeam(teamId: number): Promise<void> {
+  await apiClient.post(`/api/teams/${teamId}/leave`);
+}
