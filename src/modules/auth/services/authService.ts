@@ -33,12 +33,12 @@ export async function register(data: RegisterRequest): Promise<RegisterResponse>
 		email: parsed.email,
 		password: parsed.password,
 		role: parsed.role,
-		fullName: parsed.fullName,
-		relationship: parsed.relationship,
-		program: parsed.program,
+		name: parsed.fullName,
+		schoolRelation: parsed.relationship,
+		academicProgram: parsed.program,
 		semester: parsed.semester ?? null,
-		documentType: parsed.documentType,
-		documentNumber: parsed.documentNumber,
+		identificationType: parsed.documentType,
+		identificationNumber: parsed.documentNumber,
 		birthDate: parsed.birthDate,
 	};
 

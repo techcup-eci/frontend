@@ -46,9 +46,16 @@ export function useLogin() {
 function extractErrorMessage(error: unknown): string {
 	if (error instanceof Error) {
 		// Axios error with response from backend
-		const axiosError = error as { response?: { data?: { error?: string } } };
-		if (axiosError.response?.data?.error) {
-			return axiosError.response.data.error;
+		const axiosError = error as { response?: { data?: { error?: string } | Record<string, string> } };
+		const data = axiosError.response?.data;
+		if (data) {
+			// Single error message (BusinessException)
+			if ("error" in data && data.error) return data.error;
+			// Validation errors map: { field: "message" }
+			const entries = Object.entries(data);
+			if (entries.length > 0) {
+				return entries.map(([, msg]) => msg).join(" ");
+			}
 		}
 		return error.message;
 	}
