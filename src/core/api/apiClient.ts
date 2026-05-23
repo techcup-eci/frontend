@@ -4,7 +4,10 @@ import { useAuthStore } from "../../modules/auth/hooks/useAuthStore";
 // ── Base client ──────────────────────────────────────────────────────────
 
 export const apiClient = axios.create({
-	baseURL: (import.meta.env.VITE_API_URL ?? "http://localhost:8081").replace(/\/$/, ""),
+	baseURL: (import.meta.env.VITE_API_URL ?? "http://localhost:8081").replace(
+		/\/$/,
+		"",
+	),
 	withCredentials: true,
 	headers: {
 		"Content-Type": "application/json",
@@ -42,7 +45,9 @@ function processQueue(error: unknown, token: string | null) {
 
 // ── Response interceptor ─────────────────────────────────────────────────
 
-const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8081").replace(/\/$/, "");
+const BASE_URL = (
+	import.meta.env.VITE_API_URL ?? "http://localhost:8081"
+).replace(/\/$/, "");
 
 apiClient.interceptors.response.use(
 	(response) => response,
@@ -56,9 +61,9 @@ apiClient.interceptors.response.use(
 
 		// Never retry auth endpoints (prevents infinite loops)
 		if (
-			originalRequest.url?.includes("/api/auth/refresh") ||
-			originalRequest.url?.includes("/api/auth/login") ||
-			originalRequest.url?.includes("/api/auth/register")
+			originalRequest.url?.includes("/api/identity/refresh") ||
+			originalRequest.url?.includes("/api/identity/login") ||
+			originalRequest.url?.includes("/api/identity/register")
 		) {
 			return Promise.reject(error);
 		}
@@ -82,7 +87,7 @@ apiClient.interceptors.response.use(
 
 		try {
 			// Use native fetch() to avoid intercepting ourselves
-			const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh`, {
+			const refreshRes = await fetch(`${BASE_URL}/api/identity/refresh`, {
 				method: "POST",
 				credentials: "include",
 			});

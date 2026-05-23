@@ -72,7 +72,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
 		// Validate stored token
 		try {
-			const validateRes = await fetch(`${BASE_URL}/api/auth/validate`, {
+			const validateRes = await fetch(`${BASE_URL}/api/identity/validate`, {
 				headers: { Authorization: `Bearer ${stored.accessToken}` },
 			});
 
@@ -117,7 +117,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 	},
 
 	refreshAuth: async () => {
-		const res = await fetch(`${BASE_URL}/api/auth/refresh`, {
+		const res = await fetch(`${BASE_URL}/api/identity/refresh`, {
 			method: "POST",
 			credentials: "include",
 		});

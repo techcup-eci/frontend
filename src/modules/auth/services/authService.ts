@@ -1,22 +1,22 @@
+import { apiClient } from "../../../core/api/apiClient";
+import { useAuthStore } from "../hooks/useAuthStore";
+import type { RegisterRequest } from "../types/authSchemas";
 import {
+	type LoginResponse,
 	loginRequestSchema,
 	loginResponseSchema,
-	type LoginResponse,
+	type RegisterResponse,
 	registerRequestSchema,
 	registerResponseSchema,
-	type RegisterResponse,
 } from "../types/authSchemas";
 import type { LoginRequest } from "../types/LoginRequest";
-import type { RegisterRequest } from "../types/authSchemas";
-import { useAuthStore } from "../hooks/useAuthStore";
-import { apiClient } from "../../../core/api/apiClient";
 
 // ── Login ────────────────────────────────────────────────────────────────
 
 export async function login(credentials: LoginRequest): Promise<LoginResponse> {
 	const parsed = loginRequestSchema.parse(credentials);
 
-	const response = await apiClient.post("/api/auth/login", {
+	const response = await apiClient.post("/api/identity/login", {
 		email: parsed.email,
 		password: parsed.password,
 	});
@@ -26,7 +26,9 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
 
 // ── Register ─────────────────────────────────────────────────────────────
 
-export async function register(data: RegisterRequest): Promise<RegisterResponse> {
+export async function register(
+	data: RegisterRequest,
+): Promise<RegisterResponse> {
 	const parsed = registerRequestSchema.parse(data);
 
 	const body = {
@@ -42,7 +44,7 @@ export async function register(data: RegisterRequest): Promise<RegisterResponse>
 		birthDate: parsed.birthDate,
 	};
 
-	const response = await apiClient.post("/api/auth/register", body);
+	const response = await apiClient.post("/api/identity/register", body);
 	return registerResponseSchema.parse(response.data);
 }
 
@@ -53,7 +55,7 @@ export async function logout(): Promise<void> {
 	if (!token) return;
 
 	try {
-		await apiClient.post("/api/auth/logout");
+		await apiClient.post("/api/identity/logout");
 	} catch {
 		// Proceed with local cleanup even if API call fails
 	}
@@ -62,5 +64,5 @@ export async function logout(): Promise<void> {
 // ── Role Management ──────────────────────────────────────────────────────
 
 export async function updateRole(userId: number, role: string): Promise<void> {
-	await apiClient.patch(`/api/auth/users/${userId}/role`, { role });
+	await apiClient.patch(`/api/identity/users/${userId}/role`, { role });
 }
