@@ -81,7 +81,12 @@ export default function BecomePlayer() {
       if (userId && authUser?.role !== "PLAYER" && authUser?.role !== "CAPTAIN") {
         try {
           await updateRole(userId, "PLAYER");
-          await useAuthStore.getState().refreshAuth();
+          // Update local auth store directly instead of refreshAuth()
+          // (refreshAuth can fail due to httpOnly cookie/cross-origin issues)
+          const store = useAuthStore.getState();
+          if (store.accessToken && store.user) {
+            store.setAuthenticated(store.accessToken, { ...store.user, role: "player" });
+          }
         } catch {
           // Role upgrade is best-effort — profile already created
         }

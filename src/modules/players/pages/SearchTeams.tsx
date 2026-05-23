@@ -36,6 +36,7 @@ export default function SearchTeams() {
   const [statusFilter, setStatusFilter] = useState("");
   const [joinCodeOpen, setJoinCodeOpen] = useState(false);
   const [teamCode, setTeamCode] = useState("");
+  const [joiningTeamId, setJoiningTeamId] = useState<number | null>(null);
 
   // Find the team the user already belongs to (as captain or player)
   const myTeam = useMemo(() => {
@@ -84,7 +85,12 @@ export default function SearchTeams() {
       return;
     }
     // Hook handles success/error toasts
-    await sendJoin.mutateAsync(teamId);
+    setJoiningTeamId(teamId);
+    try {
+      await sendJoin.mutateAsync(teamId);
+    } finally {
+      setJoiningTeamId(null);
+    }
   };
 
   return (
@@ -226,6 +232,7 @@ export default function SearchTeams() {
                     positions={[]}
                     onView={() => navigate(`/player/teams/${team.id}`)}
                     onJoin={myTeam ? undefined : () => handleJoinTeam(team.id, team.name)}
+                    isJoining={joiningTeamId === team.id}
                   />
                 ))}
               </div>

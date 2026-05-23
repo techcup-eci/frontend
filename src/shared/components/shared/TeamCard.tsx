@@ -1,4 +1,4 @@
-import { Shield, Users, User } from "lucide-react";
+import { Shield, Users, User, Loader2 } from "lucide-react";
 import Badge from "./Badge";
 
 interface TeamCardProps {
@@ -11,6 +11,7 @@ interface TeamCardProps {
   positions?: string[];
   onView?: () => void;
   onJoin?: () => void;
+  isJoining?: boolean;
 }
 
 export default function TeamCard({
@@ -23,6 +24,7 @@ export default function TeamCard({
   positions = [],
   onView,
   onJoin,
+  isJoining = false,
 }: TeamCardProps) {
   const availableSlots = maxPlayers - players;
 
@@ -90,9 +92,17 @@ export default function TeamCard({
           {onJoin && availableSlots > 0 && (
             <button
               onClick={onJoin}
-              className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90"
+              disabled={isJoining}
+              className="flex-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Solicitar unirme
+              {isJoining ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Enviando...
+                </span>
+              ) : (
+                "Solicitar unirme"
+              )}
             </button>
           )}
         </div>

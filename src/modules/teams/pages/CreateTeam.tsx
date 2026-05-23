@@ -24,7 +24,6 @@ export default function CreateTeam() {
 	const navigate = useNavigate();
 	const { mutateAsync: create, isPending } = useCreateTeam();
 	const currentUser = useAuthStore((state) => state.user);
-	const refreshAuth = useAuthStore((state) => state.refreshAuth);
 	const { data: activeTournament } = useActiveTournament();
 	const { data: teams = [] } = useAllTeams();
 	const [formData, setFormData] = useState({
@@ -103,7 +102,11 @@ export default function CreateTeam() {
 			if (currentUser && userRole === "player") {
 				try {
 					await updateRole(currentUser.id, "CAPTAIN");
-					await refreshAuth(); // Get new JWT with CAPTAIN role
+					// Update local auth store directly instead of refreshAuth()
+					const store = useAuthStore.getState();
+					if (store.accessToken && store.user) {
+						store.setAuthenticated(store.accessToken, { ...store.user, role: "captain" });
+					}
 				} catch {
 					// Role upgrade is best-effort — team already created
 				}

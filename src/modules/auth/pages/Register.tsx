@@ -75,12 +75,14 @@ export function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[Register] handleSubmit called");
     setServerError(null);
 
     // ── Confirm password (not in Zod schema — backend doesn't receive it) ──
     const extraErrors: Record<string, string> = {};
     if (formData.password !== formData.confirmPassword) {
       extraErrors.confirmPassword = "Las contraseñas no coinciden.";
+      console.log("[Register] Password mismatch");
     }
 
     // ── Zod validation (source of truth) ──────────────────────────────────
@@ -99,22 +101,29 @@ export function RegisterPage() {
 
     if (!zodResult.success) {
       const zodErrors = zodFieldErrors(zodResult.error);
+      console.log("[Register] Zod validation FAILED:", zodErrors);
       setFieldErrors({ ...zodErrors, ...extraErrors });
       return;
     }
 
+    console.log("[Register] Zod validation PASSED");
+
     if (Object.keys(extraErrors).length > 0) {
+      console.log("[Register] Extra errors:", extraErrors);
       setFieldErrors(extraErrors);
       return;
     }
 
     // ── Submit ────────────────────────────────────────────────────────────
+    console.log("[Register] Submitting to API...");
     try {
       await register(zodResult.data);
+      console.log("[Register] Success!");
       navigate("/home", { replace: true });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Error al registrar. Intenta de nuevo.";
+      console.log("[Register] API error:", message);
       setServerError(message);
     }
   };
