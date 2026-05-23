@@ -1,20 +1,3 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, User, Users, Trophy, BarChart3, Calendar } from "lucide-react";
-
-const playerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/player/dashboard", icon: Home },
-      { label: "Mi Perfil", path: "/player/profile", icon: User },
-      { label: "Buscar Equipos", path: "/player/teams", icon: Users },
-      { label: "Torneo", path: "/tournament-info", icon: Trophy },
-      { label: "Estadísticas", path: "/stats", icon: BarChart3 },
-      { label: "Disponibilidad", path: "/player/availability", icon: Calendar },
-    ],
-  },
-];
-
 const rivalLineup = [
   { id: 1, name: "Roberto Silva", dorsal: 1, position: "Portero", top: "85%", left: "50%" },
   { id: 2, name: "Carlos Méndez", dorsal: 2, position: "Lateral Izquierdo", top: "65%", left: "15%" },
@@ -115,3 +98,5 @@ export default function ViewRivalLineup() {
     </div>
   );
 }
+
+

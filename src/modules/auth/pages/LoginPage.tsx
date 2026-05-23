@@ -1,4 +1,7 @@
+import { useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import { LoginForm } from "../components/LoginForm";
+import { useAuthStore } from "../hooks/useAuthStore";
 
 const roleCards = [
 	{
@@ -19,6 +22,35 @@ const roleCards = [
 ];
 
 export function LoginPage() {
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const status = useAuthStore((state) => state.status);
+
+	// Redirect after successful authentication — role-aware
+	const redirectTo = searchParams.get("redirect");
+
+	useEffect(() => {
+		if (status !== "authenticated") return;
+
+		if (redirectTo) {
+			navigate(decodeURIComponent(redirectTo), { replace: true });
+			return;
+		}
+
+		// Role-based default dashboard
+		const user = useAuthStore.getState().user;
+		const roleDashboards: Record<string, string> = {
+			admin: "/admin/dashboard",
+			organizer: "/organizer/dashboard",
+			captain: "/captain/dashboard",
+			referee: "/referee/dashboard",
+			player: "/player/dashboard",
+			invited: "/user/dashboard",
+		};
+		const dest = roleDashboards[user?.role ?? "invited"] ?? "/user/dashboard";
+		navigate(dest, { replace: true });
+	}, [navigate, status, redirectTo]);
+
 	return (
 		<main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
 			<div className="mx-auto grid min-h-[calc(100vh-4rem)] w-full max-w-7xl overflow-hidden rounded-[2rem] border border-white/70 bg-white/75 shadow-[0_30px_100px_rgba(15,23,42,0.18)] backdrop-blur sm:grid-cols-[1.1fr_0.9fr]">

@@ -1,235 +1,221 @@
+import { Link } from "react-router";
 import {
-	Calendar,
-	ChevronRight,
-	TrendingUp,
 	Trophy,
 	Users,
+	Shield,
+	BarChart3,
+	Calendar,
+	Star,
+	ArrowRight,
+	LogIn,
+	UserPlus,
 } from "lucide-react";
-import { Link } from "react-router";
-import MatchCard from "../../../shared/components/shared/MatchCard";
-import Navbar from "../../../shared/components/shared/Navbar";
 
 export default function LandingPage() {
 	return (
-		<div className="min-h-screen bg-background">
-			{/* Hero */}
-			{/* <section className="relative h-[90vh] overflow-hidden bg-gradient-to-br from-[#1B5E35] via-[#0D0D0D] to-[#1B5E35]">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 51px),
-            repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 51px)`
-          }} />
-        </div>
-        <div className="container relative mx-auto flex h-full max-w-6xl flex-col items-center justify-center px-6 text-center">
-          <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm">
-            <Trophy className="h-12 w-12 text-[#F97316]" />
-          </div>
-          <h1 className="mb-4 text-6xl font-black text-white">TechCup Fútbol</h1>
-          <p className="mb-2 text-2xl font-bold text-[#4ADE80]">Torneo 2025-1</p>
-          <p className="mb-12 text-xl text-white/80">15 marzo – 30 mayo 2025</p>
-          <div className="flex gap-4">
-            <Link
-              to="/register"
-              className="rounded-xl bg-[#F97316] px-8 py-4 text-lg font-bold text-white transition hover:bg-[#F97316]/90"
-            >
-              Regístrate
-            </Link>
-            <Link
-              to="/login"
-              className="rounded-xl border-2 border-white bg-transparent px-8 py-4 text-lg font-bold text-white transition hover:bg-white/10"
-            >
-              Ver el torneo
-            </Link>
-          </div>
-        </div>
-      </section> */}
-
-			{/* Resumen del torneo */}
-			<section className="border-b border-border bg-card py-16">
-				<div className="container mx-auto max-w-6xl px-6">
-					<div className="grid gap-8 md:grid-cols-3">
-						<div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-background p-6 text-center">
-							<Users className="h-12 w-12 text-primary" />
-							<h3 className="text-3xl font-bold">10 / 12</h3>
-							<p className="text-muted-foreground">Equipos inscritos</p>
-						</div>
-						<div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-background p-6 text-center">
-							<Calendar className="h-12 w-12 text-accent" />
-							<h3 className="text-3xl font-bold">Fase de grupos</h3>
-							<p className="text-muted-foreground">Estado actual</p>
-						</div>
-						<div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-background p-6 text-center">
-							<Trophy className="h-12 w-12 text-[#4ADE80]" />
-							<h3 className="text-3xl font-bold">2 cupos</h3>
-							<p className="text-muted-foreground">Disponibles</p>
-						</div>
+		<div className="min-h-screen bg-white text-[#101828]">
+			{/* ── Navbar ─────────────────────────────────────────────── */}
+			<nav className="sticky top-0 z-50 border-b border-gray-100 bg-white/80 backdrop-blur-lg">
+				<div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+				<div className="flex items-center gap-3">
+					<Link to="/" className="flex items-center gap-3">
+						<img
+							src="/images/logo-transparent-background.png"
+							alt="TechCup"
+							className="h-10 w-auto object-contain"
+						/>
+					</Link>
+					<span className="text-xl font-bold tracking-tight">
+							TechCup <span className="text-[#990000]">Fútbol</span>
+						</span>
 					</div>
-				</div>
-			</section>
-
-			{/* Próximos partidos */}
-			<section className="py-16">
-				<div className="container mx-auto max-w-6xl px-6">
-					<h2 className="mb-8 text-3xl font-bold">Próximos partidos</h2>
-					<div className="grid gap-6 md:grid-cols-3">
-						<MatchCard
-							homeTeam={{ name: "Los Algoritmos FC" }}
-							awayTeam={{ name: "Byte Brothers" }}
-							date="12/04/2025"
-							time="14:00"
-							field="Cancha Principal ECI"
-							phase="Fase de grupos"
-						/>
-						<MatchCard
-							homeTeam={{ name: "Neural FC" }}
-							awayTeam={{ name: "Los Cibernéticos" }}
-							date="13/04/2025"
-							time="15:30"
-							field="Cancha Auxiliar Bloque B"
-							phase="Fase de grupos"
-						/>
-						<MatchCard
-							homeTeam={{ name: "Kernel Panic CF" }}
-							awayTeam={{ name: "Stack Overflow FC" }}
-							date="14/04/2025"
-							time="16:00"
-							field="Cancha Principal ECI"
-							phase="Fase de grupos"
-						/>
-					</div>
-				</div>
-			</section>
-
-			{/* Tabla de posiciones resumida */}
-			<section className="border-t border-border bg-card py-16">
-				<div className="container mx-auto max-w-6xl px-6">
-					<div className="mb-8 flex items-center justify-between">
-						<h2 className="text-3xl font-bold">Tabla de posiciones</h2>
+					<div className="flex items-center gap-3">
 						<Link
-							to="/organizer/standings"
-							className="flex items-center gap-2 text-primary hover:underline"
+							to="/login"
+							className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-[#101828] transition hover:bg-gray-50"
 						>
-							Ver tabla completa <ChevronRight className="h-5 w-5" />
+							<LogIn className="h-4 w-4" />
+							Iniciar sesión
+						</Link>
+						<Link
+							to="/register"
+							className="flex items-center gap-2 rounded-lg bg-[#990000] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#7a0000]"
+						>
+							<UserPlus className="h-4 w-4" />
+							Registrarme
 						</Link>
 					</div>
-					<div className="overflow-hidden rounded-xl border border-border bg-background">
-						<table className="w-full">
-							<thead className="bg-primary text-primary-foreground">
-								<tr>
-									<th className="px-4 py-3 text-left">Pos</th>
-									<th className="px-4 py-3 text-left">Equipo</th>
-									<th className="px-4 py-3 text-center">PJ</th>
-									<th className="px-4 py-3 text-center">PG</th>
-									<th className="px-4 py-3 text-center">PE</th>
-									<th className="px-4 py-3 text-center">PP</th>
-									<th className="px-4 py-3 text-center">Pts</th>
-								</tr>
-							</thead>
-							<tbody>
-								{[
-									{
-										pos: 1,
-										team: "Los Algoritmos FC",
-										pj: 6,
-										pg: 5,
-										pe: 1,
-										pp: 0,
-										pts: 16,
-									},
-									{
-										pos: 2,
-										team: "Neural FC",
-										pj: 6,
-										pg: 4,
-										pe: 2,
-										pp: 0,
-										pts: 14,
-									},
-									{
-										pos: 3,
-										team: "Byte Brothers",
-										pj: 6,
-										pg: 4,
-										pe: 1,
-										pp: 1,
-										pts: 13,
-									},
-									{
-										pos: 4,
-										team: "Los Cibernéticos",
-										pj: 6,
-										pg: 3,
-										pe: 2,
-										pp: 1,
-										pts: 11,
-									},
-									{
-										pos: 5,
-										team: "Kernel Panic CF",
-										pj: 6,
-										pg: 3,
-										pe: 1,
-										pp: 2,
-										pts: 10,
-									},
-								].map((row) => (
-									<tr
-										key={row.pos}
-										className="border-t border-border hover:bg-muted/50"
-									>
-										<td className="px-4 py-3 font-bold">{row.pos}</td>
-										<td className="px-4 py-3">{row.team}</td>
-										<td className="px-4 py-3 text-center">{row.pj}</td>
-										<td className="px-4 py-3 text-center">{row.pg}</td>
-										<td className="px-4 py-3 text-center">{row.pe}</td>
-										<td className="px-4 py-3 text-center">{row.pp}</td>
-										<td className="px-4 py-3 text-center font-bold">
-											{row.pts}
-										</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
+				</div>
+			</nav>
+
+			{/* ── Hero ───────────────────────────────────────────────── */}
+			<section className="relative overflow-hidden bg-white">
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(153,0,0,0.06),transparent_50%)]" />
+				<div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(72,172,240,0.06),transparent_50%)]" />
+				<div className="relative mx-auto max-w-6xl px-6 py-24 md:py-36">
+					<div className="mx-auto max-w-3xl text-center">
+						<div className="mb-6 inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-600">
+							<Trophy className="h-4 w-4 text-[#990000]" />
+							Torneo semestral de fútbol — ECI
+						</div>
+						<h1 className="mb-6 text-5xl font-black leading-tight tracking-tight text-[#101828] md:text-7xl">
+							El torneo que une al{" "}
+							<span className="bg-gradient-to-r from-[#990000] to-[#48acf0] bg-clip-text text-transparent">
+								campus
+							</span>
+						</h1>
+						<p className="mb-10 text-lg text-gray-500 md:text-xl">
+							Plataforma digital para gestionar el torneo de fútbol de los
+							programas de Ingeniería de Sistemas, IA, Ciberseguridad y
+							Estadística de la Escuela Colombiana de Ingeniería.
+						</p>
+						<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+							<Link
+								to="/register"
+								className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#990000] px-8 py-4 text-base font-semibold text-white shadow-lg shadow-[#990000]/20 transition hover:bg-[#7a0000] sm:w-auto"
+							>
+								<UserPlus className="h-5 w-5" />
+								Crear mi cuenta
+								<ArrowRight className="h-4 w-4" />
+							</Link>
+							<Link
+								to="/login"
+								className="flex w-full items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-8 py-4 text-base font-semibold text-[#101828] transition hover:bg-gray-50 sm:w-auto"
+							>
+								<LogIn className="h-5 w-5" />
+								Iniciar sesión
+							</Link>
+						</div>
 					</div>
 				</div>
 			</section>
 
-			{/* Estadísticas rápidas */}
-			<section className="py-16">
-				<div className="container mx-auto max-w-6xl px-6">
-					<h2 className="mb-8 text-3xl font-bold">Estadísticas del torneo</h2>
-					<div className="grid gap-6 md:grid-cols-2">
-						<div className="rounded-xl border border-border bg-card p-6">
-							<div className="mb-4 flex items-center gap-3">
-								<TrendingUp className="h-8 w-8 text-accent" />
-								<h3 className="text-xl font-bold">Máximo goleador</h3>
+			{/* ── Features ───────────────────────────────────────────── */}
+			<section className="border-t border-gray-100 bg-gray-50/50 py-20">
+				<div className="mx-auto max-w-6xl px-6">
+					<div className="mb-12 text-center">
+						<h2 className="mb-3 text-3xl font-bold text-[#101828]">
+							¿Qué puedes hacer en TechCup?
+						</h2>
+						<p className="text-gray-500">
+							Todo lo que necesitas para vivir el torneo, en un solo lugar.
+						</p>
+					</div>
+					<div className="grid gap-6 md:grid-cols-3">
+						<div className="rounded-2xl border border-gray-100 bg-white p-8 transition hover:shadow-lg">
+							<div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#990000]/10">
+								<Users className="h-6 w-6 text-[#990000]" />
 							</div>
-							<p className="text-3xl font-bold">Sebastián Torres</p>
-							<p className="text-muted-foreground">
-								Los Algoritmos FC · 12 goles
+							<h3 className="mb-2 text-lg font-bold">Crea y gestiona tu equipo</h3>
+							<p className="text-sm text-gray-500">
+								Forma tu equipo, busca jugadores por posición y administra
+								tu plantilla de forma sencilla.
 							</p>
 						</div>
-						<div className="rounded-xl border border-border bg-card p-6">
-							<div className="mb-4 flex items-center gap-3">
-								<Trophy className="h-8 w-8 text-primary" />
-								<h3 className="text-xl font-bold">Equipo líder</h3>
+						<div className="rounded-2xl border border-gray-100 bg-white p-8 transition hover:shadow-lg">
+							<div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#48acf0]/10">
+								<Calendar className="h-6 w-6 text-[#48acf0]" />
 							</div>
-							<p className="text-3xl font-bold">Los Algoritmos FC</p>
-							<p className="text-muted-foreground">16 puntos · 5 victorias</p>
+							<h3 className="mb-2 text-lg font-bold">Sigue el calendario</h3>
+							<p className="text-sm text-gray-500">
+								Consulta fechas, horarios y canchas de cada partido.
+								Nunca te pierdas un juego.
+							</p>
+						</div>
+						<div className="rounded-2xl border border-gray-100 bg-white p-8 transition hover:shadow-lg">
+							<div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#990000]/10">
+								<BarChart3 className="h-6 w-6 text-[#990000]" />
+							</div>
+							<h3 className="mb-2 text-lg font-bold">Estadísticas en vivo</h3>
+							<p className="text-sm text-gray-500">
+								Tabla de posiciones, goleadores, llaves eliminatorias y
+								historial completo del torneo.
+							</p>
+						</div>
+						<div className="rounded-2xl border border-gray-100 bg-white p-8 transition hover:shadow-lg">
+							<div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#48acf0]/10">
+								<Shield className="h-6 w-6 text-[#48acf0]" />
+							</div>
+							<h3 className="mb-2 text-lg font-bold">Inscripción y pagos</h3>
+							<p className="text-sm text-gray-500">
+								Inscribe tu equipo al torneo, sube comprobantes de pago
+								y recibe aprobación del organizador.
+							</p>
+						</div>
+						<div className="rounded-2xl border border-gray-100 bg-white p-8 transition hover:shadow-lg">
+							<div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#990000]/10">
+								<Star className="h-6 w-6 text-[#990000]" />
+							</div>
+							<h3 className="mb-2 text-lg font-bold">Perfil deportivo</h3>
+							<p className="text-sm text-gray-500">
+								Crea tu perfil con posición, dorsal y foto. Los capitanes
+								te encontrarán más fácil.
+							</p>
+						</div>
+						<div className="rounded-2xl border border-gray-100 bg-white p-8 transition hover:shadow-lg">
+							<div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-[#48acf0]/10">
+								<Trophy className="h-6 w-6 text-[#48acf0]" />
+							</div>
+							<h3 className="mb-2 text-lg font-bold">Llaves eliminatorias</h3>
+							<p className="text-sm text-gray-500">
+								Visualiza el bracket del torneo, cuartos de final,
+								semifinales y la gran final.
+							</p>
 						</div>
 					</div>
 				</div>
 			</section>
 
-			{/* Footer */}
-			<footer className="border-t border-border bg-card py-12">
-				<div className="container mx-auto max-w-6xl px-6 text-center">
-					<p className="mb-2 text-lg font-semibold">
+			{/* ── CTA ────────────────────────────────────────────────── */}
+			<section className="border-t border-gray-100 bg-white py-20">
+				<div className="mx-auto max-w-6xl px-6">
+					<div className="rounded-3xl border border-gray-100 bg-gradient-to-br from-[#990000] to-[#6b0000] p-12 text-center text-white md:p-16">
+						<h2 className="mb-4 text-3xl font-bold md:text-4xl">
+							¿Listo para jugar?
+						</h2>
+						<p className="mb-8 text-lg text-white/80">
+							Únete al torneo de fútbol más grande de la Escuela Colombiana
+							de Ingeniería.
+						</p>
+						<div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+							<Link
+								to="/register"
+								className="flex w-full items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 text-base font-semibold text-[#990000] transition hover:bg-gray-50 sm:w-auto"
+							>
+								<UserPlus className="h-5 w-5" />
+								Registrarme ahora
+							</Link>
+							<Link
+								to="/login"
+								className="flex w-full items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-8 py-4 text-base font-semibold text-white backdrop-blur-sm transition hover:bg-white/20 sm:w-auto"
+							>
+								<LogIn className="h-5 w-5" />
+								Tengo cuenta
+							</Link>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* ── Footer ─────────────────────────────────────────────── */}
+			<footer className="border-t border-gray-100 bg-white py-12">
+				<div className="mx-auto max-w-6xl px-6 text-center">
+					<div className="mb-4 flex items-center justify-center gap-3">
+						<img
+							src="/images/logo-transparent-background.png"
+							alt="TechCup"
+							className="h-8 w-auto object-contain"
+						/>
+						<span className="font-bold">TechCup Fútbol</span>
+					</div>
+					<p className="mb-1 text-sm text-gray-500">
 						Escuela Colombiana de Ingeniería Julio Garavito
 					</p>
-					<p className="text-muted-foreground">Bogotá, Colombia</p>
-					<p className="mt-4 text-sm text-muted-foreground">
-						© 2025 TechCup Fútbol. Todos los derechos reservados.
+					<p className="mb-6 text-sm text-gray-400">
+						Ingeniería de Sistemas · IA · Ciberseguridad · Estadística
+					</p>
+					<p className="text-xs text-gray-400">
+						© 2026 TechCup Fútbol. Proyecto académico — Desarrollo de Software.
 					</p>
 				</div>
 			</footer>

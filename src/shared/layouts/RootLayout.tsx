@@ -4,7 +4,7 @@ import Navbar from "../components/shared/Navbar";
 export default function RootLayout() {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
+			<Navbar />
       <main className="flex-1">
         <Outlet />
       </main>

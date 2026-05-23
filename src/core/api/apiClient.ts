@@ -1,100 +1,110 @@
 import axios from "axios";
-import { useAuthStore } from "../../shared/store/authStore";
+import { useAuthStore } from "../../modules/auth/hooks/useAuthStore";
+
+// ── Base client ──────────────────────────────────────────────────────────
 
 export const apiClient = axios.create({
-	baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api", // Adjust base URL as needed
+	baseURL: (import.meta.env.VITE_API_URL ?? "http://localhost:8081").replace(/\/$/, ""),
+	withCredentials: true,
 	headers: {
 		"Content-Type": "application/json",
 	},
 });
 
+// ── Request interceptor: attach access token ─────────────────────────────
+
+apiClient.interceptors.request.use((config) => {
+	const token = useAuthStore.getState().accessToken;
+	if (token && config.headers) {
+		config.headers.Authorization = `Bearer ${token}`;
+	}
+	return config;
+});
+
+// ── 401 retry queue ─────────────────────────────────────────────────────
+
 let isRefreshing = false;
-let failedQueue: {
+let failedQueue: Array<{
 	resolve: (value?: unknown) => void;
-	reject: (reason?: any) => void;
-}[] = [];
+	reject: (reason?: unknown) => void;
+}> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
-	failedQueue.forEach((prom) => {
+function processQueue(error: unknown, token: string | null) {
+	for (const { resolve, reject } of failedQueue) {
 		if (error) {
-			prom.reject(error);
+			reject(error);
 		} else {
-			prom.resolve(token);
+			resolve(token);
 		}
-	});
-
+	}
 	failedQueue = [];
-};
+}
 
-apiClient.interceptors.request.use(
-	(config) => {
-		const { accessToken } = useAuthStore.getState();
-		if (accessToken && config.headers) {
-			config.headers.Authorization = `Bearer ${accessToken}`;
-		}
-		return config;
-	},
-	(error) => {
-		return Promise.reject(error);
-	},
-);
+// ── Response interceptor ─────────────────────────────────────────────────
+
+const BASE_URL = (import.meta.env.VITE_API_URL ?? "http://localhost:8081").replace(/\/$/, "");
 
 apiClient.interceptors.response.use(
-	(response) => {
-		return response;
-	},
+	(response) => response,
 	async (error) => {
 		const originalRequest = error.config;
 
-		if (error.response?.status === 401 && !originalRequest._retry) {
-			originalRequest._retry = true;
-
-			if (isRefreshing) {
-				return new Promise((resolve, reject) => {
-					failedQueue.push({ resolve, reject });
-				})
-					.then((token) => {
-						originalRequest.headers.Authorization = "Bearer " + token;
-						return apiClient(originalRequest);
-					})
-					.catch((err) => {
-						return Promise.reject(err);
-					});
-			}
-
-			isRefreshing = true;
-
-			try {
-				// IMPORTANT: Use axios.post directly to avoid an infinite loop in the interceptor
-				// if the refresh token endpoint itself returns a 401
-				const baseURL =
-					import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-				const refreshResponse = await axios.post(
-					`${baseURL}/auth/refresh`,
-					{},
-					{
-						withCredentials: true, // Assuming refresh token is in a secure httpOnly cookie
-					},
-				);
-
-				const newAccessToken = refreshResponse.data.accessToken;
-
-				useAuthStore.getState().setAccessToken(newAccessToken);
-				originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-
-				processQueue(null, newAccessToken);
-
-				return apiClient(originalRequest);
-			} catch (refreshError) {
-				processQueue(refreshError, null);
-				useAuthStore.getState().clearTokens();
-				// window.location.href = '/login'; // Optional redirect
-				return Promise.reject(refreshError);
-			} finally {
-				isRefreshing = false;
-			}
+		// Only handle 401; pass everything else through
+		if (error.response?.status !== 401 || originalRequest._retry) {
+			return Promise.reject(error);
 		}
 
-		return Promise.reject(error);
+		// Never retry auth endpoints (prevents infinite loops)
+		if (
+			originalRequest.url?.includes("/api/auth/refresh") ||
+			originalRequest.url?.includes("/api/auth/login") ||
+			originalRequest.url?.includes("/api/auth/register")
+		) {
+			return Promise.reject(error);
+		}
+
+		// If already refreshing, queue this request
+		if (isRefreshing) {
+			return new Promise((resolve, reject) => {
+				failedQueue.push({
+					resolve: (token) => {
+						originalRequest.headers.Authorization = `Bearer ${token}`;
+						resolve(apiClient(originalRequest));
+					},
+					reject,
+				});
+			});
+		}
+
+		// Start refresh
+		originalRequest._retry = true;
+		isRefreshing = true;
+
+		try {
+			// Use native fetch() to avoid intercepting ourselves
+			const refreshRes = await fetch(`${BASE_URL}/api/auth/refresh`, {
+				method: "POST",
+				credentials: "include",
+			});
+
+			if (!refreshRes.ok) {
+				throw new Error("Refresh failed");
+			}
+
+			const data = await refreshRes.json();
+			useAuthStore.getState().setAuthenticated(data.accessToken, data.user);
+			const newToken = data.accessToken;
+
+			processQueue(null, newToken);
+			originalRequest.headers.Authorization = `Bearer ${newToken}`;
+			return apiClient(originalRequest);
+		} catch (refreshError) {
+			processQueue(refreshError, null);
+			useAuthStore.getState().setUnauthenticated();
+			window.location.href = "/login";
+			return Promise.reject(refreshError);
+		} finally {
+			isRefreshing = false;
+		}
 	},
 );

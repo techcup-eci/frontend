@@ -8,7 +8,6 @@ type LoginFormErrors = Partial<Record<"email" | "password", string>>;
 const initialValues: LoginRequest = {
 	email: "",
 	password: "",
-	rememberMe: true,
 };
 
 function validateLogin(values: LoginRequest): LoginFormErrors {
@@ -28,32 +27,26 @@ function validateLogin(values: LoginRequest): LoginFormErrors {
 export function LoginForm() {
 	const [values, setValues] = useState<LoginRequest>(initialValues);
 	const [errors, setErrors] = useState<LoginFormErrors>({});
-	const { errorMessage, isPending, isSuccess, loggedUserName, login, resetState } = useLogin();
+	const { isPending, login } = useLogin();
 
-	function handleFieldChange(field: keyof LoginRequest, value: string | boolean) {
+	function handleFieldChange(field: "email" | "password", value: string) {
 		setValues((currentValues) => ({
 			...currentValues,
 			[field]: value,
 		}));
 
-		if (field !== "rememberMe") {
-			setErrors((currentErrors) => {
-				if (!currentErrors[field]) {
-					return currentErrors;
-				}
+		setErrors((currentErrors) => {
+			if (!currentErrors[field]) {
+				return currentErrors;
+			}
 
-				const nextErrors = { ...currentErrors };
-				delete nextErrors[field];
-				return nextErrors;
-			});
-		}
-
-		if (errorMessage || isSuccess) {
-			resetState();
-		}
+			const nextErrors = { ...currentErrors };
+			delete nextErrors[field];
+			return nextErrors;
+		});
 	}
 
-	async function handleSubmit(event: React.SubmitEvent<HTMLFormElement>) {
+	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		const validationErrors = validateLogin(values);
 
@@ -110,33 +103,6 @@ export function LoginForm() {
 					{errors.password ? <p className="text-sm text-rose-700">{errors.password}</p> : null}
 				</div>
 
-				<div className="flex items-center justify-between gap-3 text-sm text-slate-600">
-					<label className="inline-flex items-center gap-3">
-						<input
-							type="checkbox"
-							checked={Boolean(values.rememberMe)}
-							onChange={(event) => handleFieldChange("rememberMe", event.target.checked)}
-							className="h-4 w-4 rounded border-slate-300 text-rose-700 focus:ring-rose-200"
-						/>
-						<span>Recordar sesión</span>
-					</label>
-					<button type="button" className="font-medium text-sky-700 transition hover:text-sky-900">
-						Recuperar acceso
-					</button>
-				</div>
-
-				{errorMessage ? (
-					<div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
-						{errorMessage}
-					</div>
-				) : null}
-
-				{isSuccess ? (
-					<div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
-						Sesión iniciada correctamente{loggedUserName ? ` para ${loggedUserName}` : ""}.
-					</div>
-				) : null}
-
 				<button
 					type="submit"
 					disabled={isPending}
@@ -145,10 +111,6 @@ export function LoginForm() {
 					{isPending ? "Validando credenciales..." : "Entrar a TechUp Cup"}
 				</button>
 			</form>
-
-			<div className="mt-6 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-				Registro y recuperación de contraseña quedarán conectados en el siguiente paso del feature auth.
-			</div>
 		</div>
 	);
 }

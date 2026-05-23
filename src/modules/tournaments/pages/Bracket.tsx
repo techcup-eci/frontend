@@ -1,130 +1,193 @@
-import Navbar from "../../../shared/components/shared/Navbar";
-import Sidebar from "../../../shared/components/shared/Sidebar";
-import { Home, Trophy, Users, CreditCard, Calendar, ListChecks, Table, Layers } from "lucide-react";
+import { AlertCircle, Layers, Loader2, XCircle } from "lucide-react";
 import Badge from "../../../shared/components/shared/Badge";
+import { useActiveBracket } from "../hooks/useBracket";
+import { useActiveTournament } from "../hooks/useActiveTournament";
+import { useAllTeams } from "../../teams/hooks/useTeams";
+import { useMemo } from "react";
 
-const organizerSidebar = [
-  {
-    items: [
-      { label: "Inicio", path: "/organizer/dashboard", icon: Home },
-      { label: "Torneos", path: "/organizer/create-tournament", icon: Trophy },
-      { label: "Equipos", path: "/organizer/teams", icon: Users },
-      { label: "Pagos", path: "/organizer/teams", icon: CreditCard },
-      { label: "Partidos", path: "/organizer/schedule", icon: Calendar },
-      { label: "Resultados", path: "/organizer/calendar", icon: ListChecks },
-      { label: "Tabla de Posiciones", path: "/organizer/standings", icon: Table },
-      { label: "Llaves", path: "/organizer/bracket", icon: Layers },
-    ],
-  },
-];
+interface MatchBoxProps {
+  team1: string;
+  team2: string;
+  score1: number | null;
+  score2: number | null;
+}
 
-export default function Bracket() {
-  const matches = {
-    quarters: [
-      { id: 1, team1: "Los Algoritmos FC", team2: "Code Runners", score1: 4, score2: 1 },
-      { id: 2, team1: "Neural FC", team2: "Binary Warriors", score1: 3, score2: 0 },
-      { id: 3, team1: "Byte Brothers", team2: "Stack Overflow FC", score1: null, score2: null },
-      { id: 4, team1: "Los Cibernéticos", team2: "Kernel Panic CF", score1: null, score2: null },
-    ],
-    semis: [
-      { id: 5, team1: "Los Algoritmos FC", team2: "Neural FC", score1: null, score2: null },
-      { id: 6, team1: "Por definir", team2: "Por definir", score1: null, score2: null },
-    ],
-    final: { id: 7, team1: "Por definir", team2: "Por definir", score1: null, score2: null },
-  };
-
-  const MatchBox = ({ team1, team2, score1, score2 }: any) => (
+function MatchBox({ team1, team2, score1, score2 }: MatchBoxProps) {
+  return (
     <div className="relative flex min-w-[240px] flex-col gap-1 rounded-lg border border-border bg-card p-3">
       <div
         className={`flex items-center justify-between rounded px-3 py-2 ${
           score1 !== null && score1 > (score2 || 0) ? "bg-primary/10 font-bold" : "bg-background"
         }`}
       >
-        <span className="text-sm">{team1}</span>
-        <span className="text-lg font-bold">{score1 ?? "-"}</span>
+        <span className="truncate">{team1}</span>
+        <span className="font-mono">{score1 ?? "-"}</span>
       </div>
       <div
         className={`flex items-center justify-between rounded px-3 py-2 ${
           score2 !== null && score2 > (score1 || 0) ? "bg-primary/10 font-bold" : "bg-background"
         }`}
       >
-        <span className="text-sm">{team2}</span>
-        <span className="text-lg font-bold">{score2 ?? "-"}</span>
+        <span className="truncate">{team2}</span>
+        <span className="font-mono">{score2 ?? "-"}</span>
       </div>
     </div>
   );
+}
+
+const ROUND_LABELS: Record<string, string> = {
+  INITIAL: "Fase inicial",
+  QUARTERFINAL: "Cuartos de final",
+  SEMIFINAL: "Semifinales",
+  FINAL: "Final",
+};
+
+const ROUND_BADGE_VARIANTS: Record<string, "info" | "warning" | "success" | "default"> = {
+  INITIAL: "info",
+  QUARTERFINAL: "info",
+  SEMIFINAL: "warning",
+  FINAL: "success",
+};
+
+/**
+ * Convert a Long team ID (from teams-ms) to UUID format expected by tournament-ms.
+ */
+function longToUuid(longId: number): string {
+  const hex = longId.toString(16).padStart(12, "0");
+  return `00000000-0000-0000-0000-${hex}`;
+}
+
+export default function Bracket() {
+  const { data: activeTournament, isLoading: isLoadingTournament } = useActiveTournament();
+  const { data: matches = [], isLoading, isError, error } = useActiveBracket();
+  const { data: teams = [] } = useAllTeams();
+
+  // Build team name map
+  const teamNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const team of teams) {
+      map.set(longToUuid(team.id), team.name);
+      map.set(String(team.id), team.name);
+    }
+    return map;
+  }, [teams]);
+
+  const getTeamName = (id: string): string => {
+    return teamNameMap.get(id) ?? id.slice(0, 8);
+  };
+
+  // Group matches by round
+  const rounds = matches.reduce<Record<string, typeof matches>>((acc, match) => {
+    const round = match.round || "INITIAL";
+    if (!acc[round]) acc[round] = [];
+    acc[round].push(match);
+    return acc;
+  }, {});
+
+  // Sort rounds in order
+  const roundOrder = ["INITIAL", "QUARTERFINAL", "SEMIFINAL", "FINAL"];
+  const sortedRounds = Object.keys(rounds).sort(
+    (a, b) => roundOrder.indexOf(a) - roundOrder.indexOf(b)
+  );
+
+  if (isLoadingTournament || isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Cargando llaves del torneo...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!activeTournament) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <AlertCircle className="h-10 w-10 text-muted-foreground/60" />
+            <h2 className="text-xl font-bold">No hay torneo activo</h2>
+            <p className="text-muted-foreground">
+              No hay ningún torneo activo o en progreso en este momento.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex flex-col items-center gap-3 py-12 text-center">
+            <XCircle className="h-10 w-10 text-destructive/60" />
+            <p className="text-muted-foreground">
+              {error instanceof Error ? error.message : "No se pudieron cargar las llaves."}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (sortedRounds.length === 0) {
+    return (
+      <div className="p-8">
+        <div className="mx-auto max-w-7xl space-y-8">
+          <div>
+            <h1 className="mb-2 text-3xl font-bold">Llaves del Torneo</h1>
+            <p className="text-muted-foreground">{activeTournament.name}</p>
+          </div>
+          <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-card py-16 text-center">
+            <Layers className="mb-4 h-16 w-16 text-muted-foreground/40" />
+            <h3 className="mb-2 text-xl font-bold">Sin llaves generadas</h3>
+            <p className="text-muted-foreground">
+              Las llaves se generarán cuando el organizador inicie el torneo
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      
-      <div className="flex flex-1">
-        
-        <main className="flex-1 bg-background p-8">
-          <div className="mx-auto max-w-7xl space-y-8">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="mb-2 text-3xl font-bold">Llaves eliminatorias</h1>
-                <p className="text-muted-foreground">Fase final del torneo TechCup 2025-1</p>
-              </div>
-              <Badge variant="progress">Cuartos de final - 2 de 4 jugados</Badge>
-            </div>
+    <div className="p-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div>
+          <h1 className="mb-2 text-3xl font-bold">Llaves del Torneo</h1>
+          <p className="text-muted-foreground">
+            {activeTournament.name} — Estructura de eliminación directa
+          </p>
+        </div>
 
-            <div className="overflow-x-auto">
-              <div className="inline-flex min-w-full gap-8 p-4">
-                {/* Cuartos de final */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">CUARTOS DE FINAL</h3>
-                  {matches.quarters.map((match) => (
-                    <MatchBox key={match.id} {...match} />
+        <div className="space-y-12">
+          {sortedRounds.map((round) => {
+            const roundMatches = rounds[round];
+            const label = ROUND_LABELS[round] ?? round;
+            const badgeVariant = ROUND_BADGE_VARIANTS[round] ?? "default";
+
+            return (
+              <div key={round}>
+                <div className="mb-4 flex items-center gap-2">
+                  <Badge variant={badgeVariant} size="md">{label}</Badge>
+                </div>
+                <div className="flex flex-wrap justify-center gap-4">
+                  {roundMatches.map((m) => (
+                    <MatchBox
+                      key={m.id}
+                      team1={getTeamName(m.homeTeamId)}
+                      team2={getTeamName(m.awayTeamId)}
+                      score1={m.homeScore}
+                      score2={m.awayScore}
+                    />
                   ))}
                 </div>
-
-                {/* Conectores */}
-                <div className="flex flex-col justify-around py-12">
-                  <div className="h-24 border-r-2 border-t-2 border-border" />
-                  <div className="h-24 border-r-2 border-b-2 border-border" />
-                  <div className="h-24 border-r-2 border-t-2 border-border" />
-                  <div className="h-24 border-r-2 border-b-2 border-border" />
-                </div>
-
-                {/* Semifinales */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">SEMIFINALES</h3>
-                  <div className="space-y-32">
-                    {matches.semis.map((match) => (
-                      <MatchBox key={match.id} {...match} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Conectores */}
-                <div className="flex flex-col justify-around py-12">
-                  <div className="h-48 border-r-2 border-t-2 border-border" />
-                  <div className="h-48 border-r-2 border-b-2 border-border" />
-                </div>
-
-                {/* Final */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">FINAL</h3>
-                  <div className="mt-48">
-                    <MatchBox {...matches.final} />
-                  </div>
-                </div>
-
-                {/* Campeón */}
-                <div className="flex flex-col items-center gap-4">
-                  <h3 className="mb-4 font-bold text-muted-foreground">CAMPEÓN</h3>
-                  <div className="mt-48 flex h-32 w-48 items-center justify-center rounded-lg border-2 border-dashed border-primary bg-primary/5">
-                    <div className="text-center">
-                      <Trophy className="mx-auto mb-2 h-12 w-12 text-primary" />
-                      <p className="font-bold text-primary">Por definir</p>
-                    </div>
-                  </div>
-                </div>
               </div>
-            </div>
-          </div>
-        </main>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
