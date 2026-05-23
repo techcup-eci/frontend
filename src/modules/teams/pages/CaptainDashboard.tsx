@@ -84,7 +84,7 @@ export default function CaptainDashboard() {
 										de pago para participar en el torneo.
 									</p>
 									<Link
-										to="/captain/payment"
+										to="/captain/payments"
 										className="inline-block rounded-lg bg-[#FACC15] px-4 py-2 font-semibold text-black transition hover:bg-[#FACC15]/90"
 									>
 										Subir comprobante
