@@ -47,12 +47,6 @@ export default function CreateTeam() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		console.log("Submitting team creation with data:", formData);
-		if (!activeTournament) {
-			toast.error(
-				"No hay un torneo activo. Debes esperar a que se cree un torneo para crear un equipo.",
-			);
-			return;
-		}
 
 		// Frontend stores roles in lowercase (captain, player, etc.)
 		// Any player or captain can create a team — players auto-become captains
@@ -62,22 +56,24 @@ export default function CreateTeam() {
 			return;
 		}
 
-		// Check if user already has a team for this tournament
-		const existingTeam = teams.find(
-			(t) => t.captainId === currentUser?.id && t.idTournament === activeTournament?.id
-		);
-		if (existingTeam) {
-			toast.error("Ya tienes un equipo registrado para este torneo.", {
-				description: `Tu equipo "${existingTeam.name}" ya está inscrito.`,
-			});
-			return;
+		// Check if user already has a team for the active tournament (if any)
+		if (activeTournament) {
+			const existingTeam = teams.find(
+				(t) => t.captainId === currentUser?.id && t.idTournament === activeTournament.id
+			);
+			if (existingTeam) {
+				toast.error("Ya tienes un equipo registrado para este torneo.", {
+					description: `Tu equipo "${existingTeam.name}" ya está inscrito.`,
+				});
+				return;
+			}
 		}
 
 		const data: CreateTeamFormData = {
 			name: formData.name.trim(),
 			colors: formData.color,
 			photo: formData.photo,
-			idTournament: activeTournament.id,
+			idTournament: activeTournament?.id ?? null,
 		};
 
 		const result = createTeamSchema.safeParse(data);
